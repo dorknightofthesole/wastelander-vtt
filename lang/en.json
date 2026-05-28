@@ -3,6 +3,7 @@
     "ModuleTitle": "Wastelander",
     "Wizard": {
       "Title": "Character Creation",
+      "WindowTitle": "Wastelander – Character Creation",
       "Launch": "Create Character",
       "Back": "Back",
       "Next": "Next",

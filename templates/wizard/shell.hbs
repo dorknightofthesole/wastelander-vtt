@@ -50,6 +50,9 @@
             data-disabled="{{#unless enabled}}true{{else}}false{{/unless}}"
             {{#unless enabled}}disabled{{/unless}}
           >
+            <div class="wastelander-origin-art" aria-hidden="true">
+              <i class="{{icon}}"></i>
+            </div>
             <h3 class="wastelander-origin-title">{{label}}</h3>
             <p class="wastelander-origin-tagline">{{tagline}}</p>
             {{#unless enabled}}
@@ -103,6 +106,7 @@
                           data-trait-id="{{id}}"
                           {{#if disabled}}disabled{{/if}}
                         >
+                          <span class="wastelander-trait-icon" aria-hidden="true"><i class="{{icon}}"></i></span>
                           <span class="wastelander-trait-check" aria-hidden="true">{{#if selected}}✓{{else}}&nbsp;{{/if}}</span>
                           <span class="wastelander-trait-label">{{label}}</span>
                         </button>
@@ -610,8 +614,7 @@
         data-action="next"
         {{#unless canNext}}disabled{{/unless}}
       >
-        {{strings.next}}
-        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+        {{strings.next}}<span class="wastelander-btn-next-glyph" aria-hidden="true">&gt;</span>
       </button>
       {{/if}}
     </footer>

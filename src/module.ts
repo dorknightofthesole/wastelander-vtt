@@ -2,8 +2,10 @@ import { MODULE_ID } from "./constants.js";
 import CharacterWizardApp from "./wizard/CharacterWizardApp.js";
 import { isFalloutPlayerCharacter } from "./integrations/fallout.js";
 import { resolveActor } from "./integrations/falloutActor.js";
+import { registerTranslations, t } from "./integrations/i18n.js";
 
 Hooks.once("init", () => {
+  registerTranslations();
   console.log(`${MODULE_ID} | initializing`);
 });
 
@@ -13,7 +15,7 @@ Hooks.on("renderActorSheet", (app: { actor?: Actor; document?: Actor }, html: JQ
   if (!actor.isOwner) return;
   if (actor.getFlag(MODULE_ID, "creationComplete")) return;
 
-  const label = game.i18n.localize("Wastelander");
+  const label = t("WASTELANDER.ModuleTitle");
   const button = $(`
     <a class="header-button wastelander-launch-wizard" data-tooltip="${label}">
       <i class="fa-solid fa-user-astronaut in-header"></i>

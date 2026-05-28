@@ -63,6 +63,7 @@ import {
   computeSpecialPointsBudget,
 } from "./specialRules.js";
 import { enrichHtml } from "../integrations/foundryText.js";
+import { t } from "../integrations/i18n.js";
 import { applyWizardToActor } from "./applyWizardToActor.js";
 import {
   createInitialWizardState,
@@ -97,6 +98,7 @@ export interface OriginDefinition {
 export interface SurvivorTraitDefinition {
   id: string;
   label: string;
+  icon: string;
   traitCompendiumUuid: string;
   benefit: string;
   penalty: string;
@@ -133,8 +135,8 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
       resizable: true,
     },
     position: {
-      width: 1024,
-      height: 680,
+      width: 1122,
+      height: 840,
     },
     actions: {
       back: CharacterWizardApp.#onBack,
@@ -167,8 +169,7 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
   };
 
   get title(): string {
-    const base = game.i18n.localize("WASTELANDER.Wizard.Title");
-    return `${base}: ${this.actor.name}`;
+    return t("WASTELANDER.Wizard.WindowTitle");
   }
 
   static async renderForActor(actor: Actor): Promise<CharacterWizardApp | null> {
@@ -215,7 +216,7 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
     this.#syncSkillsState();
     if (hadSkills && this.state.step === "skills") {
       ui.notifications.info(
-        game.i18n.localize("WASTELANDER.Wizard.Skills.ResetFromSpecial"),
+        t("WASTELANDER.Wizard.Skills.ResetFromSpecial"),
       );
     }
   }
@@ -391,7 +392,7 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
       return {
         id,
         number: index + 1,
-        label: game.i18n.localize(`WASTELANDER.Wizard.Steps.${id}`),
+        label: t(`WASTELANDER.Wizard.Steps.${id}`),
         active,
         completed,
         clickable,
@@ -412,13 +413,13 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
     const specialPointsText = `Points remaining: ${specialBudget.remaining} / ${specialBudget.total}`;
 
     const attrMeta: Array<{ key: FalloutAttributeKey; label: string; blurb: string }> = [
-      { key: "str", label: "Strength", blurb: game.i18n.localize("WASTELANDER.Wizard.Special.Blurb.str") },
-      { key: "per", label: "Perception", blurb: game.i18n.localize("WASTELANDER.Wizard.Special.Blurb.per") },
-      { key: "end", label: "Endurance", blurb: game.i18n.localize("WASTELANDER.Wizard.Special.Blurb.end") },
-      { key: "cha", label: "Charisma", blurb: game.i18n.localize("WASTELANDER.Wizard.Special.Blurb.cha") },
-      { key: "int", label: "Intelligence", blurb: game.i18n.localize("WASTELANDER.Wizard.Special.Blurb.int") },
-      { key: "agi", label: "Agility", blurb: game.i18n.localize("WASTELANDER.Wizard.Special.Blurb.agi") },
-      { key: "luc", label: "Luck", blurb: game.i18n.localize("WASTELANDER.Wizard.Special.Blurb.luc") },
+      { key: "str", label: "Strength", blurb: t("WASTELANDER.Wizard.Special.Blurb.str") },
+      { key: "per", label: "Perception", blurb: t("WASTELANDER.Wizard.Special.Blurb.per") },
+      { key: "end", label: "Endurance", blurb: t("WASTELANDER.Wizard.Special.Blurb.end") },
+      { key: "cha", label: "Charisma", blurb: t("WASTELANDER.Wizard.Special.Blurb.cha") },
+      { key: "int", label: "Intelligence", blurb: t("WASTELANDER.Wizard.Special.Blurb.int") },
+      { key: "agi", label: "Agility", blurb: t("WASTELANDER.Wizard.Special.Blurb.agi") },
+      { key: "luc", label: "Luck", blurb: t("WASTELANDER.Wizard.Special.Blurb.luc") },
     ];
 
     const specialOverrides = this.#originSpecialOverrides();
@@ -597,7 +598,7 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
       ...context,
       actor: this.actor,
       steps,
-      stepHeading: game.i18n.localize(
+      stepHeading: t(
         `WASTELANDER.Wizard.StepHeading.${this.state.step}`,
       ),
       stepId: this.state.step,
@@ -662,53 +663,53 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
       finishError: finishError ?? "",
       validationError,
       strings: {
-        back: game.i18n.localize("WASTELANDER.Wizard.Back"),
-        next: game.i18n.localize("WASTELANDER.Wizard.Next"),
-        finish: game.i18n.localize("WASTELANDER.Wizard.Finish"),
-        selectOrigin: game.i18n.localize("WASTELANDER.Wizard.SelectOrigin"),
-        selectOriginHint: game.i18n.localize("WASTELANDER.Wizard.SelectOriginHint"),
-        originDetail: game.i18n.localize("WASTELANDER.Wizard.OriginDetail"),
-        trait: game.i18n.localize("WASTELANDER.Wizard.Trait"),
-        originRules: game.i18n.localize("WASTELANDER.Wizard.OriginRules"),
-        benefit: game.i18n.localize("WASTELANDER.Wizard.Benefit"),
-        penalty: game.i18n.localize("WASTELANDER.Wizard.Penalty"),
-        placeholder: game.i18n.localize("WASTELANDER.Wizard.Placeholder"),
-        specialInstructions: game.i18n.localize("WASTELANDER.Wizard.Special.Instructions"),
-        pointsRemaining: game.i18n.format("WASTELANDER.Wizard.Special.PointsRemaining", {
+        back: t("WASTELANDER.Wizard.Back"),
+        next: t("WASTELANDER.Wizard.Next"),
+        finish: t("WASTELANDER.Wizard.Finish"),
+        selectOrigin: t("WASTELANDER.Wizard.SelectOrigin"),
+        selectOriginHint: t("WASTELANDER.Wizard.SelectOriginHint"),
+        originDetail: t("WASTELANDER.Wizard.OriginDetail"),
+        trait: t("WASTELANDER.Wizard.Trait"),
+        originRules: t("WASTELANDER.Wizard.OriginRules"),
+        benefit: t("WASTELANDER.Wizard.Benefit"),
+        penalty: t("WASTELANDER.Wizard.Penalty"),
+        placeholder: t("WASTELANDER.Wizard.Placeholder"),
+        specialInstructions: t("WASTELANDER.Wizard.Special.Instructions"),
+        pointsRemaining: t("WASTELANDER.Wizard.Special.PointsRemaining", {
           remaining: specialBudget.remaining,
           total: specialBudget.total,
         }),
-        perksRequiring: game.i18n.localize("WASTELANDER.Wizard.Special.PerksRequiring"),
-        reset: game.i18n.localize("WASTELANDER.Wizard.Special.Reset"),
-        skillsInstructions: game.i18n.format("WASTELANDER.Wizard.Skills.Instructions", {
+        perksRequiring: t("WASTELANDER.Wizard.Special.PerksRequiring"),
+        reset: t("WASTELANDER.Wizard.Special.Reset"),
+        skillsInstructions: t("WASTELANDER.Wizard.Skills.Instructions", {
           max: maxSkillRank,
         }),
-        tagSkills: game.i18n.localize("WASTELANDER.Wizard.Skills.TagColumn"),
-        skillRank: game.i18n.localize("WASTELANDER.Wizard.Skills.RankColumn"),
-        perksInstructions: game.i18n.localize("WASTELANDER.Wizard.Perks.Instructions"),
-        perksSelectHint: game.i18n.localize("WASTELANDER.Wizard.Perks.SelectHint"),
-        perksRequirements: game.i18n.localize("WASTELANDER.Wizard.Perks.Requirements"),
-        perksNotMet: game.i18n.localize("WASTELANDER.Wizard.Perks.NotMet"),
-        survivorModeTwoTraits: game.i18n.localize("WASTELANDER.Wizard.Origin.SurvivorTwoTraits"),
-        survivorModeTraitPerk: game.i18n.localize("WASTELANDER.Wizard.Origin.SurvivorTraitPerk"),
-        equipmentInstructions: game.i18n.localize("WASTELANDER.Wizard.Equipment.Instructions"),
-        equipmentPackItems: game.i18n.localize("WASTELANDER.Wizard.Equipment.PackItems"),
-        equipmentTagLoot: game.i18n.localize("WASTELANDER.Wizard.Equipment.TagLoot"),
-        equipmentTrinket: game.i18n.localize("WASTELANDER.Wizard.Equipment.Trinket"),
-        equipmentRollTrinket: game.i18n.localize("WASTELANDER.Wizard.Equipment.RollTrinket"),
-        equipmentTrinketRollLabel: game.i18n.localize("WASTELANDER.Wizard.Equipment.TrinketRollLabel"),
-        equipmentCompendiumHint: game.i18n.localize("WASTELANDER.Wizard.Equipment.CompendiumHint"),
-        equipmentSelectPack: game.i18n.localize("WASTELANDER.Wizard.Equipment.SelectPack"),
-        reviewDerived: game.i18n.localize("WASTELANDER.Wizard.Review.Derived"),
-        reviewImmunities: game.i18n.localize("WASTELANDER.Wizard.Review.Immunities"),
-        reviewImmunitiesNone: game.i18n.localize("WASTELANDER.Wizard.Review.ImmunitiesNone"),
-        reviewOrigin: game.i18n.localize("WASTELANDER.Wizard.Review.Origin"),
-        reviewSpecial: game.i18n.localize("WASTELANDER.Wizard.Review.Special"),
-        reviewTags: game.i18n.localize("WASTELANDER.Wizard.Review.Tags"),
-        reviewPerks: game.i18n.localize("WASTELANDER.Wizard.Review.Perks"),
-        reviewEquipment: game.i18n.localize("WASTELANDER.Wizard.Review.Equipment"),
-        reviewTagLoot: game.i18n.localize("WASTELANDER.Wizard.Review.TagLoot"),
-        newWastelander: game.i18n.format("WASTELANDER.Wizard.NewWastelander", {
+        tagSkills: t("WASTELANDER.Wizard.Skills.TagColumn"),
+        skillRank: t("WASTELANDER.Wizard.Skills.RankColumn"),
+        perksInstructions: t("WASTELANDER.Wizard.Perks.Instructions"),
+        perksSelectHint: t("WASTELANDER.Wizard.Perks.SelectHint"),
+        perksRequirements: t("WASTELANDER.Wizard.Perks.Requirements"),
+        perksNotMet: t("WASTELANDER.Wizard.Perks.NotMet"),
+        survivorModeTwoTraits: t("WASTELANDER.Wizard.Origin.SurvivorTwoTraits"),
+        survivorModeTraitPerk: t("WASTELANDER.Wizard.Origin.SurvivorTraitPerk"),
+        equipmentInstructions: t("WASTELANDER.Wizard.Equipment.Instructions"),
+        equipmentPackItems: t("WASTELANDER.Wizard.Equipment.PackItems"),
+        equipmentTagLoot: t("WASTELANDER.Wizard.Equipment.TagLoot"),
+        equipmentTrinket: t("WASTELANDER.Wizard.Equipment.Trinket"),
+        equipmentRollTrinket: t("WASTELANDER.Wizard.Equipment.RollTrinket"),
+        equipmentTrinketRollLabel: t("WASTELANDER.Wizard.Equipment.TrinketRollLabel"),
+        equipmentCompendiumHint: t("WASTELANDER.Wizard.Equipment.CompendiumHint"),
+        equipmentSelectPack: t("WASTELANDER.Wizard.Equipment.SelectPack"),
+        reviewDerived: t("WASTELANDER.Wizard.Review.Derived"),
+        reviewImmunities: t("WASTELANDER.Wizard.Review.Immunities"),
+        reviewImmunitiesNone: t("WASTELANDER.Wizard.Review.ImmunitiesNone"),
+        reviewOrigin: t("WASTELANDER.Wizard.Review.Origin"),
+        reviewSpecial: t("WASTELANDER.Wizard.Review.Special"),
+        reviewTags: t("WASTELANDER.Wizard.Review.Tags"),
+        reviewPerks: t("WASTELANDER.Wizard.Review.Perks"),
+        reviewEquipment: t("WASTELANDER.Wizard.Review.Equipment"),
+        reviewTagLoot: t("WASTELANDER.Wizard.Review.TagLoot"),
+        newWastelander: t("WASTELANDER.Wizard.NewWastelander", {
           name: this.actor.name,
         }),
       },
@@ -1180,7 +1181,7 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
       applied = true;
       this.actor = resolveActor(this.actor);
       ui.notifications.info(
-        game.i18n.localize("WASTELANDER.Wizard.FinishSuccess"),
+        t("WASTELANDER.Wizard.FinishSuccess"),
       );
     } catch (error) {
       const message =
