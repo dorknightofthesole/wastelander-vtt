@@ -24,6 +24,10 @@ import {
 } from "./equipmentRules.js";
 import { getOriginImmunities, isMisterHandyOrigin } from "./originRules.js";
 import {
+  computeHealthMax,
+  computeStartingLuckPoints,
+} from "./derivedStats.js";
+import {
   getEffectiveSkillRank,
   getSkillsTagConfig,
 } from "./skillsRules.js";
@@ -249,6 +253,34 @@ export async function applyWizardToActor(
   for (const immunity of getOriginImmunities(state.originId)) {
     actorUpdate[`system.immunities.${immunity}`] = true;
   }
+
+  const preApply = getWorldActor(actorId);
+  const preSystem = preApply.system as {
+    level?: { value?: number };
+    radiation?: number;
+    health?: { bonus?: number };
+    derived?: {
+      conditions?: { wellRested?: boolean };
+    };
+  };
+  const level = Number(preSystem.level?.value ?? 1);
+  const radiation = Number(preSystem.radiation ?? 0);
+  const healthBonus = Number(preSystem.health?.bonus ?? 0);
+  const wellRestedOrTinkered = Boolean(
+    preSystem.derived?.conditions?.wellRested,
+  );
+  const healthMax = computeHealthMax(state.special, {
+    level,
+    radiation,
+    healthBonus,
+    wellRestedOrTinkered,
+  });
+  actorUpdate["system.health.max"] = healthMax;
+  actorUpdate["system.health.value"] = healthMax;
+  actorUpdate["system.luckPoints"] = computeStartingLuckPoints(
+    state.special,
+    state.survivorTraitIds,
+  );
 
   await runApplyStep("Update character", async () => {
     await updateWorldActor(actorId, actorUpdate);
