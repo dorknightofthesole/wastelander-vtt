@@ -1,18 +1,21 @@
-/* Wastelander wizard — Pip-Boy amber mock palette */
+/* Wastelander wizard — Pip-Boy phosphor palette (mock reference) */
 
 .wastelander-wizard {
   --wstl-bg: #080a05;
-  --wstl-bg-panel: #0c0e08;
-  --wstl-amber: #ffb000;
-  --wstl-amber-dim: #c99200;
-  --wstl-amber-muted: #7a5f10;
-  --wstl-amber-glow: rgba(255, 176, 0, 0.35);
-  --wstl-text: #ffb000;
-  --wstl-text-dim: #d4a84a;
-  --wstl-text-faint: #9a7a28;
-  --wstl-border: #ffb000;
-  --wstl-danger: #ff6b4a;
-  --wstl-scanline: rgba(0, 0, 0, 0.4);
+  --wstl-bg-panel: #0b0d07;
+  --wstl-accent-rgb: 212, 224, 74;
+  --wstl-amber: #d4e04a;
+  --wstl-amber-dim: #a4b44a;
+  --wstl-amber-muted: #5c6238;
+  --wstl-amber-bright: #e8f060;
+  --wstl-amber-glow: rgba(212, 224, 74, 0.42);
+  --wstl-text: #d4e04a;
+  --wstl-text-dim: #96a35a;
+  --wstl-text-faint: #6d7444;
+  --wstl-border: #8fa04e;
+  --wstl-btn-text: #0a0c02;
+  --wstl-danger: #e86b4a;
+  --wstl-scanline: rgba(0, 0, 0, 0.34);
   --wstl-font: "Roboto Mono", "Consolas", "Courier New", monospace;
 }
 
@@ -21,6 +24,7 @@
   padding: 0;
   background: var(--wstl-bg);
   overflow: hidden;
+  box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.55);
 }
 
 .wastelander-wizard .window-content::after {
@@ -36,7 +40,7 @@
     var(--wstl-scanline) 2px,
     var(--wstl-scanline) 4px
   );
-  opacity: 0.45;
+  opacity: 0.38;
 }
 
 .wastelander-wizard .window-header {
@@ -111,16 +115,16 @@
 
 .wastelander-step-button:hover:not(.disabled) {
   color: var(--wstl-amber-dim);
-  background: rgba(255, 176, 0, 0.04);
+  background: rgba(var(--wstl-accent-rgb), 0.04);
 }
 
 .wastelander-step-item.active .wastelander-step-button {
   color: var(--wstl-amber);
   border: 3px double var(--wstl-amber);
   border-right: none;
-  background: rgba(255, 176, 0, 0.08);
+  background: rgba(var(--wstl-accent-rgb), 0.08);
   text-shadow: 0 0 8px var(--wstl-amber-glow);
-  box-shadow: inset 0 0 18px rgba(255, 176, 0, 0.06);
+  box-shadow: inset 0 0 18px rgba(var(--wstl-accent-rgb), 0.06);
 }
 
 .wastelander-step-item.active .wastelander-step-button::after {
@@ -210,10 +214,12 @@
   margin: 0;
   font-size: 18px;
   font-weight: 700;
-  color: var(--wstl-amber);
+  color: var(--wstl-amber-bright);
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  text-shadow: 0 0 10px var(--wstl-amber-glow);
+  text-shadow:
+    0 0 12px var(--wstl-amber-glow),
+    0 0 24px rgba(var(--wstl-accent-rgb), 0.2);
 }
 
 .wastelander-actor-chip {
@@ -293,8 +299,8 @@
   margin: 0;
   padding: 0;
   text-align: left;
-  background: rgba(0, 0, 0, 0.28);
-  border: 2px double rgba(255, 176, 0, 0.22);
+  background: rgba(0, 0, 0, 0.35);
+  border: 2px double var(--wstl-amber-muted);
   color: var(--wstl-text);
   font: inherit;
   line-height: 1.35;
@@ -313,10 +319,10 @@
   justify-content: center;
   min-height: 3rem;
   padding: 0.35rem 0.3rem;
-  border-bottom: 1px solid rgba(255, 176, 0, 0.2);
+  border-bottom: 1px solid rgba(var(--wstl-accent-rgb), 0.2);
   background: linear-gradient(
     180deg,
-    rgba(255, 176, 0, 0.04) 0%,
+    rgba(var(--wstl-accent-rgb), 0.04) 0%,
     rgba(0, 0, 0, 0.15) 100%
   );
 }
@@ -330,16 +336,17 @@
 }
 
 .wastelander-origin-card:hover:not(.is-disabled) {
-  border-color: rgba(255, 176, 0, 0.45);
-  background: rgba(255, 176, 0, 0.03);
+  border-color: rgba(var(--wstl-accent-rgb), 0.45);
+  background: rgba(var(--wstl-accent-rgb), 0.03);
 }
 
 .wastelander-origin-card.selected {
   border: 2px double var(--wstl-amber);
-  background: rgba(255, 176, 0, 0.05);
+  background: rgba(var(--wstl-accent-rgb), 0.06);
   box-shadow:
-    0 0 0 1px rgba(255, 176, 0, 0.15),
-    0 0 10px var(--wstl-amber-glow);
+    0 0 0 1px rgba(var(--wstl-accent-rgb), 0.2),
+    0 0 14px var(--wstl-amber-glow),
+    inset 0 0 20px rgba(var(--wstl-accent-rgb), 0.04);
 }
 
 .wastelander-origin-card.selected .wastelander-origin-art i {
@@ -355,7 +362,7 @@
 
 .wastelander-origin-card.is-disabled:hover {
   background: rgba(0, 0, 0, 0.28);
-  border-color: rgba(255, 176, 0, 0.22);
+  border-color: rgba(var(--wstl-accent-rgb), 0.22);
 }
 
 .wastelander-origin-card h3,
@@ -372,7 +379,7 @@
   top: 0.1rem;
   right: 0.1rem;
   padding: 0.1rem 0.35rem;
-  border: 1px solid rgba(255, 176, 0, 0.25);
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.25);
   color: var(--wstl-amber-dim);
   font-size: 11px;
   letter-spacing: 0.12em;
@@ -404,7 +411,7 @@
 }
 
 .wastelander-origin-card:is(:hover, :focus-visible) .wastelander-origin-title {
-  color: #ffc933;
+  color: var(--wstl-amber-bright);
 }
 
 /* ---- Detail panel (below cards) ---- */
@@ -448,13 +455,13 @@
   grid-template-columns: 1fr 132px;
   gap: 0.6rem;
   padding: 0.45rem 0.5rem;
-  border: 1px solid rgba(255, 176, 0, 0.18);
-  background: rgba(255, 176, 0, 0.02);
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.18);
+  background: rgba(var(--wstl-accent-rgb), 0.02);
 }
 
 .wastelander-special-row.is-active {
-  border-color: rgba(255, 176, 0, 0.45);
-  background: rgba(255, 176, 0, 0.05);
+  border-color: rgba(var(--wstl-accent-rgb), 0.45);
+  background: rgba(var(--wstl-accent-rgb), 0.05);
 }
 
 .wastelander-special-meta {
@@ -502,7 +509,7 @@
 
 .wastelander-special-step {
   height: 30px;
-  border: 1px solid rgba(255, 176, 0, 0.35);
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.35);
   background: transparent;
   color: var(--wstl-amber);
   font: inherit;
@@ -511,7 +518,7 @@
 
 .wastelander-special-step:hover:not(:disabled) {
   border-color: var(--wstl-amber-dim);
-  background: rgba(255, 176, 0, 0.03);
+  background: rgba(var(--wstl-accent-rgb), 0.03);
 }
 
 .wastelander-special-input {
@@ -519,14 +526,14 @@
   width: 100%;
   text-align: center;
   background: rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 176, 0, 0.35);
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.35);
   color: var(--wstl-amber);
   font: inherit;
 }
 
 .wastelander-special-right {
-  border: 1px solid rgba(255, 176, 0, 0.18);
-  background: rgba(255, 176, 0, 0.02);
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.18);
+  background: rgba(var(--wstl-accent-rgb), 0.02);
   padding: 0.6rem 0.6rem 0.5rem;
   max-height: 520px;
   overflow: auto;
@@ -545,7 +552,7 @@
   justify-content: space-between;
   gap: 0.6rem;
   padding: 0.28rem 0.25rem;
-  border-bottom: 1px solid rgba(255, 176, 0, 0.12);
+  border-bottom: 1px solid rgba(var(--wstl-accent-rgb), 0.12);
   color: var(--wstl-text-dim);
 }
 
@@ -578,7 +585,7 @@
 
 .wastelander-special-reset {
   padding: 0.4rem 0.8rem;
-  border: 1px solid rgba(255, 176, 0, 0.35);
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.35);
   background: transparent;
   color: var(--wstl-amber-dim);
   font: inherit;
@@ -589,7 +596,7 @@
 
 .wastelander-special-reset:hover {
   border-color: var(--wstl-amber-dim);
-  background: rgba(255, 176, 0, 0.03);
+  background: rgba(var(--wstl-accent-rgb), 0.03);
   color: var(--wstl-amber);
 }
 
@@ -639,8 +646,8 @@
   flex: 1 1 auto;
   overflow: auto;
   overflow-anchor: none;
-  border: 1px solid rgba(255, 176, 0, 0.18);
-  background: rgba(255, 176, 0, 0.02);
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.18);
+  background: rgba(var(--wstl-accent-rgb), 0.02);
 }
 
 .wastelander-skills-header,
@@ -650,7 +657,7 @@
   gap: 0.35rem;
   align-items: center;
   padding: 0.3rem 0.5rem;
-  border-bottom: 1px solid rgba(255, 176, 0, 0.12);
+  border-bottom: 1px solid rgba(var(--wstl-accent-rgb), 0.12);
 }
 
 .wastelander-skills-header {
@@ -666,7 +673,7 @@
 }
 
 .wastelander-skill-row.is-tagged {
-  background: rgba(255, 176, 0, 0.04);
+  background: rgba(var(--wstl-accent-rgb), 0.04);
 }
 
 .wastelander-skills-col-name {
@@ -697,7 +704,7 @@
   width: 1.75rem;
   height: 1.75rem;
   padding: 0;
-  border: 1px solid rgba(255, 176, 0, 0.35);
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.35);
   background: transparent;
   color: var(--wstl-text-faint);
   font-size: 16px;
@@ -708,7 +715,7 @@
 .wastelander-skill-tag.is-on {
   color: var(--wstl-amber);
   border-color: var(--wstl-amber-dim);
-  background: rgba(255, 176, 0, 0.08);
+  background: rgba(var(--wstl-accent-rgb), 0.08);
 }
 
 .wastelander-skill-tag.is-forced {
@@ -723,7 +730,7 @@
 
 .wastelander-skill-step {
   height: 26px;
-  border: 1px solid rgba(255, 176, 0, 0.35);
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.35);
   background: transparent;
   color: var(--wstl-amber);
   font: inherit;
@@ -740,7 +747,7 @@
   width: 100%;
   text-align: center;
   background: rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 176, 0, 0.35);
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.35);
   color: var(--wstl-amber);
   font: inherit;
 }
@@ -760,7 +767,7 @@
 
 .wastelander-skills-reset {
   padding: 0.4rem 0.8rem;
-  border: 1px solid rgba(255, 176, 0, 0.35);
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.35);
   background: transparent;
   color: var(--wstl-amber-dim);
   font: inherit;
@@ -771,7 +778,7 @@
 
 .wastelander-skills-reset:hover {
   border-color: var(--wstl-amber-dim);
-  background: rgba(255, 176, 0, 0.03);
+  background: rgba(var(--wstl-accent-rgb), 0.03);
   color: var(--wstl-amber);
 }
 
@@ -779,7 +786,7 @@
 
 .wastelander-survivor-mode-row td {
   padding-bottom: 0.65rem;
-  border-bottom: 1px solid rgba(255, 176, 0, 0.2);
+  border-bottom: 1px solid rgba(var(--wstl-accent-rgb), 0.2);
 }
 
 .wastelander-survivor-mode {
@@ -792,7 +799,7 @@
   flex: 1 1 auto;
   min-width: 8rem;
   padding: 0.35rem 0.55rem;
-  border: 1px solid rgba(255, 176, 0, 0.35);
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.35);
   background: transparent;
   color: var(--wstl-text-dim);
   font: inherit;
@@ -804,7 +811,7 @@
 
 .wastelander-survivor-mode-btn.is-active {
   border-color: var(--wstl-amber);
-  background: rgba(255, 176, 0, 0.08);
+  background: rgba(var(--wstl-accent-rgb), 0.08);
   color: var(--wstl-amber);
   font-weight: 700;
 }
@@ -859,8 +866,8 @@
   overflow-y: auto;
   overflow-x: hidden;
   overflow-anchor: none;
-  border: 1px solid rgba(255, 176, 0, 0.18);
-  background: rgba(255, 176, 0, 0.02);
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.18);
+  background: rgba(var(--wstl-accent-rgb), 0.02);
 }
 
 .wastelander-perk-row {
@@ -868,11 +875,11 @@
   grid-template-columns: 1.75rem 1fr;
   gap: 0.35rem;
   align-items: center;
-  border-bottom: 1px solid rgba(255, 176, 0, 0.12);
+  border-bottom: 1px solid rgba(var(--wstl-accent-rgb), 0.12);
 }
 
 .wastelander-perk-row.is-focused {
-  background: rgba(255, 176, 0, 0.06);
+  background: rgba(var(--wstl-accent-rgb), 0.06);
 }
 
 .wastelander-perk-row.is-chosen .wastelander-perk-row-label {
@@ -888,7 +895,7 @@
   height: 1.75rem;
   margin: 0.2rem 0 0.2rem 0.35rem;
   padding: 0;
-  border: 1px solid rgba(255, 176, 0, 0.35);
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.35);
   background: transparent;
   color: var(--wstl-text-faint);
   font-size: 13px;
@@ -900,7 +907,7 @@
 .wastelander-perk-check.is-on {
   color: var(--wstl-amber);
   border-color: var(--wstl-amber-dim);
-  background: rgba(255, 176, 0, 0.12);
+  background: rgba(var(--wstl-accent-rgb), 0.12);
 }
 
 .wastelander-perk-check:disabled {
@@ -936,8 +943,8 @@
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
-  border: 1px solid rgba(255, 176, 0, 0.18);
-  background: rgba(255, 176, 0, 0.02);
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.18);
+  background: rgba(var(--wstl-accent-rgb), 0.02);
   padding: 0.65rem 0.75rem;
 }
 
@@ -1003,7 +1010,7 @@
 .wastelander-perk-detail-statblock {
   margin-top: 0.85rem;
   padding-top: 0.65rem;
-  border-top: 1px solid rgba(255, 176, 0, 0.2);
+  border-top: 1px solid rgba(var(--wstl-accent-rgb), 0.2);
 }
 
 .wastelander-companion-statblock-title {
@@ -1031,7 +1038,7 @@
 
 .wastelander-companion-table th {
   padding: 0.2rem 0.35rem;
-  border-bottom: 1px solid rgba(255, 176, 0, 0.25);
+  border-bottom: 1px solid rgba(var(--wstl-accent-rgb), 0.25);
   color: var(--wstl-amber);
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -1041,7 +1048,7 @@
 
 .wastelander-companion-table td {
   padding: 0.25rem 0.35rem;
-  border-bottom: 1px solid rgba(255, 176, 0, 0.1);
+  border-bottom: 1px solid rgba(var(--wstl-accent-rgb), 0.1);
   color: var(--wstl-text-dim);
   text-align: center;
 }
@@ -1112,8 +1119,8 @@
 
 .wastelander-equipment-packs {
   overflow: auto;
-  border: 1px solid rgba(255, 176, 0, 0.18);
-  background: rgba(255, 176, 0, 0.02);
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.18);
+  background: rgba(var(--wstl-accent-rgb), 0.02);
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
@@ -1125,7 +1132,7 @@
   width: 100%;
   padding: 0.5rem 0.55rem;
   margin: 0;
-  border: 1px solid rgba(255, 176, 0, 0.25);
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.25);
   background: transparent;
   text-align: left;
   cursor: pointer;
@@ -1134,12 +1141,12 @@
 
 .wastelander-equipment-pack-card:hover {
   border-color: var(--wstl-amber-dim);
-  background: rgba(255, 176, 0, 0.04);
+  background: rgba(var(--wstl-accent-rgb), 0.04);
 }
 
 .wastelander-equipment-pack-card.selected {
   border-color: var(--wstl-amber);
-  background: rgba(255, 176, 0, 0.08);
+  background: rgba(var(--wstl-accent-rgb), 0.08);
 }
 
 .wastelander-equipment-pack-title {
@@ -1203,7 +1210,7 @@
   font-size: inherit;
   line-height: inherit;
   text-align: left;
-  text-decoration: underline dotted rgba(255, 176, 0, 0.45);
+  text-decoration: underline dotted rgba(var(--wstl-accent-rgb), 0.45);
   text-underline-offset: 2px;
   cursor: pointer;
 }
@@ -1224,7 +1231,7 @@
   height: 1.35rem;
   padding: 0;
   margin: 0;
-  border: 1px solid rgba(255, 176, 0, 0.3);
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.3);
   background: transparent;
   color: var(--wstl-amber-dim);
   font-size: 11px;
@@ -1235,7 +1242,7 @@
 .wastelander-compendium-open:hover {
   border-color: var(--wstl-amber);
   color: var(--wstl-amber);
-  background: rgba(255, 176, 0, 0.08);
+  background: rgba(var(--wstl-accent-rgb), 0.08);
 }
 
 .wastelander-equipment-choice {
@@ -1256,7 +1263,7 @@
 
 .wastelander-equipment-choice-btn {
   padding: 0.3rem 0.5rem;
-  border: 1px solid rgba(255, 176, 0, 0.35);
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.35);
   background: transparent;
   color: var(--wstl-text-dim);
   font: inherit;
@@ -1267,13 +1274,13 @@
 .wastelander-equipment-choice-btn.is-selected {
   border-color: var(--wstl-amber);
   color: var(--wstl-amber);
-  background: rgba(255, 176, 0, 0.08);
+  background: rgba(var(--wstl-accent-rgb), 0.08);
 }
 
 .wastelander-equipment-trinket {
   margin-top: 0.55rem;
   padding-top: 0.45rem;
-  border-top: 1px solid rgba(255, 176, 0, 0.15);
+  border-top: 1px solid rgba(var(--wstl-accent-rgb), 0.15);
 }
 
 .wastelander-equipment-trinket-desc {
@@ -1297,7 +1304,7 @@
   gap: 0.35rem;
   padding: 0.45rem 0.75rem;
   border: 1px solid var(--wstl-amber-dim);
-  background: rgba(255, 176, 0, 0.08);
+  background: rgba(var(--wstl-accent-rgb), 0.08);
   color: var(--wstl-amber);
   font: inherit;
   font-size: 13px;
@@ -1308,7 +1315,7 @@
 }
 
 .wastelander-equipment-roll-trinket:hover {
-  background: rgba(255, 176, 0, 0.14);
+  background: rgba(var(--wstl-accent-rgb), 0.14);
   border-color: var(--wstl-amber);
 }
 
@@ -1336,7 +1343,7 @@
   height: 28px;
   text-align: center;
   background: rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 176, 0, 0.35);
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.35);
   color: var(--wstl-amber);
   font: inherit;
 }
@@ -1346,7 +1353,7 @@
   padding: 0.35rem 0.45rem;
   font-size: 13px;
   color: var(--wstl-amber);
-  background: rgba(255, 176, 0, 0.06);
+  background: rgba(var(--wstl-accent-rgb), 0.06);
   border-left: 2px solid var(--wstl-amber-dim);
 }
 
@@ -1361,7 +1368,7 @@
 .wastelander-review-section {
   margin-bottom: 0.85rem;
   padding-bottom: 0.65rem;
-  border-bottom: 1px solid rgba(255, 176, 0, 0.12);
+  border-bottom: 1px solid rgba(var(--wstl-accent-rgb), 0.12);
 }
 
 .wastelander-review-heading {
@@ -1513,7 +1520,7 @@
 
 .wastelander-trait-table tbody td {
   padding: 0.5rem;
-  border-bottom: 1px solid rgba(255, 176, 0, 0.15);
+  border-bottom: 1px solid rgba(var(--wstl-accent-rgb), 0.15);
   color: var(--wstl-text-dim);
   vertical-align: top;
   text-align: left;
@@ -1557,11 +1564,11 @@
 }
 
 .wastelander-trait-pick:hover:not(:disabled) {
-  background: rgba(255, 176, 0, 0.03);
+  background: rgba(var(--wstl-accent-rgb), 0.03);
 }
 
 .wastelander-trait-pick.is-selected {
-  background: rgba(255, 176, 0, 0.06);
+  background: rgba(var(--wstl-accent-rgb), 0.06);
 }
 
 .wastelander-trait-pick:disabled {
@@ -1575,7 +1582,7 @@
   align-items: center;
   justify-content: center;
   height: 1.25rem;
-  border: 1px solid rgba(255, 176, 0, 0.35);
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.35);
   color: var(--wstl-amber);
   font-size: 15px;
   line-height: 1;
@@ -1642,8 +1649,8 @@
   gap: 0.35rem;
   padding: 0.55rem 1.35rem 0.55rem 1.1rem;
   background: var(--wstl-amber);
-  border: 1px solid var(--wstl-amber);
-  color: #080a05;
+  border: 1px solid var(--wstl-amber-bright);
+  color: var(--wstl-btn-text);
   clip-path: polygon(
     0 0,
     calc(100% - 14px) 0,
@@ -1651,12 +1658,14 @@
     100% 100%,
     0 100%
   );
-  box-shadow: 0 0 10px var(--wstl-amber-glow);
+  box-shadow:
+    0 0 12px var(--wstl-amber-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .wastelander-btn-next:hover:not(:disabled) {
-  background: #ffc933;
-  border-color: #ffc933;
+  background: var(--wstl-amber-bright);
+  border-color: var(--wstl-amber-bright);
 }
 
 .wastelander-btn-next-glyph {
