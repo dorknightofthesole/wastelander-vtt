@@ -2,7 +2,6 @@
   {
     "id": "survivor",
     "label": "Survivor",
-    "icon": "fa-solid fa-person-hiking",
     "phase": 1,
     "systemOrigin": "Survivor",
     "tagline": "Hardened wasteland wanderer.",
@@ -20,7 +19,6 @@
   {
     "id": "vault-dweller",
     "label": "Vault Dweller",
-    "icon": "fa-solid fa-dungeon",
     "phase": 1,
     "systemOrigin": "Vault Dweller",
     "tagline": "Raised in Vault safety.",
@@ -38,7 +36,6 @@
   {
     "id": "ghoul",
     "label": "Ghoul",
-    "icon": "fa-solid fa-skull",
     "phase": 1,
     "systemOrigin": "Ghoul",
     "tagline": "Radiation-scarred post-human.",
@@ -56,7 +53,6 @@
   {
     "id": "brotherhood",
     "label": "Brotherhood Initiate",
-    "icon": "fa-solid fa-helmet-battle",
     "phase": 1,
     "systemOrigin": "Brotherhood Initiate",
     "tagline": "Brotherhood of Steel member.",
@@ -80,7 +76,6 @@
   {
     "id": "super-mutant",
     "label": "Super Mutant",
-    "icon": "fa-solid fa-hand-fist",
     "phase": 2,
     "systemOrigin": "Super Mutant",
     "tagline": "FEV-mutated powerhouse.",
@@ -103,7 +98,6 @@
   {
     "id": "mister-handy",
     "label": "Mister Handy",
-    "icon": "fa-solid fa-robot",
     "phase": 2,
     "systemOrigin": "Mister Handy",
     "tagline": "Domestic robot survivor.",

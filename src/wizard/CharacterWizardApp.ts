@@ -82,7 +82,6 @@ const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 export interface OriginDefinition {
   id: string;
   label: string;
-  icon: string;
   phase: 1 | 2;
   systemOrigin: string;
   tagline: string;
@@ -401,6 +400,7 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
 
     const origins = ORIGINS.map((origin) => ({
       ...origin,
+      iconSrc: `${MODULE_PATH}/assets/origins/${origin.id}.png`,
       enabled: true,
       selected: origin.id === this.state.originId,
       disabledReason: "",
