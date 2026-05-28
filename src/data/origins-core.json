@@ -1,0 +1,121 @@
+[
+  {
+    "id": "survivor",
+    "label": "Survivor",
+    "icon": "fa-solid fa-person-hiking",
+    "phase": 1,
+    "systemOrigin": "Survivor",
+    "tagline": "Hardened wasteland wanderer.",
+    "traitName": null,
+    "traitCompendiumUuid": null,
+    "extraTagRules": [],
+    "equipmentPackId": "wastelander",
+    "specialOverrides": {},
+    "detail": {
+      "flavor": "You've scraped by in the harsh wasteland and know how to stay alive against the odds. Choose two traits from the Survivor list, or one trait and one extra starting perk.",
+      "benefit": "Pick 2 traits OR 1 trait + 1 extra perk at creation.",
+      "penalty": "No fixed origin trait — your build is defined by trait choices."
+    }
+  },
+  {
+    "id": "vault-dweller",
+    "label": "Vault Dweller",
+    "icon": "fa-solid fa-dungeon",
+    "phase": 1,
+    "systemOrigin": "Vault Dweller",
+    "tagline": "Raised in Vault safety.",
+    "traitName": "Vault Kid",
+    "traitCompendiumUuid": "",
+    "extraTagRules": [{ "type": "extraTag", "count": 1 }],
+    "equipmentPackId": "vault",
+    "specialOverrides": {},
+    "detail": {
+      "flavor": "Sheltered life underground left you educated but unprepared for the world above. You gain an extra tag skill and the Vault Kid origin trait.",
+      "benefit": "+1 extra tag skill. Vault Kid trait.",
+      "penalty": "END tests to resist disease are increased by 1 DC."
+    }
+  },
+  {
+    "id": "ghoul",
+    "label": "Ghoul",
+    "icon": "fa-solid fa-skull",
+    "phase": 1,
+    "systemOrigin": "Ghoul",
+    "tagline": "Radiation-scarred post-human.",
+    "traitName": "Necrotic Post-Human",
+    "traitCompendiumUuid": "",
+    "extraTagRules": [{ "type": "forcedTag", "skillName": "Survival", "rank": 2 }],
+    "equipmentPackId": "wastelander",
+    "specialOverrides": {},
+    "detail": {
+      "flavor": "Radiation changed your body forever. Survival is always a tag skill at rank 2. You endure where others would perish.",
+      "benefit": "Survival is a tag skill (+2 ranks). Radiation resistance and long life.",
+      "penalty": "Social penalties; some equipment packs restricted (Wastelander packs allowed)."
+    }
+  },
+  {
+    "id": "brotherhood",
+    "label": "Brotherhood Initiate",
+    "icon": "fa-solid fa-helmet-battle",
+    "phase": 1,
+    "systemOrigin": "Brotherhood Initiate",
+    "tagline": "Brotherhood of Steel member.",
+    "traitName": "The Chain that Binds",
+    "traitCompendiumUuid": "",
+    "extraTagRules": [
+      {
+        "type": "extraTag",
+        "count": 1,
+        "allowedSkills": ["Energy Weapons", "Science", "Repair"]
+      }
+    ],
+    "equipmentPackId": "brotherhood",
+    "specialOverrides": {},
+    "detail": {
+      "flavor": "You serve the Brotherhood's mission to recover and preserve pre-war technology. Your extra tag skill is limited to Energy Weapons, Science, or Repair.",
+      "benefit": "+1 extra tag skill (Energy Weapons, Science, or Repair only). Brotherhood equipment pack.",
+      "penalty": "Bound by Brotherhood codes and expectations."
+    }
+  },
+  {
+    "id": "super-mutant",
+    "label": "Super Mutant",
+    "icon": "fa-solid fa-hand-fist",
+    "phase": 2,
+    "systemOrigin": "Super Mutant",
+    "tagline": "FEV-mutated powerhouse.",
+    "traitName": "Forced Evolution",
+    "traitCompendiumUuid": "",
+    "extraTagRules": [],
+    "equipmentPackId": "super-mutant",
+    "specialOverrides": {
+      "str": { "add": 2, "max": 12 },
+      "end": { "add": 2, "max": 12 },
+      "int": { "max": 6 },
+      "cha": { "max": 6 }
+    },
+    "detail": {
+      "flavor": "Infected with the Forced Evolutionary Virus (F.E.V.), your body has mutated into a tall, muscular killing machine. You may hail from the Master’s army, Vault 87, the Institute’s experiments, or Huntersville’s contaminated water — each strain rarely mixing with the others.",
+      "benefit": "Forced Evolution: STR and END start at 7 (+2 each); max STR/END 12; immune to radiation and poison.",
+      "penalty": "Max INT/CHA 6; skills max rank 3 at creation (4 later); only super mutant–fitted armor."
+    }
+  },
+  {
+    "id": "mister-handy",
+    "label": "Mister Handy",
+    "icon": "fa-solid fa-robot",
+    "phase": 2,
+    "systemOrigin": "Mister Handy",
+    "tagline": "Domestic robot survivor.",
+    "traitName": "Mister Handy Robot",
+    "traitCompendiumUuid": "",
+    "extraTagRules": [],
+    "equipmentPackId": "mister-handy",
+    "specialOverrides": {},
+    "detail": {
+      "flavor": "A General Atomics domestic automaton (Mister Handy, Gutsy, Miss Nanny, or Orderly line) with jet propulsion, three arms, and self-determination that carried you past the Great War.",
+      "benefit": "Mister Handy Robot: 360° vision; rad/poison immune; hover over terrain; three arm attachments from your pack (weapon arms include 20 ammo).",
+      "penalty": "No chems, food, or rest; 150 lb. carry weight (fixed); heal only via repairs; robot hit locations."
+    }
+  }
+]

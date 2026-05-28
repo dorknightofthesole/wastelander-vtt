@@ -1,0 +1,26 @@
+---
+description: Use only the shared char-creation PDF for rules; no web without permission
+alwaysApply: true
+---
+
+# Wastelander rules sources
+
+## Authoritative rules (character creation)
+
+For **game rules** in this module (origins, S.P.E.C.I.A.L., skills, perks, derived stats, equipment, companion stat blocks, validation logic):
+
+1. **Use only** the local PDF:
+   `/Users/eddiegonzales/Documents/ttrpg/Fallout/wasteland/Fallout-Core-Rulebook-Char-Creation.pdf`
+2. **In-repo JSON** derived from that PDF (`src/data/*.json`, `docs/fallout-character-wizard.plan.md`).
+3. **Fallout system compendiums** on the machine for item UUIDs/names only — not as a substitute for rulebook text.
+
+## Do not use the web for rules
+
+- **Do not** use WebSearch, WebFetch, wikis, or other online sources to look up Fallout RPG rules, perk text, stat blocks, or char-creation procedures for this project.
+- **Exception:** Only if the user **explicitly** asks you to use the web for rules in that message.
+
+## Web is still OK for non-rules work
+
+Without asking each time, you may use the web for: Foundry VTT APIs, `foundryvtt-fallout` GitHub implementation details, TypeScript/tooling, and other **technical** integration — not rulebook content.
+
+See `docs/reference/rulebook-sources.md`.

@@ -1,0 +1,430 @@
+{
+  "wastelander": {
+    "label": "Wastelander",
+    "description": "For Survivor or Ghoul origins.",
+    "packs": [
+      {
+        "id": "mercenary",
+        "label": "Mercenary",
+        "tagline": "Hired gun of the wastes.",
+        "items": [
+          "Tough clothing",
+          "10 +5 CD rounds for your chosen ranged weapon",
+          "Note advertising a job paying 50 caps",
+          "15 caps"
+        ],
+        "choices": [
+          {
+            "id": "armor",
+            "label": "Armor",
+            "prompt": "Choose armor:",
+            "options": [
+              { "id": "chest", "label": "Leather armor chest piece" },
+              { "id": "limbs", "label": "Leather armor arm + leg (your choice which)" }
+            ]
+          },
+          {
+            "id": "melee",
+            "label": "Melee weapon",
+            "prompt": "Choose one melee weapon:",
+            "options": [
+              { "id": "machete", "label": "Machete" },
+              { "id": "bat", "label": "Baseball bat" },
+              { "id": "tire-iron", "label": "Tire iron" }
+            ]
+          },
+          {
+            "id": "ranged",
+            "label": "Ranged weapon",
+            "prompt": "Choose one ranged weapon:",
+            "options": [
+              { "id": "10mm-auto", "label": "10mm automatic pistol" },
+              { "id": "44", "label": ".44 pistol" },
+              { "id": "hunting", "label": "Hunting rifle" },
+              { "id": "pipe-bolt", "label": "Bolt-action pipe gun" }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "raider",
+        "label": "Raider",
+        "tagline": "Might makes right.",
+        "items": [
+          "Harness",
+          "Raider armor chest piece",
+          "Pipe gun with 10 +5 CD rounds of .38 ammunition",
+          "1 dose of Jet or RadAway",
+          "15 caps"
+        ],
+        "choices": [
+          {
+            "id": "raider-arm",
+            "label": "Raider arm",
+            "prompt": "Choose which arm gets raider armor:",
+            "options": [
+              { "id": "left", "label": "Left arm" },
+              { "id": "right", "label": "Right arm" }
+            ]
+          },
+          {
+            "id": "melee",
+            "label": "Melee weapon",
+            "prompt": "Choose one melee weapon:",
+            "options": [
+              { "id": "pipe", "label": "Lead pipe" },
+              { "id": "cue", "label": "Pool cue" },
+              { "id": "tire", "label": "Tire iron" }
+            ]
+          },
+          {
+            "id": "extra",
+            "label": "Extra item",
+            "prompt": "Choose one:",
+            "options": [
+              { "id": "molotov", "label": "Molotov cocktail" },
+              { "id": "stimpak", "label": "Stimpak" }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "settler",
+        "label": "Settler",
+        "tagline": "Carving out something like home.",
+        "items": [
+          "Tough clothing",
+          "Pipe gun with 6 +3 CD rounds of .38 ammunition",
+          "2 rolls on the random food table",
+          "45 caps"
+        ],
+        "choices": [
+          {
+            "id": "melee",
+            "label": "Melee weapon",
+            "prompt": "Choose one melee weapon:",
+            "options": [
+              { "id": "switchblade", "label": "Switchblade" },
+              { "id": "wrench", "label": "Pipe wrench" },
+              { "id": "pin", "label": "Rolling pin" },
+              { "id": "knuckles", "label": "Knuckles" }
+            ]
+          }
+        ],
+        "hasTrinket": true
+      },
+      {
+        "id": "trader",
+        "label": "Trader",
+        "tagline": "Caravan merchant of the wastes.",
+        "items": [
+          "Tough clothing",
+          "Pipe gun with 8 +4 CD rounds of .38 ammunition",
+          "Wares: 3 rolls each on ammunition, aid, and junk loot tables",
+          "Pack brahmin",
+          "50 caps"
+        ],
+        "choices": [
+          {
+            "id": "armor",
+            "label": "Armor",
+            "prompt": "Choose armor:",
+            "options": [
+              { "id": "chest", "label": "Leather armor chest piece" },
+              { "id": "limbs", "label": "Leather armor arm + leg (your choice which)" }
+            ]
+          }
+        ],
+        "hasTrinket": true
+      },
+      {
+        "id": "wanderer",
+        "label": "Wanderer",
+        "tagline": "Scavenger between settlements.",
+        "items": [
+          "Drifter outfit",
+          "Pipe gun with 8 +4 CD rounds of .38 ammunition",
+          "1 dose of Jet or RadAway",
+          "30 caps"
+        ],
+        "choices": [
+          {
+            "id": "melee",
+            "label": "Melee weapon",
+            "prompt": "Choose one melee weapon:",
+            "options": [
+              { "id": "switchblade", "label": "Switchblade" },
+              { "id": "wrench", "label": "Pipe wrench" },
+              { "id": "pin", "label": "Rolling pin" },
+              { "id": "knuckles", "label": "Knuckles" }
+            ]
+          }
+        ],
+        "hasTrinket": true
+      }
+    ]
+  },
+  "vault": {
+    "label": "Vault Dweller",
+    "description": "Vault-Tec survival kits.",
+    "packs": [
+      {
+        "id": "resident",
+        "label": "Vault-Tec Resident",
+        "tagline": "Waited out the war underground.",
+        "items": [
+          "Vault jumpsuit",
+          "Vault-Tec branded canteen (1 purified water)",
+          "Pip-Boy",
+          "Switchblade",
+          "10mm pistol with 6 +3 CD rounds of 10mm ammunition",
+          "2 stimpaks",
+          "10 caps"
+        ]
+      },
+      {
+        "id": "security",
+        "label": "Vault-Tec Security",
+        "tagline": "Kept the Vault safe.",
+        "items": [
+          "Vault jumpsuit",
+          "Vault-Tec security armor and helmet",
+          "Vault-Tec branded canteen (1 purified water)",
+          "Pip-Boy",
+          "Baton",
+          "10mm pistol with 8 +4 CD rounds of 10mm ammunition",
+          "1 stimpak"
+        ]
+      }
+    ]
+  },
+  "brotherhood": {
+    "label": "Brotherhood Initiate",
+    "description": "Brotherhood field kits.",
+    "packs": [
+      {
+        "id": "initiate",
+        "label": "Brotherhood of Steel Initiate",
+        "tagline": "Training to fight the Brotherhood's battles.",
+        "items": [
+          "Brotherhood fatigues and Brotherhood hood",
+          "Combat knife",
+          "Brotherhood holotags"
+        ],
+        "choices": [
+          {
+            "id": "weapon",
+            "label": "Sidearm",
+            "prompt": "Choose your sidearm:",
+            "options": [
+              {
+                "id": "laser",
+                "label": "Laser pistol and fusion cell (10 +5 CD shots)"
+              },
+              {
+                "id": "10mm",
+                "label": "10mm pistol with 10 +5 CD rounds"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "scribe",
+        "label": "Brotherhood of Steel Scribe",
+        "tagline": "Researcher and record-keeper.",
+        "items": [
+          "Brotherhood Field Scribe's armor and Scribe's hat",
+          "Combat knife",
+          "Brotherhood holotags"
+        ],
+        "choices": [
+          {
+            "id": "weapon",
+            "label": "Sidearm",
+            "prompt": "Choose your sidearm:",
+            "options": [
+              {
+                "id": "laser",
+                "label": "Laser pistol and fusion cell (6 +3 CD shots)"
+              },
+              {
+                "id": "10mm",
+                "label": "10mm pistol with 6 +3 CD rounds"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "super-mutant": {
+    "label": "Super Mutant",
+    "description": "Starting kits for Super Mutant characters (Core Rulebook p.78).",
+    "packs": [
+      {
+        "id": "brute",
+        "label": "Brute",
+        "tagline": "Brute force and determination.",
+        "items": [
+          "Raider armor torso",
+          "Pipe rifle with 6 +3 CD rounds of .38 ammunition",
+          "5 caps"
+        ],
+        "choices": [
+          {
+            "id": "raider-limb",
+            "label": "Raider limb armor",
+            "prompt": "Choose raider armor for one leg or one arm:",
+            "options": [
+              { "id": "leg", "label": "Raider armor for one leg" },
+              { "id": "arm", "label": "Raider armor for one arm" }
+            ]
+          },
+          {
+            "id": "melee",
+            "label": "Melee weapon",
+            "prompt": "Choose one melee weapon:",
+            "options": [
+              { "id": "bat", "label": "Baseball bat" },
+              { "id": "machete", "label": "Machete" }
+            ]
+          }
+        ],
+        "hasTrinket": true
+      },
+      {
+        "id": "skirmisher",
+        "label": "Skirmisher",
+        "tagline": "Bigger punch with better gear.",
+        "items": [
+          "Raider armor torso",
+          "Heavy bolt-action pipe rifle with 8 +4 CD rounds of .308 ammunition",
+          "Board",
+          "5 caps"
+        ],
+        "choices": [
+          {
+            "id": "raider-limb",
+            "label": "Raider limb armor",
+            "prompt": "Choose raider armor for one leg or one arm:",
+            "options": [
+              { "id": "leg", "label": "Raider armor for one leg" },
+              { "id": "arm", "label": "Raider armor for one arm" }
+            ]
+          }
+        ],
+        "hasTrinket": true
+      }
+    ]
+  },
+  "mister-handy": {
+    "label": "Mister Handy",
+    "description": "Robot equipment packages (Core Rulebook p.76–77). Weapon arms include 20 shots of ammo.",
+    "packs": [
+      {
+        "id": "miss-nanny",
+        "label": "Miss Nanny",
+        "tagline": "Caretaker and domestic maid.",
+        "items": [
+          "Pincer arm attachment",
+          "Flamer arm attachment",
+          "Standard plating",
+          "Behavioral analysis mod",
+          "Hazard detection mod",
+          "10 caps"
+        ],
+        "choices": [
+          {
+            "id": "third-arm",
+            "label": "Third arm",
+            "prompt": "Choose your third arm attachment:",
+            "options": [
+              { "id": "pincer", "label": "Pincer arm attachment" },
+              { "id": "buzz-saw", "label": "Buzz-saw arm attachment" },
+              { "id": "flamer", "label": "Flamer arm attachment" },
+              { "id": "laser", "label": "Laser emitter arm attachment" },
+              { "id": "10mm", "label": "10mm auto pistol arm" }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "mister-farmhand",
+        "label": "Mister Farmhand",
+        "tagline": "Built for crops and livestock.",
+        "items": [
+          "Pincer arm attachment",
+          "Buzz-saw arm attachment",
+          "Laser emitter arm attachment",
+          "Standard plating",
+          "1 bag of fertilizer",
+          "2 mutfruits",
+          "25 caps"
+        ]
+      },
+      {
+        "id": "mister-gutsy",
+        "label": "Mister Gutsy",
+        "tagline": "Military combat robot.",
+        "items": [
+          "10mm auto pistol arm",
+          "Buzz-saw arm attachment",
+          "Laser emitter arm attachment",
+          "Mister Gutsy plating",
+          "Recon sensors mod",
+          "10 caps"
+        ]
+      },
+      {
+        "id": "domestic",
+        "label": "Mister Handy",
+        "tagline": "Domestic butler automaton.",
+        "items": [
+          "Pincer arm attachment",
+          "Flamer arm attachment",
+          "Buzz-saw arm attachment",
+          "Standard plating",
+          "Robot repair kit",
+          "Integral boiler mod",
+          "10 caps"
+        ]
+      },
+      {
+        "id": "nurse-handy",
+        "label": "Nurse Handy",
+        "tagline": "Medical orderly or nurse model.",
+        "items": [
+          "Buzz-saw arm attachment",
+          "Standard plating",
+          "Stimpak",
+          "Diagnosis mod",
+          "10 caps"
+        ],
+        "choices": [
+          {
+            "id": "first-arm",
+            "label": "First arm",
+            "prompt": "Choose your first arm attachment:",
+            "options": [
+              { "id": "pincer", "label": "Pincer arm attachment" },
+              { "id": "buzz-saw", "label": "Buzz-saw arm attachment" }
+            ]
+          },
+          {
+            "id": "third-arm",
+            "label": "Third arm",
+            "prompt": "Choose your third arm attachment:",
+            "options": [
+              { "id": "pincer", "label": "Pincer arm attachment" },
+              { "id": "buzz-saw", "label": "Buzz-saw arm attachment" },
+              { "id": "flamer", "label": "Flamer arm attachment" },
+              { "id": "laser", "label": "Laser emitter arm attachment" },
+              { "id": "10mm", "label": "10mm auto pistol arm" }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,619 @@
+<div class="wastelander-wizard-layout">
+  <nav class="wastelander-sidebar" aria-label="Creation steps">
+    <ol class="wastelander-step-list">
+      {{#each steps}}
+      <li class="wastelander-step-item {{#if active}}active{{/if}} {{#if completed}}completed{{/if}}">
+        {{#if clickable}}
+        <button type="button" class="wastelander-step-button" data-action="goStep" data-step="{{id}}">
+          <span class="wastelander-step-index">{{number}}</span>
+          <span class="wastelander-step-label">{{label}}</span>
+        </button>
+        {{else}}
+        <span class="wastelander-step-button disabled">
+          <span class="wastelander-step-index">{{number}}</span>
+          <span class="wastelander-step-label">{{label}}</span>
+        </span>
+        {{/if}}
+      </li>
+      {{/each}}
+    </ol>
+    <div class="wastelander-sidebar-watermark" aria-hidden="true">
+      <i class="fa-thin fa-gear"></i>
+    </div>
+  </nav>
+
+  <main class="wastelander-main">
+    <header class="wastelander-step-header">
+      <h2>{{stepHeading}}</h2>
+      <div class="wastelander-actor-chip" title="{{actor.name}}">
+        <span class="wastelander-actor-chip-label">{{strings.newWastelander}}</span>
+        <i class="fa-solid fa-pen" aria-hidden="true"></i>
+      </div>
+      <p class="wastelander-validation {{#unless validationError}}is-empty{{/unless}}">
+        {{validationError}}
+      </p>
+    </header>
+
+    <section class="wastelander-step-content {{#if isPerkStep}}is-perks-step{{/if}}">
+      {{#if isOriginStep}}
+      <div class="wastelander-origin-layout">
+        <div class="wastelander-origin-cards" role="listbox" aria-label="{{stepHeading}}">
+          {{#each origins}}
+          <button
+            type="button"
+            role="option"
+            aria-selected="{{selected}}"
+            class="wastelander-origin-card {{#if selected}}selected{{/if}} {{#unless enabled}}is-disabled{{/unless}}"
+            data-action="selectOrigin"
+            data-origin-id="{{id}}"
+            title="{{tagline}}"
+            data-disabled="{{#unless enabled}}true{{else}}false{{/unless}}"
+            {{#unless enabled}}disabled{{/unless}}
+          >
+            <h3 class="wastelander-origin-title">{{label}}</h3>
+            <p class="wastelander-origin-tagline">{{tagline}}</p>
+            {{#unless enabled}}
+            <span class="wastelander-origin-badge" title="{{disabledReason}}">Phase 2</span>
+            {{/unless}}
+          </button>
+          {{/each}}
+        </div>
+
+        <div class="wastelander-detail-panel {{#if selectedOrigin}}has-selection{{/if}}">
+          {{#if selectedOrigin}}
+          <div class="wastelander-detail-frame">
+            <h3 class="wastelander-detail-title">{{selectedOrigin.label}}</h3>
+            <div class="wastelander-detail-body">
+              <p class="wastelander-detail-flavor">{{selectedOrigin.detail.flavor}}</p>
+              <table class="wastelander-trait-table">
+                <thead>
+                  <tr>
+                    <th scope="col">{{strings.trait}}</th>
+                    <th scope="col">{{strings.benefit}}</th>
+                    <th scope="col">{{strings.penalty}}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {{#if isSurvivorSelected}}
+                    <tr class="wastelander-survivor-mode-row">
+                      <td colspan="3">
+                        <div class="wastelander-survivor-mode" role="group" aria-label="Survivor build mode">
+                          <button
+                            type="button"
+                            class="wastelander-survivor-mode-btn {{#unless survivorExtraPerk}}is-active{{/unless}}"
+                            data-action="setSurvivorMode"
+                            data-mode="two-traits"
+                          >{{strings.survivorModeTwoTraits}}</button>
+                          <button
+                            type="button"
+                            class="wastelander-survivor-mode-btn {{#if survivorExtraPerk}}is-active{{/if}}"
+                            data-action="setSurvivorMode"
+                            data-mode="trait-and-perk"
+                          >{{strings.survivorModeTraitPerk}}</button>
+                        </div>
+                      </td>
+                    </tr>
+                    {{#each survivorTraits}}
+                    <tr>
+                      <td class="wastelander-trait-name-cell">
+                        <button
+                          type="button"
+                          class="wastelander-trait-pick {{#if selected}}is-selected{{/if}}"
+                          data-action="toggleSurvivorTrait"
+                          data-trait-id="{{id}}"
+                          {{#if disabled}}disabled{{/if}}
+                        >
+                          <span class="wastelander-trait-check" aria-hidden="true">{{#if selected}}✓{{else}}&nbsp;{{/if}}</span>
+                          <span class="wastelander-trait-label">{{label}}</span>
+                        </button>
+                      </td>
+                      <td>{{benefit}}</td>
+                      <td>{{penalty}}</td>
+                    </tr>
+                    {{/each}}
+                  {{else}}
+                  <tr>
+                    <td class="wastelander-trait-name-cell">
+                      {{#if selectedOrigin.traitName}}
+                        {{selectedOrigin.traitName}}
+                      {{else}}
+                        {{strings.originRules}}
+                      {{/if}}
+                    </td>
+                    <td>{{selectedOrigin.detail.benefit}}</td>
+                    <td>{{selectedOrigin.detail.penalty}}</td>
+                  </tr>
+                  {{/if}}
+                </tbody>
+              </table>
+              {{#if traitHtml}}
+              <div class="wastelander-trait-html">{{{traitHtml}}}</div>
+              {{/if}}
+            </div>
+          </div>
+          {{else}}
+          <p class="wastelander-detail-empty">{{strings.selectOriginHint}}</p>
+          {{/if}}
+        </div>
+      </div>
+      {{else if isSpecialStep}}
+      <div class="wastelander-special-layout">
+        <div class="wastelander-special-left">
+          <p class="wastelander-special-instructions">{{strings.specialInstructions}}</p>
+          <div class="wastelander-special-points">
+            {{specialPointsText}}
+          </div>
+
+          <div class="wastelander-special-grid" role="table" aria-label="S.P.E.C.I.A.L.">
+            {{#each specialRows}}
+            <div class="wastelander-special-row {{#if active}}is-active{{/if}}" role="row">
+              <button type="button" class="wastelander-special-meta" data-action="focusSpecial" data-attr="{{key}}">
+                <div class="wastelander-special-name">
+                  <span class="wastelander-special-initial">{{initial}}</span><span class="wastelander-special-rest">{{rest}}</span>
+                </div>
+                <div class="wastelander-special-blurb">{{blurb}}</div>
+              </button>
+
+              <div class="wastelander-special-controls">
+                <button
+                  type="button"
+                  class="wastelander-special-step"
+                  data-action="adjustSpecial"
+                  data-attr="{{key}}"
+                  data-delta="-1"
+                  {{#unless canDecrease}}disabled{{/unless}}
+                >-</button>
+                <input class="wastelander-special-input" data-attr="{{key}}" type="number" min="{{attrMin}}" max="{{attrMax}}" value="{{value}}" />
+                <button
+                  type="button"
+                  class="wastelander-special-step"
+                  data-action="adjustSpecial"
+                  data-attr="{{key}}"
+                  data-delta="1"
+                  {{#unless canIncrease}}disabled{{/unless}}
+                >+</button>
+              </div>
+            </div>
+            {{/each}}
+          </div>
+
+          <div class="wastelander-special-actions">
+            <button type="button" class="wastelander-special-reset" data-action="resetSpecial">
+              {{strings.reset}}
+            </button>
+          </div>
+        </div>
+
+        <aside class="wastelander-special-right">
+          <h3 class="wastelander-special-perks-title">{{strings.perksRequiring}}</h3>
+          <div class="wastelander-special-perks">
+            {{#each perkList}}
+            <div
+              class="wastelander-perk-req {{#unless met}}is-unmet{{/unless}}"
+              data-tooltip="{{tooltip}}"
+            >
+              <span class="wastelander-perk-name">{{name}}</span>
+              <span class="wastelander-perk-need">{{required}}</span>
+            </div>
+            {{/each}}
+            {{#unless perkList.length}}
+            <div class="wastelander-special-perks-empty">{{strings.placeholder}}</div>
+            {{/unless}}
+          </div>
+        </aside>
+      </div>
+      {{else if isSkillsStep}}
+      <div class="wastelander-skills-layout">
+        <div class="wastelander-skills-summary">
+          <p class="wastelander-skills-instructions">{{strings.skillsInstructions}}</p>
+          <div class="wastelander-skills-counters">
+            <span class="wastelander-skills-counter">{{tagCountText}}</span>
+            <span class="wastelander-skills-counter">{{skillPointsText}}</span>
+          </div>
+          {{#if tagRulesLines.length}}
+          <ul class="wastelander-skills-rules">
+            {{#each tagRulesLines}}
+            <li>{{this}}</li>
+            {{/each}}
+          </ul>
+          {{/if}}
+        </div>
+
+        <div class="wastelander-skills-table" role="table" aria-label="{{stepHeading}}">
+          <div class="wastelander-skills-header" role="row">
+            <span class="wastelander-skills-col-tag" role="columnheader">{{strings.tagSkills}}</span>
+            <span class="wastelander-skills-col-name" role="columnheader">Skill</span>
+            <span class="wastelander-skills-col-attr" role="columnheader">Attr</span>
+            <span class="wastelander-skills-col-rank" role="columnheader">{{strings.skillRank}}</span>
+          </div>
+          {{#each skillRows}}
+          <div class="wastelander-skill-row {{#if tagged}}is-tagged{{/if}}" role="row">
+            <div class="wastelander-skills-col-tag" role="cell">
+              <button
+                type="button"
+                class="wastelander-skill-tag {{#if tagged}}is-on{{/if}} {{#if forced}}is-forced{{/if}}"
+                data-action="toggleSkillTag"
+                data-skill-name="{{name}}"
+                title="{{tagTitle}}"
+                {{#if forced}}disabled{{/if}}
+                {{#unless tagged}}{{#unless canTagOn}}disabled{{/unless}}{{/unless}}
+                {{#if tagged}}{{#unless canTagOff}}disabled{{/unless}}{{/if}}
+              >
+                {{#if tagged}}★{{else}}☆{{/if}}
+              </button>
+            </div>
+            <div class="wastelander-skills-col-name" role="cell">{{name}}</div>
+            <div class="wastelander-skills-col-attr" role="cell">{{attr}}</div>
+            <div class="wastelander-skills-col-rank" role="cell">
+              <button
+                type="button"
+                class="wastelander-skill-step"
+                data-action="adjustSkillRank"
+                data-skill-name="{{name}}"
+                data-delta="-1"
+                {{#unless canDecrease}}disabled{{/unless}}
+              >-</button>
+              <input
+                class="wastelander-skill-input"
+                type="number"
+                min="{{baseRank}}"
+                max="{{@root.maxSkillRank}}"
+                value="{{rank}}"
+                data-skill-name="{{name}}"
+              />
+              <button
+                type="button"
+                class="wastelander-skill-step"
+                data-action="adjustSkillRank"
+                data-skill-name="{{name}}"
+                data-delta="1"
+                {{#unless canIncrease}}disabled{{/unless}}
+              >+</button>
+            </div>
+          </div>
+          {{/each}}
+          {{#unless skillRows.length}}
+          <p class="wastelander-skills-empty">{{strings.placeholder}}</p>
+          {{/unless}}
+        </div>
+
+        <div class="wastelander-skills-actions">
+          <button type="button" class="wastelander-skills-reset" data-action="resetSkills">
+            {{strings.reset}}
+          </button>
+        </div>
+      </div>
+      {{else if isPerkStep}}
+      <div class="wastelander-perks-layout">
+        <header class="wastelander-perks-summary">
+          <p class="wastelander-perks-instructions">{{strings.perksInstructions}}</p>
+          <div class="wastelander-perks-counter">{{perkCountText}}</div>
+          {{#if perkRulesLines.length}}
+          <ul class="wastelander-perks-rules">
+            {{#each perkRulesLines}}
+            <li>{{this}}</li>
+            {{/each}}
+          </ul>
+          {{/if}}
+        </header>
+
+        <div class="wastelander-perks-columns">
+          <div class="wastelander-perk-list" role="listbox" aria-label="{{stepHeading}}">
+            {{#each perkPickerRows}}
+            <div
+              class="wastelander-perk-row {{#if focused}}is-focused{{/if}} {{#if selected}}is-chosen{{/if}}"
+              role="option"
+              aria-selected="{{focused}}"
+            >
+              <button
+                type="button"
+                class="wastelander-perk-check {{#if selected}}is-on{{/if}}"
+                data-action="togglePerkSelection"
+                data-perk-uuid="{{uuid}}"
+                aria-label="Select {{name}}"
+                {{#unless canToggle}}disabled{{/unless}}
+              >
+                <span aria-hidden="true">{{#if selected}}{{selectionLabel}}{{else}}&nbsp;{{/if}}</span>
+              </button>
+              <button
+                type="button"
+                class="wastelander-perk-row-label"
+                data-action="focusPerk"
+                data-perk-uuid="{{uuid}}"
+              >{{name}}</button>
+            </div>
+            {{/each}}
+            {{#unless perkPickerRows.length}}
+            <p class="wastelander-perks-empty">{{strings.placeholder}}</p>
+            {{/unless}}
+          </div>
+
+          <aside class="wastelander-perk-detail">
+            {{#if focusedPerkDetail}}
+            <h3 class="wastelander-perk-detail-title">{{focusedPerkDetail.name}}</h3>
+            {{#if focusedPerkDetail.requirementsText}}
+            <p class="wastelander-perk-detail-req">
+              <span class="wastelander-perk-detail-req-label">{{strings.perksRequirements}}</span>
+              {{focusedPerkDetail.requirementsText}}
+            </p>
+            {{/if}}
+            {{#unless focusedPerkDetail.met}}
+            <ul class="wastelander-perk-detail-unmet">
+              <li class="wastelander-perk-detail-unmet-heading">{{strings.perksNotMet}}</li>
+              {{#each focusedPerkDetail.unmetReasons}}
+              <li>{{this}}</li>
+              {{/each}}
+            </ul>
+            {{/unless}}
+            <div class="wastelander-perk-detail-body">{{{focusedPerkDetail.descriptionHtml}}}</div>
+            {{#if focusedPerkDetail.companionStatBlockHtml}}
+            <div class="wastelander-perk-detail-statblock">{{{focusedPerkDetail.companionStatBlockHtml}}}</div>
+            {{/if}}
+            {{else}}
+            <p class="wastelander-perk-detail-empty">{{strings.perksSelectHint}}</p>
+            {{/if}}
+          </aside>
+        </div>
+      </div>
+      {{else if isEquipmentStep}}
+      <div class="wastelander-equipment-layout">
+        <header class="wastelander-equipment-summary">
+          <p class="wastelander-equipment-instructions">{{strings.equipmentInstructions}}</p>
+          {{#if equipmentGroupDescription}}
+          <p class="wastelander-equipment-group-desc">{{equipmentGroupLabel}} — {{equipmentGroupDescription}}</p>
+          {{/if}}
+        </header>
+
+        <div class="wastelander-equipment-columns">
+          <div class="wastelander-equipment-packs" role="listbox" aria-label="{{stepHeading}}">
+            {{#each equipmentPacks}}
+            <button
+              type="button"
+              role="option"
+              aria-selected="{{selected}}"
+              class="wastelander-equipment-pack-card {{#if selected}}selected{{/if}}"
+              data-action="selectEquipmentPack"
+              data-pack-id="{{id}}"
+            >
+              <h3 class="wastelander-equipment-pack-title">{{label}}</h3>
+              <p class="wastelander-equipment-pack-tagline">{{tagline}}</p>
+            </button>
+            {{/each}}
+          </div>
+
+          <aside class="wastelander-equipment-detail {{#if selectedEquipmentPack}}has-selection{{/if}}">
+            {{#if selectedEquipmentPack}}
+            <div class="wastelander-detail-frame">
+              <h3 class="wastelander-detail-title">{{selectedEquipmentPack.label}}</h3>
+              <div class="wastelander-detail-body">
+                <h4 class="wastelander-equipment-section-title">{{strings.equipmentPackItems}}</h4>
+                <p class="wastelander-equipment-compendium-hint">{{strings.equipmentCompendiumHint}}</p>
+                <ul class="wastelander-equipment-item-list">
+                  {{#each equipmentResolvedItems}}
+                  <li>
+                    {{#if compendiumUuid}}
+                    <button
+                      type="button"
+                      class="wastelander-equipment-item-link has-compendium"
+                      data-action="viewCompendiumItem"
+                      data-item-uuid="{{compendiumUuid}}"
+                      data-tooltip="{{tooltip}}"
+                    >{{text}}</button>
+                    {{else}}
+                    <span class="wastelander-equipment-item-plain">{{text}}</span>
+                    {{/if}}
+                  </li>
+                  {{/each}}
+                </ul>
+
+                {{#each equipmentChoiceRows}}
+                <div class="wastelander-equipment-choice">
+                  <p class="wastelander-equipment-choice-prompt">{{prompt}}</p>
+                  <div class="wastelander-equipment-choice-options">
+                    {{#each options}}
+                    <span class="wastelander-equipment-choice-option">
+                      <button
+                        type="button"
+                        class="wastelander-equipment-choice-btn {{#if selected}}is-selected{{/if}}"
+                        data-action="setEquipmentChoice"
+                        data-choice-id="{{../id}}"
+                        data-option-id="{{id}}"
+                      >{{label}}</button>
+                      {{#if compendiumUuid}}
+                      <button
+                        type="button"
+                        class="wastelander-compendium-open"
+                        data-action="viewCompendiumItem"
+                        data-item-uuid="{{compendiumUuid}}"
+                        data-tooltip="{{tooltip}}"
+                        title="Open in compendium"
+                        aria-label="Open {{label}} in compendium"
+                      ><i class="fa-solid fa-up-right-from-square" aria-hidden="true"></i></button>
+                      {{/if}}
+                    </span>
+                    {{/each}}
+                  </div>
+                </div>
+                {{/each}}
+
+                {{#if equipmentHasTrinket}}
+                <div class="wastelander-equipment-trinket">
+                  <h4 class="wastelander-equipment-section-title">{{strings.equipmentTrinket}}</h4>
+                  <p class="wastelander-equipment-trinket-desc">{{strings.equipmentTrinketDesc}}</p>
+                  <div class="wastelander-equipment-trinket-controls">
+                    <button type="button" class="wastelander-equipment-roll-trinket" data-action="rollTrinket">
+                      <i class="fa-solid fa-dice-d20" aria-hidden="true"></i>
+                      {{strings.equipmentRollTrinket}}
+                    </button>
+                    <label class="wastelander-equipment-trinket-override">
+                      <span>{{strings.equipmentTrinketOverride}}</span>
+                      <input
+                        class="wastelander-trinket-input"
+                        type="number"
+                        min="1"
+                        max="20"
+                        value="{{trinketRoll}}"
+                        aria-label="Override trinket d20 roll"
+                      />
+                    </label>
+                  </div>
+                  {{#if trinketRoll}}
+                  <p class="wastelander-equipment-trinket-roll">
+                    {{strings.equipmentTrinketRollLabel}} <strong>{{trinketRoll}}</strong>
+                  </p>
+                  {{/if}}
+                  {{#if trinketText}}
+                  <p class="wastelander-equipment-trinket-result">{{trinketText}}</p>
+                  {{/if}}
+                </div>
+                {{/if}}
+
+                {{#if tagSkillLootLines.length}}
+                <h4 class="wastelander-equipment-section-title">{{strings.equipmentTagLoot}}</h4>
+                <ul class="wastelander-equipment-tag-loot">
+                  {{#each tagSkillLootLines}}
+                  <li>
+                    <strong>{{skill}}:</strong>
+                    {{#if compendiumUuid}}
+                    <button
+                      type="button"
+                      class="wastelander-equipment-item-link has-compendium"
+                      data-action="viewCompendiumItem"
+                      data-item-uuid="{{compendiumUuid}}"
+                      data-tooltip="{{tooltip}}"
+                    >{{loot}}</button>
+                    {{else}}
+                    <span class="wastelander-equipment-item-plain">{{loot}}</span>
+                    {{/if}}
+                  </li>
+                  {{/each}}
+                </ul>
+                {{/if}}
+              </div>
+            </div>
+            {{else}}
+            <p class="wastelander-detail-empty">{{strings.equipmentSelectPack}}</p>
+            {{/if}}
+          </aside>
+        </div>
+      </div>
+      {{else if isReviewStep}}
+      <div class="wastelander-review-layout">
+        <section class="wastelander-review-section">
+          <h3 class="wastelander-review-heading">{{strings.reviewOrigin}}</h3>
+          <p>{{reviewOriginName}}</p>
+        </section>
+        <section class="wastelander-review-section">
+          <h3 class="wastelander-review-heading">{{strings.reviewSpecial}}</h3>
+          <div class="wastelander-review-special">
+            {{#each specialSummary}}
+            <span class="wastelander-review-attr">{{key}} {{value}}</span>
+            {{/each}}
+          </div>
+        </section>
+        <section class="wastelander-review-section">
+          <h3 class="wastelander-review-heading">{{strings.reviewDerived}}</h3>
+          <dl class="wastelander-review-derived">
+            {{#each derivedStats}}
+            <div class="wastelander-review-derived-row">
+              <dt>{{label}}</dt>
+              <dd>{{value}}</dd>
+            </div>
+            {{/each}}
+          </dl>
+        </section>
+        <section class="wastelander-review-section">
+          <h3 class="wastelander-review-heading">{{strings.reviewImmunities}}</h3>
+          {{#if originImmunities.length}}
+          <ul class="wastelander-review-list wastelander-review-immunities">
+            {{#each originImmunities}}
+            <li>{{label}}</li>
+            {{/each}}
+          </ul>
+          {{else}}
+          <p>{{strings.reviewImmunitiesNone}}</p>
+          {{/if}}
+        </section>
+        <section class="wastelander-review-section">
+          <h3 class="wastelander-review-heading">{{strings.reviewTags}}</h3>
+          <p>{{#each reviewTagSkillNames}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}</p>
+        </section>
+        <section class="wastelander-review-section">
+          <h3 class="wastelander-review-heading">{{strings.reviewPerks}}</h3>
+          <ul class="wastelander-review-list">
+            {{#each reviewPerkNames}}
+            <li>{{this}}</li>
+            {{/each}}
+          </ul>
+        </section>
+        <section class="wastelander-review-section">
+          <h3 class="wastelander-review-heading">{{strings.reviewEquipment}}</h3>
+          <p class="wastelander-review-pack-name">{{reviewPackName}}</p>
+          <ul class="wastelander-review-list">
+            {{#each equipmentResolvedItems}}
+            <li>
+              {{#if compendiumUuid}}
+              <button
+                type="button"
+                class="wastelander-equipment-item-link has-compendium"
+                data-action="viewCompendiumItem"
+                data-item-uuid="{{compendiumUuid}}"
+                data-tooltip="{{tooltip}}"
+              >{{text}}</button>
+              {{else}}
+              <span>{{text}}</span>
+              {{/if}}
+            </li>
+            {{/each}}
+          </ul>
+          {{#if trinketRoll}}
+          <p class="wastelander-review-trinket">
+            <strong>{{strings.equipmentTrinket}} (d20 = {{trinketRoll}}):</strong> {{trinketText}}
+          </p>
+          {{/if}}
+        </section>
+        {{#if tagSkillLootLines.length}}
+        <section class="wastelander-review-section">
+          <h3 class="wastelander-review-heading">{{strings.reviewTagLoot}}</h3>
+          <ul class="wastelander-review-list">
+            {{#each tagSkillLootLines}}
+            <li><strong>{{skill}}:</strong> {{loot}}</li>
+            {{/each}}
+          </ul>
+        </section>
+        {{/if}}
+      </div>
+      {{else}}
+      <p class="wastelander-placeholder">{{strings.placeholder}}</p>
+      {{/if}}
+    </section>
+
+    <footer class="wastelander-footer">
+      <button type="button" class="wastelander-btn-back" data-action="back" {{#unless canBack}}disabled{{/unless}}>
+        {{strings.back}}
+      </button>
+      <div class="wastelander-footer-spacer"></div>
+      {{#if canFinish}}
+      <button
+        type="button"
+        class="wastelander-btn-next wastelander-finish"
+        data-action="finish"
+        {{#if finishDisabled}}disabled{{/if}}
+        title="{{finishError}}"
+      >
+        {{strings.finish}}
+      </button>
+      {{else}}
+      <button
+        type="button"
+        class="wastelander-btn-next"
+        data-action="next"
+        {{#unless canNext}}disabled{{/unless}}
+      >
+        {{strings.next}}
+        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+      </button>
+      {{/if}}
+    </footer>
+  </main>
+</div>

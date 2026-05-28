@@ -1,0 +1,93 @@
+{
+  "WASTELANDER": {
+    "ModuleTitle": "Wastelander",
+    "Wizard": {
+      "Title": "Character Creation",
+      "Launch": "Create Character",
+      "Back": "Back",
+      "Next": "Next",
+      "Finish": "Finish",
+      "FinishSuccess": "Character creation applied to the sheet.",
+      "Steps": {
+        "origin": "Origin",
+        "special": "S.P.E.C.I.A.L.",
+        "skills": "Skills",
+        "perk": "Perk",
+        "equipment": "Equipment",
+        "review": "Review"
+      },
+      "StepHeading": {
+        "origin": "Step 1: Choose Your Origin",
+        "special": "Step 2: S.P.E.C.I.A.L.",
+        "skills": "Step 3: Tag Skills & Ranks",
+        "perk": "Step 4: Choose Your First Perk",
+        "equipment": "Step 5: Choose Equipment",
+        "review": "Review & Finish"
+      },
+      "Placeholder": "This step is coming soon.",
+      "OriginDetail": "Origin details",
+      "NewWastelander": "{name}",
+      "Trait": "Trait",
+      "OriginRules": "Origin rules",
+      "Benefit": "Benefit",
+      "Penalty": "Penalty",
+      "SelectOrigin": "Select an origin to see details.",
+      "SelectOriginHint": "Select an origin above. Full description, benefits, and penalties appear here.",
+      "Skills": {
+        "Instructions": "Choose your tag skills (★). Each tag skill starts at rank 2. Spend skill points (9 + INT) to raise skills; max rank {max} at creation.",
+        "ResetFromSpecial": "S.P.E.C.I.A.L. changed — skill tags and ranks were reset.",
+        "TagColumn": "Tag",
+        "RankColumn": "Rank"
+      },
+      "Perks": {
+        "Instructions": "Click a perk to read it. Use the checkbox to select starting perk(s). Requirements you do not meet block selection only.",
+        "SelectHint": "Select a perk from the list to view its description.",
+        "Requirements": "Requirements",
+        "NotMet": "You do not meet:",
+        "CompanionStatBlock": "Companion profile"
+      },
+      "Origin": {
+        "SurvivorTwoTraits": "Two traits",
+        "SurvivorTraitPerk": "One trait + extra perk"
+      },
+      "Equipment": {
+        "Instructions": "Choose a starting equipment pack for your origin. Resolve any choices, then continue. Tag skill gear is listed automatically.",
+        "PackItems": "Pack contents",
+        "TagLoot": "Tag skill items (from Step 3)",
+        "Trinket": "Personal trinket",
+        "TrinketDesc": "Roll on the Random Trinkets table (Core Rulebook p. 80), or enter a d20 result manually.",
+        "RollTrinket": "Roll d20 on trinket table",
+        "TrinketRollLabel": "Rolled:",
+        "TrinketOverride": "Or set d20:",
+        "CompendiumHint": "Click underlined items to open them from the compendium. Hover for details.",
+        "SelectPack": "Select an equipment pack to see contents and choices."
+      },
+      "Review": {
+        "Derived": "Derived statistics",
+        "Immunities": "Immunities",
+        "ImmunitiesNone": "None",
+        "Origin": "Origin",
+        "Special": "S.P.E.C.I.A.L.",
+        "Tags": "Tag skills",
+        "Perks": "Starting perk(s)",
+        "Equipment": "Equipment pack",
+        "TagLoot": "Tag skill items"
+      },
+      "Special": {
+        "Instructions": "All S.P.E.C.I.A.L. attributes start at 5. Spend 5 points to increase them (each +1 costs 1 point). You may reduce an attribute to 4 to regain 1 point. Min 4, max 10.",
+        "PointsRemaining": "Points remaining: {remaining} / {total}",
+        "PerksRequiring": "Perks gated by selected attribute",
+        "Reset": "Reset",
+        "Blurb": {
+          "str": "Physical prowess; melee damage; how much you can carry.",
+          "per": "Awareness and initiative; used for energy weapon attacks.",
+          "end": "Toughness and resilience; affects HP and Big Guns.",
+          "cha": "Persuasion, bartering, and influence.",
+          "int": "Knowledge and problem-solving; affects skill points.",
+          "agi": "Nimbleness and precision; used for Small Guns.",
+          "luc": "Fortune and twists of fate; luck points and rerolls."
+        }
+      }
+    }
+  }
+}

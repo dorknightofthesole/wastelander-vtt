@@ -1,0 +1,34 @@
+{
+  "Dogmeat": {
+    "title": "Dogmeat",
+    "subtitle": "Level 1, Mammal, Normal Creature",
+    "skills": {
+      "body": 5,
+      "mind": 4,
+      "melee": 2,
+      "guns": null,
+      "other": 1
+    },
+    "derived": {
+      "hp": 6,
+      "initiative": "As PC",
+      "defense": 1,
+      "carryWeight": "50 lbs.",
+      "meleeBonus": "—"
+    },
+    "resistance": {
+      "physical": 0,
+      "energy": 0,
+      "radiation": 0,
+      "poison": 0
+    },
+    "attacks": [
+      "Bite: Body + Melee (TN 7), 2 CD Vicious, Physical damage"
+    ],
+    "specialAbilities": [
+      "Keen Senses: One or more of Dogmeat's senses are especially keen; they can attempt to detect creatures or objects which characters normally cannot, and they reduce the difficulty of all other PER tests by 1 (to a minimum of 0).",
+      "Attack Dog: When Dogmeat assists on one of your attacks, he must move within Reach of the target, and he inflicts his own melee damage on the target if the attack is successful.",
+      "Companion: Dogmeat's level is the same as yours and increases whenever you level up. Increase either Dogmeat's Body or Mind by +1 when you reach level 3 or any odd-numbered level after that. Increase Dogmeat's HP by +1 per level, and with any increases to Body. Increase Dogmeat's bite damage by +1 CD at 5th level and every 5 levels beyond that."
+    ]
+  }
+}
