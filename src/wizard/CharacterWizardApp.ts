@@ -61,6 +61,8 @@ import {
   getSpecialAttributeMax,
   getSpecialAttributeMin,
   parseOriginSpecialOverrides,
+  resolveActorSystemOrigin,
+  type PackSystemOriginRule,
   type SpecialKey,
 } from "./originRules.js";
 import {
@@ -70,7 +72,9 @@ import {
 } from "./specialRules.js";
 import { enrichHtml } from "../integrations/foundryText.js";
 import { t } from "../integrations/i18n.js";
+import { wrapPipBoyGlossary } from "../integrations/pipBoyGlossary.js";
 import { wrapTagSkillGlossary } from "../integrations/tagSkillGlossary.js";
+import { ROBOT_ARM_WEAPON_AMMO_SHOTS } from "./robotArmEquipment.js";
 import { applyWizardToActor } from "./applyWizardToActor.js";
 import {
   createInitialWizardState,
@@ -97,6 +101,7 @@ export interface OriginDefinition {
   extraTagRules: unknown[];
   extraPerkRules?: unknown[];
   equipmentPackId: string;
+  packSystemOrigin?: PackSystemOriginRule;
   specialOverrides: Record<string, unknown>;
   detail: { flavor: string; benefit: string; penalty: string; flavorHighlight?: string };
 }
@@ -642,7 +647,12 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
     const equipmentItemIndex = needsItemIndex ? await this.#ensureEquipmentItemIndex() : [];
 
     const rawEquipmentItems = selectedPack
-      ? resolvePackItems(selectedPack, this.state.equipmentChoices)
+      ? resolvePackItems(selectedPack, this.state.equipmentChoices, {
+          robotArmAmmoShots:
+            equipmentGroupId === "mister-handy"
+              ? ROBOT_ARM_WEAPON_AMMO_SHOTS
+              : undefined,
+        })
       : [];
     const equipmentResolvedItems = enrichEquipmentLines(rawEquipmentItems, equipmentItemIndex);
     const tagSkillLootLines = getTagSkillLootLines(this.state.taggedSkillNames).map((row) => ({
@@ -673,7 +683,9 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
           detail: {
             flavor: wrapTagSkillGlossary(selectedOrigin.detail.flavor),
             flavorHighlight: selectedOrigin.detail.flavorHighlight
-              ? wrapTagSkillGlossary(selectedOrigin.detail.flavorHighlight)
+              ? wrapPipBoyGlossary(
+                  wrapTagSkillGlossary(selectedOrigin.detail.flavorHighlight),
+                )
               : "",
             benefit: wrapTagSkillGlossary(selectedOrigin.detail.benefit),
             penalty: wrapTagSkillGlossary(selectedOrigin.detail.penalty),
@@ -712,7 +724,10 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
       tagSkillLootLines,
       derivedStats,
       originImmunities,
-      reviewOriginName: selectedOrigin?.label ?? "—",
+      reviewOriginName: resolveActorSystemOrigin(
+        selectedOrigin ?? undefined,
+        selectedPack,
+      ) || selectedOrigin?.label || "—",
       reviewPerkNames: selectedPerkNames,
       reviewTagSkillNames: this.state.taggedSkillNames,
       reviewPackName: selectedPack?.label ?? "—",

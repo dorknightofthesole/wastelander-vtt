@@ -1,4 +1,51 @@
+import type { EquipmentPackDefinition } from "./equipmentRules.js";
 import type { WizardState } from "./WizardState.js";
+
+/**
+ * How to set `system.origin` when an equipment loadout is chosen.
+ * - `packLabel` — use the pack title (e.g. Mister Gutsy).
+ * - `{ prefix }` — prefix + pack label (e.g. Super Mutant + Brute).
+ * - `{ template }` — `{origin}` and `{packLabel}` placeholders.
+ */
+export type PackSystemOriginRule =
+  | "packLabel"
+  | { prefix: string }
+  | { template: string };
+
+export interface OriginPackOriginSource {
+  systemOrigin: string;
+  packSystemOrigin?: PackSystemOriginRule;
+}
+
+/**
+ * Actor `system.origin` from origin + selected equipment pack.
+ * Pack `systemOrigin` overrides; else origin `packSystemOrigin` rule; else origin default.
+ */
+export function resolveActorSystemOrigin(
+  origin: OriginPackOriginSource | undefined,
+  pack: EquipmentPackDefinition | undefined,
+): string {
+  if (!origin) return "";
+  if (!pack) return origin.systemOrigin;
+  if (pack.systemOrigin?.trim()) return pack.systemOrigin.trim();
+
+  const rule = origin.packSystemOrigin;
+  if (!rule) return origin.systemOrigin;
+
+  if (rule === "packLabel") return pack.label;
+
+  if ("prefix" in rule) {
+    return `${rule.prefix}${pack.label}`;
+  }
+
+  if ("template" in rule) {
+    return rule.template
+      .replace(/\{origin\}/g, origin.systemOrigin)
+      .replace(/\{packLabel\}/g, pack.label);
+  }
+
+  return origin.systemOrigin;
+}
 
 export const SPECIAL_KEYS = [
   "str",

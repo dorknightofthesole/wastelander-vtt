@@ -27,7 +27,8 @@
       },
       "Placeholder": "This step is coming soon.",
       "Glossary": {
-        "TagSkill": "A few of your skills are Tag skills, marking them as your areas of expertise. Tag skills represent a focused training in those skills, a special affinity or talent with that discipline.\n\nTag skills increase your chances of a critical success. When you use a tagged skill, each d20 that rolls equal or under the skill rank is a critical success, scoring two successes instead of 1."
+        "TagSkill": "A few of your skills are Tag skills, marking them as your areas of expertise. Tag skills represent a focused training in those skills, a special affinity or talent with that discipline.\n\nTag skills increase your chances of a critical success. When you use a tagged skill, each d20 that rolls equal or under the skill rank is a critical success, scoring two successes instead of 1.",
+        "PipBoy": "Not all Pip-Boys contain the same functions, but the common functions are:\n\n- A personal status indicator allows the wearer to see a report on their current health and wellbeing and any medical problems currently afflicting them.\n- The device maintains an ongoing log of the wearer's activities, journey, and condition, and place for personal recordings to be made in either text or audio forms.\n- An inbuilt holotape reader allows the device to accept compact holotapes, able to read and playback audio, video, data, and even games.\n- It also functions as a compass, a radio, and a Geiger counter, and can generate light from its screen equivalent to a flashlight.\n\nIn addition, all Pip-Boy units aid their wearer during combat thanks to the Vault-Tec Assisted Targeting System, or V.A.T.S. A character equipped with a Pip-Boy may use V.A.T.S. when they make an attack, ignoring the normal difficulty increase for targeting a specific location on the enemy."
       },
       "OriginDetail": "Origin details",
       "NewWastelander": "{name}",

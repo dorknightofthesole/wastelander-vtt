@@ -22,9 +22,16 @@ import {
   getTagSkillLootLines,
   resolvePackItems,
   rollTrinket,
+  type ResolvedEquipmentLine,
 } from "./equipmentRules.js";
+import { ROBOT_ARM_WEAPON_AMMO_SHOTS } from "./robotArmEquipment.js";
 import { isOriginCompatibleWithActorType } from "./actorTypeRules.js";
-import { getOriginImmunities, isMisterHandyOrigin } from "./originRules.js";
+import {
+  getOriginImmunities,
+  isMisterHandyOrigin,
+  resolveActorSystemOrigin,
+  type OriginPackOriginSource,
+} from "./originRules.js";
 import { getRobotSheetTypeUpdate } from "./robotSheet.js";
 import {
   computeHealthMax,
@@ -47,9 +54,8 @@ const ATTR_KEYS: FalloutAttributeKey[] = [
   "luc",
 ];
 
-interface OriginRow {
+interface OriginRow extends OriginPackOriginSource {
   id: string;
-  systemOrigin: string;
   traitName: string | null;
   traitCompendiumUuid?: string;
   equipmentPackId: string;
@@ -133,22 +139,42 @@ function rollDiceFormula(formula: string): number {
   return total;
 }
 
+function ammoSystemOverrides(
+  source: Item,
+  resolved: ResolvedEquipmentLine,
+): Record<string, unknown> | undefined {
+  if (source.type !== "ammo") return undefined;
+  if (resolved.shots !== undefined) {
+    return {
+      shots: { current: resolved.shots, max: resolved.shots },
+    };
+  }
+  if (resolved.quantityRoll) {
+    return { quantityRoll: resolved.quantityRoll };
+  }
+  return undefined;
+}
+
 async function addEquipmentLineToActor(
   actorId: string,
-  line: string,
+  line: string | ResolvedEquipmentLine,
   index: Awaited<ReturnType<typeof buildEquipmentItemIndex>>,
 ): Promise<number> {
-  let caps = parseCapsFromText(line);
-  const enriched = enrichEquipmentLine(line, index);
+  const resolved: ResolvedEquipmentLine =
+    typeof line === "string" ? { text: line } : line;
+  let caps = parseCapsFromText(resolved.text);
+  const enriched = enrichEquipmentLine(resolved, index);
   if (enriched.compendiumUuid) {
     const source = await getCompendiumItem(enriched.compendiumUuid);
+    const systemOverrides = ammoSystemOverrides(source!, resolved);
     await addCompendiumItemToActor(getWorldActor(actorId), enriched.compendiumUuid, {
       equipApparel: source ? isEquippableFalloutGear(source) : false,
+      systemOverrides,
     });
     return caps;
   }
-  const diceMatch = line.match(/(\d+d\d+)/i);
-  if (diceMatch && /caps/i.test(line)) {
+  const diceMatch = resolved.text.match(/(\d+d\d+)/i);
+  if (diceMatch && /caps/i.test(resolved.text)) {
     caps += rollDiceFormula(diceMatch[1]!);
   }
   return caps;
@@ -256,9 +282,14 @@ export async function applyWizardToActor(
     attributeUpdate[`system.attributes.${key}.value`] = state.special[key];
   }
 
+  const equipmentPack =
+    state.selectedEquipmentPackId && origin.equipmentPackId
+      ? getEquipmentPack(origin.equipmentPackId, state.selectedEquipmentPackId)
+      : undefined;
+
   const actorUpdate: Record<string, unknown> = {
     ...attributeUpdate,
-    "system.origin": origin.systemOrigin,
+    "system.origin": resolveActorSystemOrigin(origin, equipmentPack),
     "system.trait": origin.traitName ?? "",
   };
 
@@ -331,9 +362,14 @@ export async function applyWizardToActor(
       state.selectedEquipmentPackId!,
     );
     if (pack) {
-      const lines = resolvePackItems(pack, state.equipmentChoices);
+      const lines = resolvePackItems(pack, state.equipmentChoices, {
+        robotArmAmmoShots:
+          origin.equipmentPackId === "mister-handy"
+            ? ROBOT_ARM_WEAPON_AMMO_SHOTS
+            : undefined,
+      });
       if (pack.hasTrinket && state.trinketRoll !== null) {
-        lines.push(rollTrinket(state.trinketRoll));
+        lines.push({ text: rollTrinket(state.trinketRoll) });
       }
       for (const line of lines) {
         bonusCaps += await addEquipmentLineToActor(actorId, line, index);

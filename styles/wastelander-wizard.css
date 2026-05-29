@@ -29,6 +29,8 @@
   --wstl-btn-font-size: 13px;
   --wstl-btn-size: 2rem;
   --wstl-btn-padding-inline: 0.75rem;
+  /* Tag ★ and perk × glyphs inside square toggle buttons */
+  --wstl-toggle-mark-size: 1.25rem;
 }
 
 .wastelander-wizard .window-content {
@@ -112,6 +114,12 @@
   min-width: var(--wstl-btn-size);
   min-height: var(--wstl-btn-size);
   padding: 0;
+}
+
+.wastelander-toggle-mark {
+  font-size: var(--wstl-toggle-mark-size);
+  font-weight: 800;
+  line-height: 1;
 }
 
 .wastelander-special-reset,
@@ -582,8 +590,8 @@
 }
 
 .wastelander-special-blurb {
-  color: var(--wstl-text);
-  font-size: 14px;
+  color: var(--wstl-text-muted);
+  font-size: 11px;
   line-height: 1.35;
 }
 
@@ -1033,12 +1041,6 @@
   background: rgba(var(--wstl-accent-rgb), 0.12);
 }
 
-.wastelander-perk-check-mark {
-  font-size: 1.25rem;
-  font-weight: 800;
-  line-height: 1;
-}
-
 .wastelander-perk-check:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -1284,19 +1286,21 @@
 }
 
 .wastelander-equipment-pack-title {
-  margin: 0 0 0.2rem;
+  margin: 0;
   font-size: 13px;
   font-weight: 700;
   color: var(--wstl-text);
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  line-height: 1.3;
 }
 
-.wastelander-equipment-pack-tagline {
-  margin: 0;
+.wastelander-equipment-detail-tagline {
+  margin: -0.15rem 0 0.75rem;
   font-size: 12px;
+  line-height: 1.45;
   color: var(--wstl-text-muted);
-  line-height: 1.35;
+  font-style: italic;
 }
 
 .wastelander-equipment-detail {
@@ -1380,6 +1384,50 @@
 }
 
 #tooltip.wastelander-tag-glossary-tooltip .wastelander-tag-glossary-tip:last-child {
+  margin-bottom: 0;
+}
+
+.wastelander-pip-boy-glossary {
+  color: var(--wstl-text-readable);
+  font-weight: 600;
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: var(--wstl-amber-bright);
+  text-decoration-thickness: 2.5px;
+  text-underline-offset: 3px;
+  cursor: help;
+}
+
+.wastelander-pip-boy-glossary:hover {
+  color: var(--wstl-amber-bright);
+  text-decoration-color: rgba(var(--wstl-accent-rgb), 0.95);
+}
+
+#tooltip.wastelander-pip-boy-glossary-tooltip {
+  max-width: 26rem;
+}
+
+#tooltip.wastelander-pip-boy-glossary-tooltip .wastelander-pip-boy-glossary-tip {
+  margin: 0 0 0.45em;
+  text-indent: 0;
+}
+
+#tooltip.wastelander-pip-boy-glossary-tooltip .wastelander-pip-boy-glossary-tip:last-child {
+  margin-bottom: 0;
+}
+
+#tooltip.wastelander-pip-boy-glossary-tooltip .wastelander-pip-boy-glossary-list {
+  margin: 0.35em 0 0.65em;
+  padding-left: 1.15em;
+}
+
+#tooltip.wastelander-pip-boy-glossary-tooltip .wastelander-pip-boy-glossary-list + .wastelander-pip-boy-glossary-tip,
+#tooltip.wastelander-pip-boy-glossary-tooltip p.wastelander-pip-boy-glossary-tip {
+  margin: 0 0 0.65em;
+  text-indent: 1.25em;
+}
+
+#tooltip.wastelander-pip-boy-glossary-tooltip p.wastelander-pip-boy-glossary-tip:last-child {
   margin-bottom: 0;
 }
 

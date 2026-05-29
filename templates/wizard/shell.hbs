@@ -273,7 +273,7 @@
                 {{#unless tagged}}{{#unless canTagOn}}disabled{{/unless}}{{/unless}}
                 {{#if tagged}}{{#unless canTagOff}}disabled{{/unless}}{{/if}}
               >
-                {{#if tagged}}★{{else}}☆{{/if}}
+                <span class="wastelander-toggle-mark" aria-hidden="true">{{#if tagged}}★{{else}}☆{{/if}}</span>
               </button>
             </div>
             <div class="wastelander-skills-col-name" role="cell">{{name}}</div>
@@ -348,7 +348,7 @@
                 aria-label="Select {{name}}"
                 {{#unless canToggle}}disabled{{/unless}}
               >
-                <span class="wastelander-perk-check-mark" aria-hidden="true">{{#if selected}}×{{else}}&nbsp;{{/if}}</span>
+                <span class="wastelander-toggle-mark" aria-hidden="true">{{#if selected}}×{{else}}&nbsp;{{/if}}</span>
               </button>
               <button
                 type="button"
@@ -409,9 +409,9 @@
               class="wastelander-equipment-pack-card {{#if selected}}selected{{/if}}"
               data-action="selectEquipmentPack"
               data-pack-id="{{id}}"
+              aria-label="{{label}}{{#if tagline}}. {{tagline}}{{/if}}"
             >
               <h3 class="wastelander-equipment-pack-title">{{label}}</h3>
-              <p class="wastelander-equipment-pack-tagline">{{tagline}}</p>
             </button>
             {{/each}}
           </div>
@@ -420,6 +420,9 @@
             {{#if selectedEquipmentPack}}
             <div class="wastelander-detail-frame">
               <h3 class="wastelander-detail-title">{{selectedEquipmentPack.label}}</h3>
+              {{#if selectedEquipmentPack.tagline}}
+              <p class="wastelander-equipment-detail-tagline">{{selectedEquipmentPack.tagline}}</p>
+              {{/if}}
               <div class="wastelander-detail-body">
                 <h4 class="wastelander-equipment-section-title">{{strings.equipmentPackItems}}</h4>
                 <p class="wastelander-equipment-compendium-hint">{{strings.equipmentCompendiumHint}}</p>

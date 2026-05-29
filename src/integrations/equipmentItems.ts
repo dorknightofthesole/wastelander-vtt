@@ -1,3 +1,5 @@
+import type { ResolvedEquipmentLine } from "../wizard/equipmentRules.js";
+
 /** Fallout item compendiums used for starting equipment lookups. */
 const EQUIPMENT_ITEM_PACK_IDS = [
   "fallout.weapons",
@@ -19,6 +21,14 @@ const EQUIPMENT_NAME_ALIASES: Record<string, string> = {
   "diagnosis mod": "Diagnosis Mod",
   "standard plating": "Standard Plating",
   "mister gutsy plating": "Mister Gutsy Plating",
+  "brotherhood holotags": "Holotags",
+  "laser pistol": "Laser Gun",
+  "combat knife": "Combat Knife",
+  "pincer arm attachment": "Pincer",
+  "buzz-saw arm attachment": "Buzz-Saw",
+  "flamer arm attachment": "Flamer",
+  "laser emitter arm attachment": "Laser Emitter",
+  "10mm auto pistol arm": "10mm Auto Pistol",
 };
 
 export interface CompendiumItemIndexEntry {
@@ -137,6 +147,20 @@ export async function buildEquipmentItemIndex(): Promise<CompendiumItemIndexEntr
   return cachedIndex;
 }
 
+function findExactCompendiumMatch(
+  name: string,
+  index: CompendiumItemIndexEntry[],
+): CompendiumItemIndexEntry | undefined {
+  for (const candidate of equipmentLookupCandidates(name)) {
+    const lower = candidate.toLowerCase();
+    const exact = index.filter((item) => item.name.toLowerCase() === lower);
+    if (exact.length) {
+      return pickPreferredMatch(name, exact);
+    }
+  }
+  return undefined;
+}
+
 function findCompendiumMatches(
   text: string,
   index: CompendiumItemIndexEntry[],
@@ -170,12 +194,20 @@ function findCompendiumMatches(
 }
 
 export function enrichEquipmentLine(
-  text: string,
+  line: string | ResolvedEquipmentLine,
   index: CompendiumItemIndexEntry[],
 ): EquipmentDisplayLine {
-  const matches = findCompendiumMatches(text, index);
+  const resolved: ResolvedEquipmentLine =
+    typeof line === "string" ? { text: line } : line;
+  const lookupText = resolved.compendiumName ?? resolved.text;
+
+  const exact = resolved.compendiumName
+    ? findExactCompendiumMatch(resolved.compendiumName, index)
+    : undefined;
+  const matches = exact ? [exact] : findCompendiumMatches(lookupText, index);
+
   if (!matches.length) {
-    return { text, tooltip: "", hasCompendium: false };
+    return { text: resolved.text, tooltip: "", hasCompendium: false };
   }
 
   const tooltip = escapeTooltipAttr(
@@ -184,7 +216,7 @@ export function enrichEquipmentLine(
 
   const primary = matches[0]!;
   return {
-    text,
+    text: resolved.text,
     tooltip,
     hasCompendium: Boolean(primary.uuid),
     compendiumUuid: primary.uuid || undefined,
@@ -193,7 +225,7 @@ export function enrichEquipmentLine(
 }
 
 export function enrichEquipmentLines(
-  lines: string[],
+  lines: Array<string | ResolvedEquipmentLine>,
   index: CompendiumItemIndexEntry[],
 ): EquipmentDisplayLine[] {
   return lines.map((line) => enrichEquipmentLine(line, index));

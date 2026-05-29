@@ -84,6 +84,7 @@
     "traitCompendiumUuid": "",
     "extraTagRules": [],
     "equipmentPackId": "super-mutant",
+    "packSystemOrigin": { "prefix": "Super Mutant " },
     "specialOverrides": {
       "str": { "add": 2, "max": 12 },
       "end": { "add": 2, "max": 12 },
@@ -106,6 +107,7 @@
     "traitCompendiumUuid": "",
     "extraTagRules": [],
     "equipmentPackId": "mister-handy",
+    "packSystemOrigin": "packLabel",
     "specialOverrides": {},
     "detail": {
       "flavor": "A General Atomics domestic automaton (Mister Handy, Gutsy, Miss Nanny, or Orderly line) with jet propulsion, three arms, and self-determination that carried you past the Great War.",

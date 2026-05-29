@@ -207,9 +207,10 @@
         "label": "Brotherhood of Steel Initiate",
         "tagline": "Training to fight the Brotherhood's battles.",
         "items": [
-          "Brotherhood fatigues and Brotherhood hood",
-          "Combat knife",
-          "Brotherhood holotags"
+          "Brotherhood of Steel Fatigues",
+          "Brotherhood of Steel Hood",
+          "Combat Knife",
+          "Holotags"
         ],
         "choices": [
           {
@@ -219,11 +220,19 @@
             "options": [
               {
                 "id": "laser",
-                "label": "Laser pistol and fusion cell (10 +5 CD shots)"
+                "label": "Laser pistol and fusion cell (10 +5 CD shots)",
+                "grants": [
+                  { "name": "Laser Gun" },
+                  { "name": "Fusion Cell", "quantityRoll": "10+5dc" }
+                ]
               },
               {
                 "id": "10mm",
-                "label": "10mm pistol with 10 +5 CD rounds"
+                "label": "10mm pistol with 10 +5 CD rounds of 10mm ammunition",
+                "grants": [
+                  { "name": "10mm Pistol" },
+                  { "name": "10mm Round", "quantityRoll": "10+5dc" }
+                ]
               }
             ]
           }
@@ -234,9 +243,10 @@
         "label": "Brotherhood of Steel Scribe",
         "tagline": "Researcher and record-keeper.",
         "items": [
-          "Brotherhood Field Scribe's armor and Scribe's hat",
-          "Combat knife",
-          "Brotherhood holotags"
+          "Brotherhood Scribe's Armor",
+          "Brotherhood Scribe's Hat",
+          "Combat Knife",
+          "Holotags"
         ],
         "choices": [
           {
@@ -246,11 +256,19 @@
             "options": [
               {
                 "id": "laser",
-                "label": "Laser pistol and fusion cell (6 +3 CD shots)"
+                "label": "Laser pistol and fusion cell (6 +3 CD shots)",
+                "grants": [
+                  { "name": "Laser Gun" },
+                  { "name": "Fusion Cell", "quantityRoll": "6+3dc" }
+                ]
               },
               {
                 "id": "10mm",
-                "label": "10mm pistol with 6 +3 CD rounds"
+                "label": "10mm pistol with 6 +3 CD rounds of 10mm ammunition",
+                "grants": [
+                  { "name": "10mm Pistol" },
+                  { "name": "10mm Round", "quantityRoll": "6+3dc" }
+                ]
               }
             ]
           }
