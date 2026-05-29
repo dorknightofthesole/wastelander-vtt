@@ -3,6 +3,8 @@ declare const game: {
   system: { id: string };
   actors: { get(id: string): Actor | undefined };
   i18n: {
+    lang?: string;
+    translations: Record<string, Record<string, string>>;
     localize: (key: string) => string;
     format: (key: string, data?: Record<string, unknown>) => string;
   };
@@ -16,6 +18,16 @@ declare const Hooks: {
 declare const ui: {
   notifications: { warn: (message: string) => void; info: (message: string) => void; error: (message: string) => void };
 };
+
+declare const ContextMenu: new (
+  element: HTMLElement,
+  menuItems: Array<{
+    name: string;
+    icon: string;
+    callback: () => void;
+  }>,
+  options?: { eventName?: string; jQuery?: boolean },
+) => unknown;
 
 declare function fromUuid(uuid: string): Promise<unknown>;
 
@@ -34,8 +46,10 @@ declare class Actor {
     ): Promise<Actor[]>;
   };
   items: {
+    contents?: Item[];
     find: (fn: (item: Item) => boolean) => Item | undefined;
     some: (fn: (item: Item) => boolean) => boolean;
+    map?: (fn: (item: Item) => Item) => Item[];
   };
   sheet?: { render: (force?: boolean) => void };
   update(data: object, options?: { render?: boolean }): Promise<unknown>;
@@ -86,6 +100,17 @@ declare namespace foundry {
   }
   namespace applications {
     namespace ux {
+      const ContextMenu: {
+        implementation?: new (
+          element: HTMLElement,
+          menuItems: Array<{
+            name: string;
+            icon: string;
+            callback: () => void;
+          }>,
+          options?: { eventName?: string; jQuery?: boolean },
+        ) => unknown;
+      };
       const TextEditor: {
         implementation: {
           enrichHTML: (

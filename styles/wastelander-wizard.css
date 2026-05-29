@@ -1888,24 +1888,102 @@
   cursor: default;
 }
 
-/* ---- Sheet launch button ---- */
+/* ---- Actor sheet header menu ---- */
 
-.window-app .window-header a.wastelander-launch-wizard,
-.sheet-header a.wastelander-launch-wizard {
+.window-app .window-header .wastelander-sheet-menu-wrap,
+.sheet-header .wastelander-sheet-menu-wrap {
+  position: relative;
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  align-self: center;
+  padding: 0;
+  margin: 0;
 }
 
-.window-app .window-header a.wastelander-launch-wizard .wastelander-launch-icon,
-.sheet-header a.wastelander-launch-wizard .wastelander-launch-icon {
+.window-app .window-header .wastelander-sheet-menu-trigger,
+.sheet-header .wastelander-sheet-menu-trigger {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  line-height: 1;
+  text-decoration: none;
+  color: inherit;
+}
+
+.window-app .window-header .wastelander-sheet-menu-trigger .wastelander-launch-icon,
+.sheet-header .wastelander-sheet-menu-trigger .wastelander-launch-icon {
   display: block;
   width: 18px;
   height: 18px;
   object-fit: contain;
   flex: 0 0 auto;
   filter: sepia(0.42) saturate(2.4) hue-rotate(18deg) brightness(1.08);
+}
+
+.window-app .window-header .wastelander-sheet-menu-label,
+.sheet-header .wastelander-sheet-menu-label {
+  display: inline;
+  white-space: nowrap;
+}
+
+.wastelander-sheet-dropdown-portal,
+.wastelander-sheet-dropdown {
+  display: flex;
+  flex-direction: column;
+  min-width: 11rem;
+  margin: 0;
+  padding: 0.25rem 0;
+  list-style: none;
+  background: var(--color-cool-5, #1a1a1a);
+  border: 1px solid var(--color-border-light-tertiary, #444);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+}
+
+.wastelander-sheet-menu-wrap.is-open .wastelander-sheet-dropdown {
+  display: flex;
+}
+
+.wastelander-sheet-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.4rem 0.75rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text-light-highlight, #eee);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.wastelander-sheet-dropdown-item:hover,
+.wastelander-sheet-dropdown-item:focus-visible {
+  background: var(--color-cool-4, #2a2a2a);
+  outline: none;
+}
+
+.wastelander-sheet-dropdown-item i {
+  width: 1rem;
+  text-align: center;
+  opacity: 0.85;
+}
+
+.wastelander-sheet-dropdown-item--disabled,
+.wastelander-sheet-dropdown-item:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  color: var(--color-text-light-primary, #aaa);
+}
+
+.wastelander-sheet-dropdown-item--disabled:hover,
+.wastelander-sheet-dropdown-item:disabled:hover {
+  background: transparent;
 }
 
 /* ---- Responsive ---- */

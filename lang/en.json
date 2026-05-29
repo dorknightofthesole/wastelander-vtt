@@ -1,6 +1,18 @@
 {
   "WASTELANDER": {
     "ModuleTitle": "Wastelander",
+    "ActorSheet": {
+      "Menu": {
+        "Build": "Build Character",
+        "ExportPdf": "Export to PDF"
+      },
+      "Export": {
+        "InProgress": "Generating character sheet PDF…",
+        "Success": "Character sheet PDF downloaded.",
+        "Error": "PDF export failed: {error}",
+        "TemplateMissing": "Please add the form-fillable character sheet PDF to your module folder: {path}/ (file: {filename}). Wastelander does not distribute this PDF; use your licensed Fallout 2d20 materials."
+      }
+    },
     "Wizard": {
       "Title": "Character Creation",
       "WindowTitle": "Wastelander – Character Creation",

@@ -12,6 +12,9 @@ export default defineConfig({
     },
     rollupOptions: {
       external: (id) => id.startsWith("@foundry") || id === "foundry",
+      output: {
+        inlineDynamicImports: true,
+      },
     },
   },
 });

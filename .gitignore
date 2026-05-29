@@ -141,3 +141,6 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# User-installed Modiphius character sheet PDFs (not redistributed with the module)
+assets/sheets/*.pdf

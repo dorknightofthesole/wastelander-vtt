@@ -1,0 +1,23 @@
+{
+  "template": "FO2d20-Human-Character-Sheet_v002m.pdf",
+  "robotTemplate": "FO2d20-Robot-Character-Sheet_v002m.pdf",
+  "skillSlugs": {
+    "Athletics": "athletics",
+    "Barter": "barter",
+    "Big Guns": "big-guns",
+    "Energy Weapons": "energyweapons",
+    "Explosives": "explosives",
+    "Lockpick": "lockpick",
+    "Medicine": "medicine",
+    "Melee Weapons": "meleeweapons",
+    "Pilot": "pilot",
+    "Repair": "repair",
+    "Science": "science",
+    "Small Guns": "smallguns",
+    "Sneak": "sneak",
+    "Speech": "speech",
+    "Survival": "survival",
+    "Throwing": "throwing",
+    "Unarmed": "unarmed"
+  }
+}
