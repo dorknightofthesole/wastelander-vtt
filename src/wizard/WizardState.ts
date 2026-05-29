@@ -264,7 +264,7 @@ export function validateWizardStep(
         specialOverrides: overrides,
       });
       if (remaining < 0) return "You have spent too many S.P.E.C.I.A.L. points.";
-      return remaining === 0 ? null : "Spend all S.P.E.C.I.A.L. points to continue.";
+      return remaining === 0 ? null : "Spend all points to continue.";
     }
     case "skills": {
       if (!context.skillNames?.length) {

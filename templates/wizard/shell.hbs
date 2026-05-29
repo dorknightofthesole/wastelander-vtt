@@ -53,8 +53,7 @@
             <div class="wastelander-origin-art" aria-hidden="true">
               <img class="wastelander-origin-icon" src="{{iconSrc}}" alt="" />
             </div>
-            <h3 class="wastelander-origin-title">{{label}}</h3>
-            <p class="wastelander-origin-tagline">{{tagline}}</p>
+            <span class="wastelander-origin-title">{{label}}</span>
             {{#unless enabled}}
             <span class="wastelander-origin-badge" title="{{disabledReason}}">{{disabledLabel}}</span>
             {{/unless}}
@@ -189,21 +188,47 @@
         </div>
 
         <aside class="wastelander-special-right">
-          <h3 class="wastelander-special-perks-title">{{strings.perksRequiring}}</h3>
-          <div class="wastelander-special-perks">
-            {{#each perkList}}
-            <div
-              class="wastelander-perk-req {{#unless met}}is-unmet{{/unless}}"
-              data-tooltip="{{tooltip}}"
-            >
-              <span class="wastelander-perk-name">{{name}}</span>
-              <span class="wastelander-perk-need">{{required}}</span>
-            </div>
-            {{/each}}
-            {{#unless perkList.length}}
-            <div class="wastelander-special-perks-empty">{{strings.placeholder}}</div>
+          <section class="wastelander-special-side-section">
+            <h3 class="wastelander-special-side-title">{{strings.specialSkillsFor}}</h3>
+            <ul class="wastelander-special-skill-list">
+              {{#each specialFocusSkills}}
+              <li class="wastelander-special-skill-item">{{name}}</li>
+              {{/each}}
+            </ul>
+            {{#unless specialFocusSkills.length}}
+            <p class="wastelander-special-side-empty">{{strings.specialNoSkills}}</p>
             {{/unless}}
-          </div>
+          </section>
+
+          <section class="wastelander-special-side-section">
+            <h3 class="wastelander-special-side-title">{{strings.specialPerksUnlocked}}</h3>
+            <div class="wastelander-special-perks">
+              {{#each perksUnlocked}}
+              <div class="wastelander-perk-req is-met" data-tooltip="{{tooltip}}">
+                <span class="wastelander-perk-name">{{name}}</span>
+                <span class="wastelander-perk-need">{{required}}</span>
+              </div>
+              {{/each}}
+              {{#unless perksUnlocked.length}}
+              <p class="wastelander-special-side-empty">{{strings.specialNoPerksUnlocked}}</p>
+              {{/unless}}
+            </div>
+          </section>
+
+          <section class="wastelander-special-side-section">
+            <h3 class="wastelander-special-side-title">{{strings.specialPerksLocked}}</h3>
+            <div class="wastelander-special-perks">
+              {{#each perksLocked}}
+              <div class="wastelander-perk-req is-unmet" data-tooltip="{{tooltip}}">
+                <span class="wastelander-perk-name">{{name}}</span>
+                <span class="wastelander-perk-need">{{required}}</span>
+              </div>
+              {{/each}}
+              {{#unless perksLocked.length}}
+              <p class="wastelander-special-side-empty">{{strings.specialNoPerksLocked}}</p>
+              {{/unless}}
+            </div>
+          </section>
         </aside>
       </div>
       {{else if isSkillsStep}}
@@ -305,7 +330,7 @@
           <div class="wastelander-perk-list" role="listbox" aria-label="{{stepHeading}}">
             {{#each perkPickerRows}}
             <div
-              class="wastelander-perk-row {{#if focused}}is-focused{{/if}} {{#if selected}}is-chosen{{/if}}"
+              class="wastelander-perk-row {{#if met}}is-met{{else}}is-unmet{{/if}} {{#if focused}}is-focused{{/if}} {{#if selected}}is-chosen{{/if}}"
               role="option"
               aria-selected="{{focused}}"
             >

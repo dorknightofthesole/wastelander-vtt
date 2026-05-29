@@ -86,6 +86,12 @@
         "Instructions": "All S.P.E.C.I.A.L. attributes start at 5. Spend 5 points to increase them (each +1 costs 1 point). You may reduce an attribute to 4 to regain 1 point. Min 4, max 10.",
         "PointsRemaining": "Points remaining: {remaining} / {total}",
         "PerksRequiring": "Perks gated by selected attribute",
+        "SkillsFor": "Skills — {attribute}",
+        "PerksUnlocked": "Unlocked perks",
+        "PerksLocked": "Requires higher {attribute}",
+        "NoSkillsForAttribute": "No skills use this attribute as default.",
+        "NoPerksUnlocked": "None unlocked at this value yet.",
+        "NoPerksLocked": "No perks require a higher value.",
         "Reset": "Reset",
         "Blurb": {
           "str": "Physical prowess; melee damage; how much you can carry.",

@@ -10,6 +10,8 @@
   --wstl-amber-bright: #e8f060;
   --wstl-amber-glow: rgba(212, 224, 74, 0.42);
   --wstl-text: #d4e04a;
+  /* Slightly lighter than primary — met / selectable perks */
+  --wstl-text-readable: #eaf062;
   /* Slightly darker than primary — only tier below main body text */
   --wstl-text-muted: #c0ce46;
   --wstl-text-dim: var(--wstl-text-muted);
@@ -291,22 +293,21 @@
 
 .wastelander-origin-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(8.75rem, 1fr));
-  gap: 0.5rem;
-  max-width: 42rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem;
+  max-width: 52rem;
 }
 
 .wastelander-origin-card {
   box-sizing: border-box;
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: flex-start;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.55rem;
   width: 100%;
-  max-width: 10.5rem;
-  min-height: 5.25rem;
+  min-height: 3.35rem;
   margin: 0;
-  padding: 0;
+  padding: 0.35rem 0.5rem 0.35rem 0.4rem;
   text-align: left;
   background: rgba(0, 0, 0, 0.35);
   border: 2px double var(--wstl-amber-muted);
@@ -324,12 +325,15 @@
 
 .wastelander-origin-art {
   position: relative;
+  flex: 0 0 3rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 3.5rem;
-  padding: 0.35rem 0.3rem;
-  border-bottom: 1px solid rgba(var(--wstl-accent-rgb), 0.2);
+  align-self: center;
+  width: 3rem;
+  min-height: 2.75rem;
+  padding: 0.15rem;
+  border: 0;
   background: linear-gradient(
     180deg,
     rgba(var(--wstl-accent-rgb), 0.04) 0%,
@@ -352,7 +356,7 @@
 .wastelander-origin-art .wastelander-origin-icon {
   position: relative;
   z-index: 1;
-  height: 2.5rem;
+  height: 2.35rem;
   width: auto;
   max-width: 100%;
   object-fit: contain;
@@ -397,13 +401,10 @@
   border-color: rgba(var(--wstl-accent-rgb), 0.22);
 }
 
-.wastelander-origin-card h3,
-.wastelander-origin-card p {
+.wastelander-origin-card .wastelander-origin-title {
   position: static;
   float: none;
   transform: none;
-  width: 100%;
-  max-width: none;
 }
 
 .wastelander-origin-badge {
@@ -420,26 +421,19 @@
 }
 
 .wastelander-origin-title {
+  flex: 1 1 auto;
+  min-width: 0;
   margin: 0;
-  padding: 0.28rem 0.4rem 0.1rem;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--wstl-text);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.wastelander-origin-tagline {
-  margin: 0;
-  padding: 0 0.4rem 0.35rem;
+  padding: 0 0.25rem 0 0;
   font-size: 10px;
-  line-height: 1.3;
+  font-weight: 700;
+  line-height: 1.32;
   color: var(--wstl-text);
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-  overflow-wrap: anywhere;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  align-self: center;
 }
 
 .wastelander-origin-card:is(:hover, :focus-visible) .wastelander-origin-title {
@@ -571,12 +565,51 @@
   overflow: auto;
 }
 
-.wastelander-special-perks-title {
-  margin: 0 0 0.55rem;
-  font-size: 14px;
+.wastelander-special-side-section {
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(var(--wstl-accent-rgb), 0.14);
+}
+
+.wastelander-special-side-section:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.wastelander-special-side-title {
+  margin: 0 0 0.45rem;
+  font-size: 12px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+  color: var(--wstl-text-readable);
+}
+
+.wastelander-special-skill-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wastelander-special-skill-item {
+  padding: 0.22rem 0.15rem;
   color: var(--wstl-text);
+  font-size: 13px;
+  line-height: 1.35;
+  border-bottom: 1px solid rgba(var(--wstl-accent-rgb), 0.08);
+}
+
+.wastelander-special-skill-item:last-child {
+  border-bottom: 0;
+}
+
+.wastelander-special-side-empty {
+  margin: 0;
+  padding: 0.2rem 0.1rem;
+  color: var(--wstl-text-muted);
+  font-size: 12px;
+  font-style: italic;
+  line-height: 1.35;
 }
 
 .wastelander-perk-req {
@@ -586,6 +619,10 @@
   padding: 0.28rem 0.25rem;
   border-bottom: 1px solid rgba(var(--wstl-accent-rgb), 0.12);
   color: var(--wstl-text);
+}
+
+.wastelander-perk-req.is-met {
+  color: var(--wstl-text-readable);
 }
 
 .wastelander-perk-req.is-unmet {
@@ -603,12 +640,6 @@
   flex: 0 0 auto;
   color: var(--wstl-text);
   font-weight: 800;
-}
-
-.wastelander-special-perks-empty {
-  padding: 0.5rem 0.25rem;
-  color: var(--wstl-text-muted);
-  font-style: italic;
 }
 
 .wastelander-special-actions {
@@ -915,8 +946,22 @@
   background: rgba(var(--wstl-accent-rgb), 0.06);
 }
 
+.wastelander-perk-row.is-met .wastelander-perk-row-label {
+  color: var(--wstl-text-readable);
+}
+
+.wastelander-perk-row.is-met .wastelander-perk-check:not(:disabled) {
+  color: var(--wstl-text-readable);
+  border-color: rgba(var(--wstl-accent-rgb), 0.45);
+}
+
+.wastelander-perk-row.is-unmet .wastelander-perk-row-label {
+  color: var(--wstl-text-muted);
+  opacity: 0.82;
+}
+
 .wastelander-perk-row.is-chosen .wastelander-perk-row-label {
-  color: var(--wstl-text);
+  color: var(--wstl-text-readable);
   font-weight: 700;
 }
 
@@ -963,12 +1008,17 @@
   cursor: pointer;
 }
 
-.wastelander-perk-row-label:hover {
+.wastelander-perk-row.is-met .wastelander-perk-row-label:hover {
+  color: var(--wstl-amber-bright);
+}
+
+.wastelander-perk-row.is-unmet .wastelander-perk-row-label:hover {
   color: var(--wstl-text-muted);
 }
 
-.wastelander-perk-row.is-focused .wastelander-perk-row-label {
-  color: var(--wstl-text);
+.wastelander-perk-row.is-focused.is-met .wastelander-perk-row-label,
+.wastelander-perk-row.is-focused.is-chosen .wastelander-perk-row-label {
+  color: var(--wstl-amber-bright);
 }
 
 .wastelander-perk-detail {
@@ -1738,7 +1788,7 @@
 
 @media (max-width: 900px) {
   .wastelander-origin-cards {
-    grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+    grid-template-columns: 1fr;
     max-width: none;
   }
 }
@@ -1761,5 +1811,11 @@
 
   .wastelander-origin-cards {
     grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+
+  .wastelander-origin-card {
+    min-height: 3rem;
+    padding: 0.3rem 0.45rem 0.3rem 0.35rem;
   }
 }

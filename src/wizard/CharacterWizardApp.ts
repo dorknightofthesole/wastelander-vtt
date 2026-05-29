@@ -397,13 +397,14 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
     const currentIdx = stepIndex(this.state.step);
     const selectedOrigin = this.#originById(this.state.originId);
     const isSurvivorSelected = selectedOrigin?.id === "survivor";
+    const isSpecialStep = this.state.step === "special";
     const isSkillsStep = this.state.step === "skills";
     const isPerkStep = this.state.step === "perk";
     const isEquipmentStep = this.state.step === "equipment";
     const isReviewStep = this.state.step === "review";
-    if ((isSkillsStep || isReviewStep) && !this.#skillsCache.length) {
+    if ((isSkillsStep || isReviewStep || isSpecialStep) && !this.#skillsCache.length) {
       this.#skillsCache = await listSkillsFromCompendium();
-      this.#syncSkillsState();
+      if (isSkillsStep || isReviewStep) this.#syncSkillsState();
     }
     if (isPerkStep || isReviewStep) {
       this.#perksCache = await listPerksFromCompendium(this.#perkEvaluationContext());
@@ -456,7 +457,6 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
 
     const traitHtml = await this.#enrichTraitHtml(selectedOrigin);
 
-    const isSpecialStep = this.state.step === "special";
     const specialBudget = this.#getSpecialPointsBudget();
     const specialPointsText = `Points remaining: ${specialBudget.remaining} / ${specialBudget.total}`;
 
@@ -488,12 +488,33 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
       };
     });
 
-    const perkRequirements =
-      isSpecialStep ? await listPerksRequiringAttribute(this.state.specialFocus) : [];
-    const perkList = perkRequirements.map((p) => ({
-      ...p,
-      met: this.state.special[this.state.specialFocus] >= p.required,
-    }));
+    const specialFocusKey = this.state.specialFocus;
+    const specialFocusMeta = attrMeta.find((m) => m.key === specialFocusKey);
+    const specialFocusLabel = specialFocusMeta?.label ?? specialFocusKey.toUpperCase();
+    const specialFocusValue = this.state.special[specialFocusKey];
+
+    const specialFocusSkills = isSpecialStep
+      ? this.#skillsCache
+          .filter((s) => s.defaultAttribute === specialFocusKey)
+          .map((s) => ({ name: s.name }))
+          .sort((a, b) => a.name.localeCompare(b.name))
+      : [];
+
+    const perkRequirements = isSpecialStep
+      ? await listPerksRequiringAttribute(specialFocusKey)
+      : [];
+    const perksUnlocked = perkRequirements
+      .filter((p) => specialFocusValue >= p.required)
+      .map((p) => ({
+        ...p,
+        met: true,
+      }));
+    const perksLocked = perkRequirements
+      .filter((p) => specialFocusValue < p.required)
+      .map((p) => ({
+        ...p,
+        met: false,
+      }));
 
     const origin = selectedOrigin ?? undefined;
     const tagConfig = getSkillsTagConfig(origin, this.state.survivorTraitIds);
@@ -703,7 +724,11 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
       specialPointsTotal: specialBudget.total,
       specialPointsText,
       specialRows,
-      perkList,
+      specialFocusLabel,
+      specialFocusValue,
+      specialFocusSkills,
+      perksUnlocked,
+      perksLocked,
       canBack: currentIdx > 0,
       canNext: validationError === null && this.state.step !== "review",
       canFinish: isReviewStep,
@@ -727,7 +752,16 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
           remaining: specialBudget.remaining,
           total: specialBudget.total,
         }),
-        perksRequiring: t("WASTELANDER.Wizard.Special.PerksRequiring"),
+        specialSkillsFor: t("WASTELANDER.Wizard.Special.SkillsFor", {
+          attribute: specialFocusLabel,
+        }),
+        specialPerksUnlocked: t("WASTELANDER.Wizard.Special.PerksUnlocked"),
+        specialPerksLocked: t("WASTELANDER.Wizard.Special.PerksLocked", {
+          attribute: specialFocusLabel,
+        }),
+        specialNoSkills: t("WASTELANDER.Wizard.Special.NoSkillsForAttribute"),
+        specialNoPerksUnlocked: t("WASTELANDER.Wizard.Special.NoPerksUnlocked"),
+        specialNoPerksLocked: t("WASTELANDER.Wizard.Special.NoPerksLocked"),
         reset: t("WASTELANDER.Wizard.Special.Reset"),
         skillsInstructions: t("WASTELANDER.Wizard.Skills.Instructions", {
           max: maxSkillRank,
