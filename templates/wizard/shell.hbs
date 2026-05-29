@@ -397,6 +397,9 @@
           {{#if equipmentGroupDescription}}
           <p class="wastelander-equipment-group-desc">{{equipmentGroupLabel}} — {{{equipmentGroupDescription}}}</p>
           {{/if}}
+          {{#if resolvedOriginName}}
+          <p class="wastelander-equipment-resolved-origin">{{strings.reviewOrigin}}: <strong>{{resolvedOriginName}}</strong></p>
+          {{/if}}
         </header>
 
         <div class="wastelander-equipment-columns">

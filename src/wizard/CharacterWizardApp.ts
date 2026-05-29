@@ -724,10 +724,16 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
       tagSkillLootLines,
       derivedStats,
       originImmunities,
-      reviewOriginName: resolveActorSystemOrigin(
-        selectedOrigin ?? undefined,
-        selectedPack,
-      ) || selectedOrigin?.label || "—",
+      resolvedOriginName:
+        selectedOrigin && selectedPack
+          ? resolveActorSystemOrigin(selectedOrigin, selectedPack)
+          : "",
+      reviewOriginName:
+        (selectedOrigin && selectedPack
+          ? resolveActorSystemOrigin(selectedOrigin, selectedPack)
+          : selectedOrigin?.systemOrigin) ||
+        selectedOrigin?.label ||
+        "—",
       reviewPerkNames: selectedPerkNames,
       reviewTagSkillNames: this.state.taggedSkillNames,
       reviewPackName: selectedPack?.label ?? "—",

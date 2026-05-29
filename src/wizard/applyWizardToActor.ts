@@ -395,6 +395,16 @@ export async function applyWizardToActor(
     await favoriteAllWeaponsOnActor(actorId);
   });
 
+  await runApplyStep("Set origin from loadout", async () => {
+    const packForOrigin =
+      state.selectedEquipmentPackId && origin.equipmentPackId
+        ? getEquipmentPack(origin.equipmentPackId, state.selectedEquipmentPackId)
+        : undefined;
+    await updateWorldActor(actorId, {
+      "system.origin": resolveActorSystemOrigin(origin, packForOrigin),
+    });
+  });
+
   await runApplyStep("Mark creation complete", async () => {
     await markCreationComplete(actorId);
   });

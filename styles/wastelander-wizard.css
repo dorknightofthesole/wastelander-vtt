@@ -1237,11 +1237,17 @@
 }
 
 .wastelander-equipment-instructions,
-.wastelander-equipment-group-desc {
+.wastelander-equipment-group-desc,
+.wastelander-equipment-resolved-origin {
   margin: 0 0 0.35rem;
   font-size: 13px;
   line-height: 1.45;
   color: var(--wstl-text);
+}
+
+.wastelander-equipment-resolved-origin strong {
+  color: var(--wstl-text-readable);
+  font-weight: 700;
 }
 
 .wastelander-equipment-columns {

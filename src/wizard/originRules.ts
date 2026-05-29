@@ -3,9 +3,10 @@ import type { WizardState } from "./WizardState.js";
 
 /**
  * How to set `system.origin` when an equipment loadout is chosen.
- * - `packLabel` — use the pack title (e.g. Mister Gutsy).
- * - `{ prefix }` — prefix + pack label (e.g. Super Mutant + Brute).
- * - `{ template }` — `{origin}` and `{packLabel}` placeholders.
+ * Omit on an origin to keep `systemOrigin` (e.g. default).
+ * - `packLabel` — loadout title only (Vault Dweller, Brotherhood, Mister Handy).
+ * - `{ prefix }` — prefix + loadout (Super Mutant Brute).
+ * - `{ template }` — `{origin}` + `{packLabel}` (Survivor Mercenary, Ghoul Raider).
  */
 export type PackSystemOriginRule =
   | "packLabel"
@@ -34,14 +35,15 @@ export function resolveActorSystemOrigin(
 
   if (rule === "packLabel") return pack.label;
 
-  if ("prefix" in rule) {
-    return `${rule.prefix}${pack.label}`;
-  }
-
-  if ("template" in rule) {
-    return rule.template
-      .replace(/\{origin\}/g, origin.systemOrigin)
-      .replace(/\{packLabel\}/g, pack.label);
+  if (typeof rule === "object" && rule !== null) {
+    if ("prefix" in rule && typeof rule.prefix === "string") {
+      return `${rule.prefix}${pack.label}`;
+    }
+    if ("template" in rule && typeof rule.template === "string") {
+      return rule.template
+        .replace(/\{origin\}/g, origin.systemOrigin)
+        .replace(/\{packLabel\}/g, pack.label);
+    }
   }
 
   return origin.systemOrigin;

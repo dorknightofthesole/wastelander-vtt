@@ -9,6 +9,7 @@
     "traitCompendiumUuid": null,
     "extraTagRules": [],
     "equipmentPackId": "wastelander",
+    "packSystemOrigin": { "template": "{origin} {packLabel}" },
     "specialOverrides": {},
     "detail": {
       "flavor": "You've scraped by in the harsh wasteland and know how to stay alive against the odds. Choose two traits from the Survivor list, or one trait and one extra starting perk.",
@@ -26,6 +27,7 @@
     "traitCompendiumUuid": "",
     "extraTagRules": [{ "type": "extraTag", "count": 1 }],
     "equipmentPackId": "vault",
+    "packSystemOrigin": "packLabel",
     "specialOverrides": {},
     "detail": {
       "flavor": "Sheltered life underground left you educated but unprepared for the world above. You gain an extra tag skill and the Vault Kid origin trait.",
@@ -44,6 +46,7 @@
     "traitCompendiumUuid": "",
     "extraTagRules": [{ "type": "forcedTag", "skillName": "Survival", "rank": 2 }],
     "equipmentPackId": "wastelander",
+    "packSystemOrigin": { "template": "{origin} {packLabel}" },
     "specialOverrides": {},
     "detail": {
       "flavor": "Radiation changed your body forever. Survival is always a tag skill at rank 2. You endure where others would perish.",
@@ -67,6 +70,7 @@
       }
     ],
     "equipmentPackId": "brotherhood",
+    "packSystemOrigin": "packLabel",
     "specialOverrides": {},
     "detail": {
       "flavor": "You serve the Brotherhood's mission to recover and preserve pre-war technology. Your extra tag skill is limited to Energy Weapons, Science, or Repair.",
