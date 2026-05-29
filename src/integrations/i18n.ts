@@ -1,4 +1,5 @@
 import en from "../../lang/en.json";
+import { wrapTagSkillGlossary } from "./tagSkillGlossary.js";
 
 function flattenTranslations(
   obj: Record<string, unknown>,
@@ -60,6 +61,11 @@ function formatString(
   });
 }
 
+export interface LocalizeOptions {
+  /** When false, do not wrap "tag" / "tags" with glossary tooltips. */
+  glossary?: boolean;
+}
+
 /**
  * Localize a WASTELANDER key. If missing, show only the final segment (humanized).
  * Interpolation uses `{name}`-style placeholders (not `game.i18n.format`, which fails on flat merges).
@@ -67,11 +73,14 @@ function formatString(
 export function t(
   key: string,
   data?: Record<string, string | number | boolean>,
+  options: LocalizeOptions = {},
 ): string {
   const fullKey = key.startsWith("WASTELANDER.") ? key : `WASTELANDER.${key}`;
   let template = game.i18n.localize(fullKey);
   if (isMissingTranslation(template, fullKey)) {
     template = FLAT_EN[fullKey] ?? fallbackLabel(fullKey);
   }
-  return data ? formatString(template, data) : template;
+  const resolved = data ? formatString(template, data) : template;
+  if (options.glossary === false) return resolved;
+  return wrapTagSkillGlossary(resolved);
 }

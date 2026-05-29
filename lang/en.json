@@ -20,12 +20,15 @@
       "StepHeading": {
         "origin": "Step 1: Choose Your Origin",
         "special": "Step 2: S.P.E.C.I.A.L.",
-        "skills": "Step 3: Tag Skills & Ranks",
+        "skills": "Step 3: Skills & Tags",
         "perk": "Step 4: Choose Your First Perk",
         "equipment": "Step 5: Choose Equipment",
         "review": "Review & Finish"
       },
       "Placeholder": "This step is coming soon.",
+      "Glossary": {
+        "TagSkill": "A few of your skills are Tag skills, marking them as your areas of expertise. Tag skills represent a focused training in those skills, a special affinity or talent with that discipline.\n\nTag skills increase your chances of a critical success. When you use a tagged skill, each d20 that rolls equal or under the skill rank is a critical success, scoring two successes instead of 1."
+      },
       "OriginDetail": "Origin details",
       "NewWastelander": "{name}",
       "Trait": "Trait",
@@ -35,7 +38,7 @@
       "SelectOrigin": "Select an origin to see details.",
       "SelectOriginHint": "Select an origin above. Full description, benefits, and penalties appear here.",
       "Skills": {
-        "Instructions": "Choose your tag skills (★). Each tag skill starts at rank 2. Spend skill points (9 + INT) to raise skills; max rank {max} at creation.",
+        "Instructions": "Choose your tag skills (★). Each tag skill starts at rank 2. Tag skills result in a critical success if you roll under the skill value. Spend skill points (9 + INT) to raise skills; max rank {max} at creation.",
         "ResetFromSpecial": "S.P.E.C.I.A.L. changed — skill tags and ranks were reset.",
         "TagColumn": "Tag",
         "RankColumn": "Rank"

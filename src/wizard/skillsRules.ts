@@ -26,9 +26,71 @@ export type OriginTagRule = ExtraTagRule | ForcedTagRule;
 export interface SkillsTagConfig {
   totalTagSlots: number;
   forcedTags: Array<{ skillName: string; rank: number }>;
-  /** Each entry is one extra tag slot limited to these skill names (e.g. Brotherhood). */
+  /**
+   * Each entry requires one tagged skill from that set (any position).
+   * Brotherhood Initiate: one entry → one of four tags must be EW / Science / Repair.
+   */
   restrictedExtraSlots: string[][];
   educatedExtraTag: boolean;
+}
+
+export function getForcedTagSkillNames(tagConfig: SkillsTagConfig): string[] {
+  return tagConfig.forcedTags.map((f) => f.skillName);
+}
+
+export function isForcedTagSkill(
+  skillName: string,
+  tagConfig: SkillsTagConfig,
+): boolean {
+  return tagConfig.forcedTags.some((f) => f.skillName === skillName);
+}
+
+/** Player-chosen tags only (origin forced tags excluded). */
+export function getVoluntaryTaggedSkillNames(
+  taggedSkillNames: string[],
+  tagConfig: SkillsTagConfig,
+): string[] {
+  const forced = new Set(getForcedTagSkillNames(tagConfig));
+  return taggedSkillNames.filter((n) => !forced.has(n));
+}
+
+export function countVoluntaryTagged(
+  taggedSkillNames: string[],
+  tagConfig: SkillsTagConfig,
+): number {
+  return getVoluntaryTaggedSkillNames(taggedSkillNames, tagConfig).length;
+}
+
+/** How many restricted-tag requirements are not yet satisfied. */
+export function countUnmetRestrictedTagRequirements(
+  taggedSkillNames: string[],
+  restrictedExtraSlots: string[][],
+): number {
+  const pool = [...taggedSkillNames];
+  let unmet = 0;
+  for (const allowed of restrictedExtraSlots) {
+    const idx = pool.findIndex((s) => allowed.includes(s));
+    if (idx >= 0) pool.splice(idx, 1);
+    else unmet++;
+  }
+  return unmet;
+}
+
+export function canSatisfyRestrictedTagRequirements(
+  taggedSkillNames: string[],
+  tagConfig: SkillsTagConfig,
+): boolean {
+  const voluntary = getVoluntaryTaggedSkillNames(taggedSkillNames, tagConfig);
+  const unmet = countUnmetRestrictedTagRequirements(
+    voluntary,
+    tagConfig.restrictedExtraSlots,
+  );
+  const slotsRemaining = tagConfig.totalTagSlots - voluntary.length;
+  return unmet <= slotsRemaining;
+}
+
+function restrictedTagRequirementMessage(allowed: string[]): string {
+  return `One of your tag skills must be: ${allowed.join(", ")}.`;
 }
 
 export interface SkillPointsBudget {
@@ -141,22 +203,27 @@ export function canAddSkillTag(
     return { allowed: false, reason: "Already tagged." };
   }
 
-  if (taggedSkillNames.length >= tagConfig.totalTagSlots) {
+  const voluntaryCount = countVoluntaryTagged(taggedSkillNames, tagConfig);
+  if (voluntaryCount >= tagConfig.totalTagSlots) {
     return {
       allowed: false,
       reason: `You can only choose ${tagConfig.totalTagSlots} tag skills.`,
     };
   }
 
-  const slotIndex = taggedSkillNames.length;
-  const extraIndex = slotIndex - BASE_TAG_COUNT;
-  if (extraIndex >= 0 && extraIndex < tagConfig.restrictedExtraSlots.length) {
-    const allowed = tagConfig.restrictedExtraSlots[extraIndex]!;
-    if (!allowed.includes(skillName)) {
-      return {
-        allowed: false,
-        reason: `This extra tag must be one of: ${allowed.join(", ")}.`,
-      };
+  const nextTagged = [...taggedSkillNames, skillName];
+  if (!canSatisfyRestrictedTagRequirements(nextTagged, tagConfig)) {
+    const voluntaryNext = getVoluntaryTaggedSkillNames(nextTagged, tagConfig);
+    const pool = [...voluntaryNext];
+    for (const allowed of tagConfig.restrictedExtraSlots) {
+      const idx = pool.findIndex((s) => allowed.includes(s));
+      if (idx >= 0) pool.splice(idx, 1);
+      else {
+        return {
+          allowed: false,
+          reason: restrictedTagRequirementMessage(allowed),
+        };
+      }
     }
   }
 
@@ -182,20 +249,20 @@ export function getTagRulesSummary(
   tagConfig: SkillsTagConfig,
 ): string[] {
   const lines: string[] = [];
-  lines.push(
-    `Choose ${tagConfig.totalTagSlots} tag skills. Each tag skill starts at rank ${TAG_START_RANK}.`,
-  );
+  // lines.push(
+  //   `Choose ${tagConfig.totalTagSlots} tag skills. Each tag skill starts at rank ${TAG_START_RANK}.`,
+  // );
 
   for (const forced of tagConfig.forcedTags) {
     lines.push(
-      `${forced.skillName} is a required tag skill (rank ${forced.rank}) for ${origin?.label ?? "your origin"}.`,
+      `${forced.skillName} is a required tag skill (rank ${forced.rank}) for ${origin?.label ?? "your origin"} and does not count toward your ${tagConfig.totalTagSlots} choices.`,
     );
   }
 
   if (tagConfig.restrictedExtraSlots.length) {
     const allowed = tagConfig.restrictedExtraSlots[0]!;
     lines.push(
-      `Your origin grants an extra tag limited to: ${allowed.join(", ")}.`,
+      `One of your ${tagConfig.totalTagSlots} tag skills must be: ${allowed.join(", ")}.`,
     );
   }
 

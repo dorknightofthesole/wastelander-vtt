@@ -41,6 +41,7 @@ import {
   applyTagOn,
   canAddSkillTag,
   canRemoveSkillTag,
+  countVoluntaryTagged,
   ensureForcedTags,
   getEffectiveSkillRank,
   getSkillBaseRank,
@@ -48,6 +49,7 @@ import {
   getSkillsTagConfig,
   getTagRulesSummary,
 } from "./skillsRules.js";
+import { getSkillSummary } from "./skillSummaries.js";
 import {
   getOriginDisableReason,
   isOriginCompatibleWithActorType,
@@ -68,6 +70,7 @@ import {
 } from "./specialRules.js";
 import { enrichHtml } from "../integrations/foundryText.js";
 import { t } from "../integrations/i18n.js";
+import { wrapTagSkillGlossary } from "../integrations/tagSkillGlossary.js";
 import { applyWizardToActor } from "./applyWizardToActor.js";
 import {
   createInitialWizardState,
@@ -95,7 +98,7 @@ export interface OriginDefinition {
   extraPerkRules?: unknown[];
   equipmentPackId: string;
   specialOverrides: Record<string, unknown>;
-  detail: { flavor: string; benefit: string; penalty: string };
+  detail: { flavor: string; benefit: string; penalty: string; flavorHighlight?: string };
 }
 
 export interface SurvivorTraitDefinition {
@@ -532,9 +535,11 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
       ? `Skill points remaining: ${skillBudget.remaining} / ${skillBudget.total}`
       : "";
     const tagCountText = isSkillsStep
-      ? `Tag skills: ${this.state.taggedSkillNames.length} / ${tagConfig.totalTagSlots}`
+      ? `Tag skills: ${countVoluntaryTagged(this.state.taggedSkillNames, tagConfig)} / ${tagConfig.totalTagSlots}`
       : "";
-    const tagRulesLines = isSkillsStep ? getTagRulesSummary(origin, tagConfig) : [];
+    const tagRulesLines = isSkillsStep
+      ? getTagRulesSummary(origin, tagConfig)
+      : [];
     const forcedTagNames = new Set(tagConfig.forcedTags.map((f) => f.skillName));
 
     const maxSkillRank = getMaxSkillRankAtCreation(this.state.originId);
@@ -560,6 +565,7 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
           );
           return {
             name: skill.name,
+            summary: getSkillSummary(skill.name),
             attr: skill.defaultAttribute.toUpperCase(),
             tagged,
             forced,
@@ -590,7 +596,6 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
     const perkPickerRows = isPerkStep
       ? this.#perksCache.map((perk) => {
           const selected = this.state.selectedPerkUuids.includes(perk.uuid);
-          const selectionIndex = this.state.selectedPerkUuids.indexOf(perk.uuid);
           const canToggle =
             selected || (perk.met && !maxPerksChosen);
           return {
@@ -599,7 +604,6 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
             met: perk.met,
             selected,
             focused: perk.uuid === focusedPerkUuid,
-            selectionLabel: selectionIndex >= 0 ? String(selectionIndex + 1) : "",
             canToggle,
           };
         })
@@ -663,12 +667,28 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
       value,
     }));
 
+    const selectedOriginView = selectedOrigin
+      ? {
+          ...selectedOrigin,
+          detail: {
+            flavor: wrapTagSkillGlossary(selectedOrigin.detail.flavor),
+            flavorHighlight: selectedOrigin.detail.flavorHighlight
+              ? wrapTagSkillGlossary(selectedOrigin.detail.flavorHighlight)
+              : "",
+            benefit: wrapTagSkillGlossary(selectedOrigin.detail.benefit),
+            penalty: wrapTagSkillGlossary(selectedOrigin.detail.penalty),
+          },
+        }
+      : null;
+
     return {
       ...context,
       actor: this.actor,
       steps,
       stepHeading: t(
         `WASTELANDER.Wizard.StepHeading.${this.state.step}`,
+        undefined,
+        { glossary: !isSkillsStep },
       ),
       stepId: this.state.step,
       isOriginStep: this.state.step === "origin",
@@ -679,7 +699,9 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
       isReviewStep,
       isPlaceholderStep: false,
       equipmentGroupLabel: equipmentGroup?.label ?? "",
-      equipmentGroupDescription: equipmentGroup?.description ?? "",
+      equipmentGroupDescription: wrapTagSkillGlossary(
+        equipmentGroup?.description ?? "",
+      ),
       equipmentPacks,
       selectedEquipmentPack: selectedPack ?? null,
       equipmentResolvedItems,
@@ -707,13 +729,15 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
       tagCountText,
       tagRulesLines,
       origins,
-      selectedOrigin: selectedOrigin ?? null,
+      selectedOrigin: selectedOriginView,
       isSurvivorSelected,
-      survivorTraits: SURVIVOR_TRAITS.map((t) => ({
-        ...t,
-        selected: this.state.survivorTraitIds.includes(t.id),
+      survivorTraits: SURVIVOR_TRAITS.map((trait) => ({
+        ...trait,
+        benefit: wrapTagSkillGlossary(trait.benefit),
+        penalty: wrapTagSkillGlossary(trait.penalty),
+        selected: this.state.survivorTraitIds.includes(trait.id),
         disabled:
-          !this.state.survivorTraitIds.includes(t.id) &&
+          !this.state.survivorTraitIds.includes(trait.id) &&
           (this.state.survivorExtraPerk
             ? this.state.survivorTraitIds.length >= 1
             : this.state.survivorTraitIds.length >= 2),
@@ -734,7 +758,10 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
       canFinish: isReviewStep,
       finishDisabled: finishError !== null,
       finishError: finishError ?? "",
-      validationError,
+      validationError:
+        validationError && !isSkillsStep
+          ? wrapTagSkillGlossary(validationError)
+          : (validationError ?? ""),
       strings: {
         back: t("WASTELANDER.Wizard.Back"),
         next: t("WASTELANDER.Wizard.Next"),
@@ -763,10 +790,14 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
         specialNoPerksUnlocked: t("WASTELANDER.Wizard.Special.NoPerksUnlocked"),
         specialNoPerksLocked: t("WASTELANDER.Wizard.Special.NoPerksLocked"),
         reset: t("WASTELANDER.Wizard.Special.Reset"),
-        skillsInstructions: t("WASTELANDER.Wizard.Skills.Instructions", {
-          max: maxSkillRank,
+        skillsInstructions: t(
+          "WASTELANDER.Wizard.Skills.Instructions",
+          { max: maxSkillRank },
+          { glossary: false },
+        ),
+        tagSkills: t("WASTELANDER.Wizard.Skills.TagColumn", undefined, {
+          glossary: false,
         }),
-        tagSkills: t("WASTELANDER.Wizard.Skills.TagColumn"),
         skillRank: t("WASTELANDER.Wizard.Skills.RankColumn"),
         perksInstructions: t("WASTELANDER.Wizard.Perks.Instructions"),
         perksSelectHint: t("WASTELANDER.Wizard.Perks.SelectHint"),

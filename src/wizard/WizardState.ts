@@ -10,11 +10,12 @@ import {
 } from "./originRules.js";
 import { computeSpecialPointsBudget } from "./specialRules.js";
 import {
-  BASE_TAG_COUNT,
+  countVoluntaryTagged,
   getEffectiveSkillRank,
   getSkillBaseRank,
   getSkillPointsBudget,
   getSkillsTagConfig,
+  getVoluntaryTaggedSkillNames,
   type OriginTagRulesSource,
 } from "./skillsRules.js";
 
@@ -119,20 +120,18 @@ export function validateSkillsStep(
     }
   }
 
-  if (tagged.length !== tagConfig.totalTagSlots) {
+  const voluntary = getVoluntaryTaggedSkillNames(tagged, tagConfig);
+  if (voluntary.length !== tagConfig.totalTagSlots) {
     return `Choose exactly ${tagConfig.totalTagSlots} tag skills to continue.`;
   }
 
-  for (let i = 0; i < tagConfig.restrictedExtraSlots.length; i++) {
-    const allowed = tagConfig.restrictedExtraSlots[i]!;
-    const slotIndex = BASE_TAG_COUNT + i;
-    const skillAtSlot = tagged[slotIndex];
-    if (!skillAtSlot) {
-      return `Choose an extra tag skill (${allowed.join(", ")}).`;
+  const restrictedPool = [...voluntary];
+  for (const allowed of tagConfig.restrictedExtraSlots) {
+    const idx = restrictedPool.findIndex((s) => allowed.includes(s));
+    if (idx === -1) {
+      return `One of your tag skills must be: ${allowed.join(", ")}.`;
     }
-    if (!allowed.includes(skillAtSlot)) {
-      return `Your extra tag (4th skill) must be one of: ${allowed.join(", ")}.`;
-    }
+    restrictedPool.splice(idx, 1);
   }
 
   const names = skillNames.length
@@ -167,7 +166,7 @@ export function validateSkillsStep(
     return "You have spent too many skill points.";
   }
   if (budget.remaining > 0) {
-    return `Spend all skill points to continue (${budget.remaining} remaining).`;
+    return `Spend all skill points to continue.`;
   }
 
   return null;
