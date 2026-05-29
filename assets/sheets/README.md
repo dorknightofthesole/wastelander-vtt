@@ -15,6 +15,8 @@ Wastelander does **not** ship Modiphius fillable PDFs. Copy your licensed sheets
 
 Until the correct PDF is present, **Export to PDF** is grayed out on the actor sheet menu and shows an installation reminder.
 
+**Parse PDF** reads a filled human character sheet you upload and overwrites matching data on the open actor (no template file required for import).
+
 ## Dev: list AcroForm field names
 
 ```bash

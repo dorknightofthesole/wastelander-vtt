@@ -3,6 +3,7 @@ import {
   exportActorCharacterSheet,
   notifyPdfTemplateMissing,
 } from "../export/exportCharacterSheet.js";
+import { importActorCharacterSheet } from "../export/importCharacterSheet.js";
 import { isPdfTemplateAvailable } from "../export/pdfTemplates.js";
 import CharacterWizardApp from "../wizard/CharacterWizardApp.js";
 import { isFalloutWizardActor } from "./fallout.js";
@@ -13,6 +14,7 @@ const WASTELANDER_HEADER_ACTION = "wastelander-menu";
 const PORTAL_ID = "wastelander-sheet-dropdown-portal";
 
 let exportInFlight = false;
+let importInFlight = false;
 
 function actorFromSheetApp(app: {
   actor?: Actor;
@@ -46,6 +48,16 @@ async function runExport(actor: Actor): Promise<void> {
   }
 }
 
+async function runParse(actor: Actor): Promise<void> {
+  if (importInFlight) return;
+  importInFlight = true;
+  try {
+    await importActorCharacterSheet(resolveActor(actor));
+  } finally {
+    importInFlight = false;
+  }
+}
+
 function closePortalMenu(): void {
   document.getElementById(PORTAL_ID)?.remove();
 }
@@ -64,11 +76,15 @@ async function openPortalMenu(anchor: HTMLElement, actor: Actor): Promise<void> 
 
   const buildLabel = t("ActorSheet.Menu.Build");
   const exportLabel = t("ActorSheet.Menu.ExportPdf");
+  const parseLabel = t("ActorSheet.Menu.ParsePdf");
   const exportAvailable = await isPdfTemplateAvailable(actor.type);
   const exportDisabledAttr = exportAvailable ? "" : " disabled";
   const exportDisabledClass = exportAvailable
     ? ""
     : " wastelander-sheet-dropdown-item--disabled";
+  const parseDisabled = actor.type === "robot" ? " disabled" : "";
+  const parseDisabledClass =
+    actor.type === "robot" ? " wastelander-sheet-dropdown-item--disabled" : "";
 
   const menu = document.createElement("nav");
   menu.id = PORTAL_ID;
@@ -82,6 +98,10 @@ async function openPortalMenu(anchor: HTMLElement, actor: Actor): Promise<void> 
     <button type="button" class="wastelander-sheet-dropdown-item${exportDisabledClass}" data-action="export-pdf" role="menuitem"${exportDisabledAttr}>
       <i class="fas fa-file-pdf" aria-hidden="true"></i>
       <span>${exportLabel}</span>
+    </button>
+    <button type="button" class="wastelander-sheet-dropdown-item${parseDisabledClass}" data-action="parse-pdf" role="menuitem"${parseDisabled}>
+      <i class="fas fa-file-upload" aria-hidden="true"></i>
+      <span>${parseLabel}</span>
     </button>
   `;
 
@@ -107,6 +127,14 @@ async function openPortalMenu(anchor: HTMLElement, actor: Actor): Promise<void> 
         return;
       }
       void runExport(actor);
+      return;
+    }
+    if (action === "parse-pdf") {
+      if (actor.type === "robot") {
+        ui.notifications.warn(t("ActorSheet.Import.RobotNotSupported"));
+        return;
+      }
+      void runParse(actor);
     }
   });
 

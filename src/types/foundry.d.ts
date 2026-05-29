@@ -19,6 +19,16 @@ declare const ui: {
   notifications: { warn: (message: string) => void; info: (message: string) => void; error: (message: string) => void };
 };
 
+declare const Dialog: {
+  confirm: (options: {
+    title?: string;
+    content?: string;
+    yes?: () => void;
+    no?: () => void;
+    defaultYes?: boolean;
+  }) => void;
+};
+
 declare const ContextMenu: new (
   element: HTMLElement,
   menuItems: Array<{

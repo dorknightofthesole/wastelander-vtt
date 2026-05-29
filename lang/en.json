@@ -4,13 +4,26 @@
     "ActorSheet": {
       "Menu": {
         "Build": "Build Character",
-        "ExportPdf": "Export to PDF"
+        "ExportPdf": "Export to PDF",
+        "ParsePdf": "Parse PDF"
       },
       "Export": {
         "InProgress": "Generating character sheet PDF…",
         "Success": "Character sheet PDF downloaded.",
         "Error": "PDF export failed: {error}",
         "TemplateMissing": "Please add the form-fillable character sheet PDF to your module folder: {path}/ (file: {filename}). Wastelander does not distribute this PDF; use your licensed Fallout 2d20 materials."
+      },
+      "Import": {
+        "ConfirmTitle": "Parse PDF into character",
+        "ConfirmBody": "This will overwrite data on <strong>{name}</strong> with values read from the uploaded form-fillable PDF. Continue?",
+        "InProgress": "Reading character sheet PDF…",
+        "Success": "Character sheet updated from PDF: {summary}",
+        "NothingApplied": "no fields applied",
+        "Error": "PDF import failed: {error}",
+        "InvalidFile": "Please choose a PDF file.",
+        "RobotNotSupported": "Parse PDF is not available for robot actors yet.",
+        "NoFormFields": "No form fields could be read from that PDF. Use a fillable Fallout 2d20 human character sheet.",
+        "MoreWarnings": "{count} more warnings were logged to the console."
       }
     },
     "Wizard": {
