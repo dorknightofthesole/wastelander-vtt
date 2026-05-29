@@ -19,6 +19,8 @@
   --wstl-danger: #e86b4a;
   --wstl-radioactive: #d9ff47;
   --wstl-radioactive-glow: rgba(217, 255, 71, 0.55);
+  --wstl-origin-icon-tint: rgba(217, 255, 71, 0.38);
+  --wstl-origin-icon-tint-selected: rgba(212, 224, 74, 0.48);
   --wstl-scanline: rgba(0, 0, 0, 0.34);
   --wstl-font: "Roboto Mono", "Consolas", "Courier New", monospace;
 }
@@ -321,6 +323,7 @@
 }
 
 .wastelander-origin-art {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -334,15 +337,28 @@
   );
 }
 
+/* Phosphor tint on top of icon — preserves grayscale shading (no brightness(0)) */
+.wastelander-origin-art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: var(--wstl-origin-icon-tint);
+  mix-blend-mode: color;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 .wastelander-origin-art .wastelander-origin-icon {
+  position: relative;
+  z-index: 1;
   height: 2.5rem;
   width: auto;
   max-width: 100%;
   object-fit: contain;
-  opacity: 0.92;
-  /* Recolor grayscale PNGs to phosphor / radioactive green */
-  filter: brightness(0) saturate(100%) invert(93%) sepia(28%) saturate(1200%)
-    hue-rotate(18deg) brightness(1.08) drop-shadow(0 0 6px var(--wstl-radioactive-glow));
+  opacity: 0.9;
+  filter: sepia(0.42) saturate(2.4) hue-rotate(18deg) brightness(1.08)
+    drop-shadow(0 0 6px rgba(217, 255, 71, 0.38));
 }
 
 .wastelander-origin-card:hover:not(.is-disabled) {
@@ -359,10 +375,15 @@
     inset 0 0 20px rgba(var(--wstl-accent-rgb), 0.04);
 }
 
+.wastelander-origin-card.selected .wastelander-origin-art::after {
+  background: var(--wstl-origin-icon-tint-selected);
+  opacity: 0.62;
+}
+
 .wastelander-origin-card.selected .wastelander-origin-art .wastelander-origin-icon {
-  opacity: 1;
-  filter: brightness(0) saturate(100%) invert(96%) sepia(35%) saturate(1400%)
-    hue-rotate(18deg) brightness(1.12) drop-shadow(0 0 12px var(--wstl-radioactive-glow));
+  opacity: 0.95;
+  filter: sepia(0.5) saturate(2.8) hue-rotate(18deg) brightness(1.1)
+    drop-shadow(0 0 9px rgba(217, 255, 71, 0.48));
 }
 
 .wastelander-origin-card.is-disabled {
@@ -496,7 +517,7 @@
 }
 
 .wastelander-special-initial {
-  font-size: 20px;
+  font-size: 23px;
   line-height: 1;
   margin-right: 1px;
 }
@@ -1695,12 +1716,22 @@
 
 /* ---- Sheet launch button ---- */
 
-.window-app .window-header a.wastelander-launch-wizard {
+.window-app .window-header a.wastelander-launch-wizard,
+.sheet-header a.wastelander-launch-wizard {
   flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
-.window-app .window-header a.wastelander-launch-wizard span {
-  font-size: var(--font-size-12);
+.window-app .window-header a.wastelander-launch-wizard .wastelander-launch-icon,
+.sheet-header a.wastelander-launch-wizard .wastelander-launch-icon {
+  display: block;
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex: 0 0 auto;
+  filter: sepia(0.42) saturate(2.4) hue-rotate(18deg) brightness(1.08);
 }
 
 /* ---- Responsive ---- */

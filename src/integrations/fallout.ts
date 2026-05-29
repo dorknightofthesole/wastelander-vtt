@@ -35,9 +35,18 @@ export async function openCompendiumItemSheet(uuid: string): Promise<void> {
 const SILENT = { render: false } as const;
 
 export function isEquippableApparel(item: Item): boolean {
+  return item.type === "apparel" && isEquippableFalloutGear(item);
+}
+
+/** Apparel, robot plating (robot_armor), and robot mods when flagged equippable. */
+export function isEquippableFalloutGear(item: Item): boolean {
+  if (!Boolean((item.system as { equippable?: boolean }).equippable)) {
+    return false;
+  }
   return (
-    item.type === "apparel" &&
-    Boolean((item.system as { equippable?: boolean }).equippable)
+    item.type === "apparel" ||
+    item.type === "robot_armor" ||
+    item.type === "robot_mod"
   );
 }
 
@@ -71,9 +80,32 @@ function applySystemOverrides(
     Object.assign(system, options.systemOverrides);
   }
   const shouldEquip =
-    options.equipApparel !== false && isEquippableApparel(options.source);
+    options.equipApparel !== false && isEquippableFalloutGear(options.source);
   if (shouldEquip) {
     system.equipped = true;
+  }
+  if (options.source.type === "weapon") {
+    system.favorite = true;
+  }
+}
+
+/** Mark every weapon on the actor as a favorite (Fallout quick-access list). */
+export async function favoriteAllWeaponsOnActor(actor: Actor | string): Promise<void> {
+  const parent =
+    typeof actor === "string"
+      ? getWorldActor(actor)
+      : getWorldActor(resolveActorId(actor));
+
+  const updates = parent.items
+    .filter(
+      (item) =>
+        item.type === "weapon" &&
+        !(item.system as { favorite?: boolean }).favorite,
+    )
+    .map((item) => ({ _id: item.id, "system.favorite": true }));
+
+  if (updates.length) {
+    await Item.implementation.updateDocuments(updates, { parent, ...SILENT });
   }
 }
 
@@ -145,10 +177,18 @@ export async function addCompendiumItemToActor(
 }
 
 /**
- * Whether this actor is a Fallout player character we can wizard.
+ * Whether this actor can use the Wastelander creation wizard (human or robot sheet).
  */
+export function isFalloutWizardActor(actor: Actor): boolean {
+  return (
+    game.system.id === "fallout" &&
+    (actor.type === "character" || actor.type === "robot")
+  );
+}
+
+/** @deprecated Prefer {@link isFalloutWizardActor}. */
 export function isFalloutPlayerCharacter(actor: Actor): boolean {
-  return game.system.id === "fallout" && actor.type === "character";
+  return isFalloutWizardActor(actor);
 }
 
 export interface PerkRequirementSummary {

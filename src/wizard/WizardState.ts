@@ -1,6 +1,7 @@
 import originsData from "../data/origins-core.json";
 import { getRequiredPerkCount, type PerkRulesOriginSource } from "./perkRules.js";
 import { getEquipmentPack, validateEquipmentChoices } from "./equipmentRules.js";
+import { isOriginCompatibleWithActorType } from "./actorTypeRules.js";
 import {
   getMaxSkillRankAtCreation,
   getSpecialAttributeMax,
@@ -100,6 +101,8 @@ export interface ValidateWizardContext {
   skillNames?: string[];
   /** Perk UUID → whether requirements are met at current S.P.E.C.I.A.L. */
   perkEligibility?: Record<string, boolean>;
+  /** Fallout actor document type (`character` or `robot`). */
+  actorType?: string;
 }
 
 export function validateSkillsStep(
@@ -221,6 +224,14 @@ export function validateWizardStep(
   switch (step) {
     case "origin":
       if (!state.originId) return "Choose an origin to continue.";
+      if (
+        context.actorType &&
+        !isOriginCompatibleWithActorType(state.originId, context.actorType)
+      ) {
+        return context.actorType === "robot"
+          ? "Choose an origin available on robot sheets (Mister Handy)."
+          : "This origin requires a robot actor sheet (create a Mister Handy robot first).";
+      }
       if (state.originId === "survivor") {
         if (state.survivorExtraPerk) {
           return state.survivorTraitIds.length === 1

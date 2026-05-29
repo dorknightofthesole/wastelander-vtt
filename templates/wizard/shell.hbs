@@ -46,7 +46,7 @@
             class="wastelander-origin-card {{#if selected}}selected{{/if}} {{#unless enabled}}is-disabled{{/unless}}"
             data-action="selectOrigin"
             data-origin-id="{{id}}"
-            title="{{tagline}}"
+            title="{{#unless enabled}}{{disabledReason}}{{else}}{{tagline}}{{/unless}}"
             data-disabled="{{#unless enabled}}true{{else}}false{{/unless}}"
             {{#unless enabled}}disabled{{/unless}}
           >
@@ -56,7 +56,7 @@
             <h3 class="wastelander-origin-title">{{label}}</h3>
             <p class="wastelander-origin-tagline">{{tagline}}</p>
             {{#unless enabled}}
-            <span class="wastelander-origin-badge" title="{{disabledReason}}">Phase 2</span>
+            <span class="wastelander-origin-badge" title="{{disabledReason}}">{{disabledLabel}}</span>
             {{/unless}}
           </button>
           {{/each}}

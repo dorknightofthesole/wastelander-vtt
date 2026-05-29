@@ -1,6 +1,6 @@
-import { MODULE_ID } from "./constants.js";
+import { MODULE_ID, MODULE_PATH } from "./constants.js";
 import CharacterWizardApp from "./wizard/CharacterWizardApp.js";
-import { isFalloutPlayerCharacter } from "./integrations/fallout.js";
+import { isFalloutWizardActor } from "./integrations/fallout.js";
 import { resolveActor } from "./integrations/falloutActor.js";
 import { registerTranslations, t } from "./integrations/i18n.js";
 
@@ -11,14 +11,22 @@ Hooks.once("init", () => {
 
 Hooks.on("renderActorSheet", (app: { actor?: Actor; document?: Actor }, html: JQuery) => {
   const actor = app.document ?? app.actor;
-  if (!actor || !isFalloutPlayerCharacter(actor)) return;
+  if (!actor || !isFalloutWizardActor(actor)) return;
   if (!actor.isOwner) return;
   if (actor.getFlag(MODULE_ID, "creationComplete")) return;
 
-  const label = t("WASTELANDER.ModuleTitle");
+  registerTranslations();
+  const label = t("ModuleTitle");
+  const iconSrc = `${MODULE_PATH}/assets/origins/vault-dweller.png`;
+
+  const $html = html instanceof jQuery ? html : $(html);
+  const header = $html.find(".window-header");
+  const sheetHeader = header.length ? header : $html.find(".sheet-header");
+  if (sheetHeader.find(".wastelander-launch-wizard").length) return;
+
   const button = $(`
     <a class="header-button wastelander-launch-wizard" data-tooltip="${label}">
-      <i class="fa-solid fa-user-astronaut in-header"></i>
+      <img class="wastelander-launch-icon" src="${iconSrc}" alt="" width="18" height="18" />
       <span>${label}</span>
     </a>
   `);
@@ -34,8 +42,6 @@ Hooks.on("renderActorSheet", (app: { actor?: Actor; document?: Actor }, html: JQ
     }
   });
 
-  const $html = html instanceof jQuery ? html : $(html);
-  const header = $html.find(".window-header");
   if (header.length) {
     const closeBtn = header
       .find('button[data-action="close"], a.close, .header-button.close')
@@ -43,6 +49,6 @@ Hooks.on("renderActorSheet", (app: { actor?: Actor; document?: Actor }, html: JQ
     if (closeBtn.length) closeBtn.before(button);
     else header.append(button);
   } else {
-    $html.find(".sheet-header").prepend(button);
+    sheetHeader.prepend(button);
   }
 });

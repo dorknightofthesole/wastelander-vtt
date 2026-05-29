@@ -49,7 +49,15 @@
       },
       "Origin": {
         "SurvivorTwoTraits": "Two traits",
-        "SurvivorTraitPerk": "One trait + extra perk"
+        "SurvivorTraitPerk": "One trait + extra perk",
+        "DisabledRobotOnly": {
+          "Short": "Robot sheet",
+          "Hint": "Mister Handy requires a robot actor sheet. Create or open a robot actor to select this origin."
+        },
+        "DisabledHumanOnRobot": {
+          "Short": "Human only",
+          "Hint": "This origin is not available on robot actor sheets. Use a human character sheet, or choose Mister Handy."
+        }
       },
       "Equipment": {
         "Instructions": "Choose a starting equipment pack for your origin. Resolve any choices, then continue. Tag skill gear is listed automatically.",

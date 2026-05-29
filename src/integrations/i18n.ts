@@ -49,19 +49,29 @@ export function fallbackLabel(key: string): string {
     .trim();
 }
 
+/** Replace `{key}` placeholders (Foundry-style) in bundled / merged strings. */
+function formatString(
+  template: string,
+  data: Record<string, string | number | boolean>,
+): string {
+  return template.replace(/\{(\w+)\}/g, (_, placeholder: string) => {
+    const value = data[placeholder];
+    return value !== undefined && value !== null ? String(value) : `{${placeholder}}`;
+  });
+}
+
 /**
  * Localize a WASTELANDER key. If missing, show only the final segment (humanized).
+ * Interpolation uses `{name}`-style placeholders (not `game.i18n.format`, which fails on flat merges).
  */
 export function t(
   key: string,
   data?: Record<string, string | number | boolean>,
 ): string {
   const fullKey = key.startsWith("WASTELANDER.") ? key : `WASTELANDER.${key}`;
-  const value = data
-    ? String(game.i18n.format(fullKey, data))
-    : game.i18n.localize(fullKey);
-  if (isMissingTranslation(value, fullKey)) {
-    return fallbackLabel(fullKey);
+  let template = game.i18n.localize(fullKey);
+  if (isMissingTranslation(template, fullKey)) {
+    template = FLAT_EN[fullKey] ?? fallbackLabel(fullKey);
   }
-  return value;
+  return data ? formatString(template, data) : template;
 }

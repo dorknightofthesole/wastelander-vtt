@@ -49,6 +49,10 @@ import {
   getTagRulesSummary,
 } from "./skillsRules.js";
 import {
+  getOriginDisableReason,
+  isOriginCompatibleWithActorType,
+} from "./actorTypeRules.js";
+import {
   getDefaultSpecialForOrigin,
   getMaxSkillRankAtCreation,
   getOriginImmunities,
@@ -121,7 +125,35 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
     super(options);
     this.actor = actor;
     this.state = createInitialWizardState();
+    this.#sanitizeOriginForActor();
     CharacterWizardApp.#openByActorId.set(actor.id, this);
+  }
+
+  /** Drop an origin that does not match this actor's sheet type (character vs robot). */
+  #sanitizeOriginForActor(): void {
+    const id = this.state.originId;
+    if (!id || isOriginCompatibleWithActorType(id, this.actor.type)) return;
+    this.#clearWizardProgressFromOrigin();
+  }
+
+  #resetWizardDownstreamFromOrigin(): void {
+    this.state.skillRanks = {};
+    this.state.taggedSkillNames = [];
+    this.state.selectedPerkUuids = [];
+    this.state.focusedPerkUuid = null;
+    this.state.selectedEquipmentPackId = null;
+    this.state.equipmentChoices = {};
+    this.state.trinketRoll = null;
+  }
+
+  #clearWizardProgressFromOrigin(): void {
+    this.state.originId = null;
+    this.state.special = getDefaultSpecialForOrigin(
+      parseOriginSpecialOverrides(undefined),
+    );
+    this.state.survivorTraitIds = [];
+    this.state.survivorExtraPerk = false;
+    this.#resetWizardDownstreamFromOrigin();
   }
 
   static override DEFAULT_OPTIONS = {
@@ -228,6 +260,7 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
     return {
       skillNames: this.#skillsCache.map((s) => s.name),
       perkEligibility,
+      actorType: this.actor.type,
     };
   }
 
@@ -398,13 +431,28 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
       };
     });
 
-    const origins = ORIGINS.map((origin) => ({
-      ...origin,
-      iconSrc: `${MODULE_PATH}/assets/origins/${origin.id}.png`,
-      enabled: true,
-      selected: origin.id === this.state.originId,
-      disabledReason: "",
-    }));
+    const actorType = this.actor.type;
+    const origins = ORIGINS.map((origin) => {
+      const disableReason = getOriginDisableReason(origin.id, actorType);
+      const enabled = disableReason === null;
+      let disabledReason = "";
+      let disabledLabel = "";
+      if (disableReason === "robot-only") {
+        disabledReason = t("WASTELANDER.Wizard.Origin.DisabledRobotOnly.Hint");
+        disabledLabel = t("WASTELANDER.Wizard.Origin.DisabledRobotOnly.Short");
+      } else if (disableReason === "human-only") {
+        disabledReason = t("WASTELANDER.Wizard.Origin.DisabledHumanOnRobot.Hint");
+        disabledLabel = t("WASTELANDER.Wizard.Origin.DisabledHumanOnRobot.Short");
+      }
+      return {
+        ...origin,
+        iconSrc: `${MODULE_PATH}/assets/origins/${origin.id}.png`,
+        enabled,
+        selected: origin.id === this.state.originId,
+        disabledReason,
+        disabledLabel,
+      };
+    });
 
     const traitHtml = await this.#enrichTraitHtml(selectedOrigin);
 
@@ -893,13 +941,7 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
       this.state.survivorTraitIds = [];
       this.state.survivorExtraPerk = false;
     }
-    this.state.skillRanks = {};
-    this.state.taggedSkillNames = [];
-    this.state.selectedPerkUuids = [];
-    this.state.focusedPerkUuid = null;
-    this.state.selectedEquipmentPackId = null;
-    this.state.equipmentChoices = {};
-    this.state.trinketRoll = null;
+    this.#resetWizardDownstreamFromOrigin();
     void this.render({ force: true });
   }
 

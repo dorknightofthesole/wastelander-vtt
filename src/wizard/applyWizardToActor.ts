@@ -1,8 +1,9 @@
 import { MODULE_ID } from "../constants.js";
 import {
   addCompendiumItemToActor,
+  favoriteAllWeaponsOnActor,
   getCompendiumItem,
-  isEquippableApparel,
+  isEquippableFalloutGear,
   type FalloutAttributeKey,
 } from "../integrations/fallout.js";
 import {
@@ -22,7 +23,9 @@ import {
   resolvePackItems,
   rollTrinket,
 } from "./equipmentRules.js";
+import { isOriginCompatibleWithActorType } from "./actorTypeRules.js";
 import { getOriginImmunities, isMisterHandyOrigin } from "./originRules.js";
+import { getRobotSheetTypeUpdate } from "./robotSheet.js";
 import {
   computeHealthMax,
   computeStartingLuckPoints,
@@ -140,7 +143,7 @@ async function addEquipmentLineToActor(
   if (enriched.compendiumUuid) {
     const source = await getCompendiumItem(enriched.compendiumUuid);
     await addCompendiumItemToActor(getWorldActor(actorId), enriched.compendiumUuid, {
-      equipApparel: source ? isEquippableApparel(source) : false,
+      equipApparel: source ? isEquippableFalloutGear(source) : false,
     });
     return caps;
   }
@@ -228,16 +231,25 @@ export async function applyWizardToActor(
   state: WizardState,
   context: ApplyWizardContext,
 ): Promise<void> {
+  const actorId = resolveActorId(actor);
+  const actorType = getWorldActor(actorId).type;
+
   const validation = validateAllWizardSteps(state, {
     skillNames: context.skillEntries.map((e) => e.name),
     perkEligibility: context.perkEligibility,
+    actorType,
   });
   if (validation) throw new Error(validation);
 
   const origin = originById(state.originId);
   if (!origin) throw new Error("Missing origin.");
 
-  const actorId = resolveActorId(actor);
+  if (
+    state.originId &&
+    !isOriginCompatibleWithActorType(state.originId, actorType)
+  ) {
+    throw new Error("Selected origin is not valid for this actor sheet type.");
+  }
 
   const attributeUpdate: Record<string, number> = {};
   for (const key of ATTR_KEYS) {
@@ -301,6 +313,15 @@ export async function applyWizardToActor(
     await applyTraits(actorId, state, origin);
   });
 
+  await runApplyStep("Set actor sheet type", async () => {
+    const working = getWorldActor(actorId);
+    if (isMisterHandyOrigin(state.originId) && working.type !== "robot") {
+      await updateWorldActor(actorId, getRobotSheetTypeUpdate());
+    } else if (!isMisterHandyOrigin(state.originId) && working.type === "robot") {
+      await updateWorldActor(actorId, { type: "character" });
+    }
+  });
+
   await runApplyStep("Apply equipment", async () => {
     const index = await buildEquipmentItemIndex();
     let bonusCaps = 0;
@@ -334,13 +355,8 @@ export async function applyWizardToActor(
     }
   });
 
-  await runApplyStep("Set origin type", async () => {
-    const working = getWorldActor(actorId);
-    if (isMisterHandyOrigin(state.originId) && working.type !== "robot") {
-      await updateWorldActor(actorId, { type: "robot" });
-    } else if (!isMisterHandyOrigin(state.originId) && working.type === "robot") {
-      await updateWorldActor(actorId, { type: "character" });
-    }
+  await runApplyStep("Favorite weapons", async () => {
+    await favoriteAllWeaponsOnActor(actorId);
   });
 
   await runApplyStep("Mark creation complete", async () => {
