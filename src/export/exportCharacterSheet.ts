@@ -29,7 +29,7 @@ export async function exportActorCharacterSheet(actor: Actor): Promise<void> {
   ui.notifications.info(t("ActorSheet.Export.InProgress"));
 
   try {
-    const snapshot = buildActorPdfSnapshot(actor);
+    const snapshot = await buildActorPdfSnapshot(actor);
     await fillCharacterSheetPdf(actor.type, snapshot, actor.name);
     ui.notifications.info(t("ActorSheet.Export.Success"));
   } catch (error) {

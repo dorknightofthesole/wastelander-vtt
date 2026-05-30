@@ -1947,9 +1947,10 @@
   display: flex;
 }
 
-.wastelander-sheet-dropdown-item {
+.wastelander-sheet-dropdown-portal .wastelander-sheet-dropdown-item {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 0.5rem;
   width: 100%;
   padding: 0.4rem 0.75rem;
@@ -1968,9 +1969,10 @@
   outline: none;
 }
 
-.wastelander-sheet-dropdown-item i {
+.wastelander-sheet-dropdown-portal .wastelander-sheet-dropdown-item i {
+  flex: 0 0 1rem;
   width: 1rem;
-  text-align: center;
+  text-align: left;
   opacity: 0.85;
 }
 

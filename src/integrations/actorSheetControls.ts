@@ -1,4 +1,5 @@
 import { MODULE_PATH } from "../constants.js";
+import { isWizardCreationComplete } from "./actorFlags.js";
 import {
   exportActorCharacterSheet,
   notifyPdfTemplateMissing,
@@ -66,7 +67,7 @@ function positionPortalMenu(menu: HTMLElement, anchor: HTMLElement): void {
   const rect = anchor.getBoundingClientRect();
   menu.style.position = "fixed";
   menu.style.top = `${rect.bottom + 4}px`;
-  menu.style.left = `${Math.max(8, rect.right - menu.offsetWidth)}px`;
+  menu.style.left = `${Math.max(8, rect.left)}px`;
   menu.style.zIndex = "10000";
 }
 
@@ -115,6 +116,13 @@ async function openPortalMenu(anchor: HTMLElement, actor: Actor): Promise<void> 
     closePortalMenu();
     const action = target.dataset.action;
     if (action === "build") {
+      if (
+        target.hasAttribute("disabled") ||
+        target.classList.contains("wastelander-sheet-dropdown-item--disabled")
+      ) {
+        ui.notifications.info(t("ActorSheet.Menu.BuildComplete"));
+        return;
+      }
       openBuildWizard(actor);
       return;
     }

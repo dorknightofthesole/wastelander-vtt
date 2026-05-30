@@ -4,6 +4,7 @@
     "ActorSheet": {
       "Menu": {
         "Build": "Build Character",
+        "BuildComplete": "Character creation is already complete.",
         "ExportPdf": "Export to PDF",
         "ParsePdf": "Parse PDF"
       },

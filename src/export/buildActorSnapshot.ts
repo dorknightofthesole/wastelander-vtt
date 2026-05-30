@@ -1,5 +1,7 @@
+import { buildEquipmentItemIndex } from "../integrations/equipmentItems.js";
 import { isEquippableFalloutGear } from "../integrations/fallout.js";
 import { getActorItems } from "./actorItems.js";
+import { buildWeaponPdfRow } from "./weaponPdfFields.js";
 import {
   computeActorDerivedStatistics,
   formatMeleeDamageForPdf,
@@ -152,23 +154,7 @@ function applyBodyPartsFromActor(
   applyBodyPartResistances(snapshot, fakeSystem);
 }
 
-function isWeaponDamageTagged(item: Item): boolean {
-  const sys = item.system as { tag?: boolean; tagged?: boolean };
-  if (sys.tag || sys.tagged) return true;
-  return Boolean((item.flags as { favorite?: boolean }).favorite);
-}
-
-function formatWeaponField(value: unknown): string {
-  if (Array.isArray(value)) return value.join(", ");
-  if (value && typeof value === "object") {
-    return Object.entries(value as Record<string, unknown>)
-      .map(([k, v]) => `${k}: ${v}`)
-      .join("; ");
-  }
-  return formatNumber(value);
-}
-
-function applyWeapons(snapshot: ActorPdfSnapshot, actor: Actor): void {
+async function applyWeapons(snapshot: ActorPdfSnapshot, actor: Actor): Promise<void> {
   const weapons = getActorItems(actor)
     .filter((i) => i.type === "weapon")
     .sort((a, b) => {
@@ -179,39 +165,31 @@ function applyWeapons(snapshot: ActorPdfSnapshot, actor: Actor): void {
     })
     .slice(0, 5);
 
-  weapons.forEach((weapon, index) => {
-    const n = index + 1;
-    const sys = weapon.system as Record<string, unknown>;
-    snapshot.text[`weapons_name${n}`] = weapon.name;
-    snapshot.text[`weapons_damage${n}`] = formatWeaponField(
-      sys.damage ?? sys.dmg,
-    );
-    snapshot.text[`weapons_rate${n}`] = formatWeaponField(sys.rate ?? sys.rof);
-    snapshot.text[`weapons_range${n}`] = formatWeaponField(sys.range);
-    snapshot.text[`weapons_ammo${n}`] = formatWeaponField(
-      sys.ammoType ?? sys.ammo ?? sys.ammunition,
-    );
-    snapshot.text[`weapons_type${n}`] = formatWeaponField(
-      sys.weaponType ?? sys.type,
-    );
-    snapshot.text[`weapons_skill${n}`] = formatWeaponField(
-      sys.skill ?? sys.defaultAttribute,
-    );
-    snapshot.text[`weapons_tn${n}`] = formatWeaponField(sys.tn ?? sys.target);
-    snapshot.text[`weapons_weight${n}`] = formatWeaponField(
-      sys.weight ?? sys.mass,
-    );
-    snapshot.text[`weapons_effects${n}`] = formatWeaponField(
-      sys.effects ?? sys.effect,
-    );
-    snapshot.text[`weapons_qualities${n}`] = formatWeaponField(
-      sys.qualities ?? sys.quality,
-    );
+  if (!weapons.length) return;
 
-    if (isWeaponDamageTagged(weapon)) {
+  const equipmentIndex = await buildEquipmentItemIndex();
+
+  for (let i = 0; i < weapons.length; i++) {
+    const weapon = weapons[i]!;
+    const n = i + 1;
+    const row = await buildWeaponPdfRow(weapon, actor, equipmentIndex);
+
+    snapshot.text[`weapons_name${n}`] = row.name;
+    snapshot.text[`weapons_damage${n}`] = row.damage;
+    snapshot.text[`weapons_rate${n}`] = row.rate;
+    snapshot.text[`weapons_range${n}`] = row.range;
+    snapshot.text[`weapons_ammo${n}`] = row.ammo;
+    snapshot.text[`weapons_type${n}`] = row.type;
+    snapshot.text[`weapons_skill${n}`] = row.skill;
+    snapshot.text[`weapons_tn${n}`] = row.tn;
+    snapshot.text[`weapons_weight${n}`] = row.weight;
+    snapshot.text[`weapons_effects${n}`] = row.effects;
+    snapshot.text[`weapons_qualities${n}`] = row.qualities;
+
+    if (row.damageTagged) {
       snapshot.checks[`weapon_damage_tag${n}`] = true;
     }
-  });
+  }
 }
 
 function applyAmmo(snapshot: ActorPdfSnapshot, actor: Actor): void {
@@ -298,7 +276,7 @@ function applySkills(snapshot: ActorPdfSnapshot, actor: Actor): void {
   }
 }
 
-export function buildActorPdfSnapshot(actor: Actor): ActorPdfSnapshot {
+export async function buildActorPdfSnapshot(actor: Actor): Promise<ActorPdfSnapshot> {
   const system = actor.system as FalloutActorSystemSlice;
   const special = readActorSpecial(system);
   const derived = computeActorDerivedStatistics(actor, system);
@@ -339,7 +317,7 @@ export function buildActorPdfSnapshot(actor: Actor): ActorPdfSnapshot {
   applySkills(snapshot, actor);
   applyPerksAndTraits(snapshot, actor, system);
   applyBodyPartsFromActor(snapshot, system, actor);
-  applyWeapons(snapshot, actor);
+  await applyWeapons(snapshot, actor);
   applyGear(snapshot, actor);
   applyAmmo(snapshot, actor);
 
