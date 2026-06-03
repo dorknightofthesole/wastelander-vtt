@@ -29,6 +29,20 @@ const EQUIPMENT_NAME_ALIASES: Record<string, string> = {
   "flamer arm attachment": "Flamer",
   "laser emitter arm attachment": "Laser Emitter",
   "10mm auto pistol arm": "10mm Auto Pistol",
+  "10mm automatic pistol": "10mm Pistol",
+  ".44 pistol": ".44 Pistol",
+  ".44 round": ".44 Magnum Round",
+  ".44 ammunition": ".44 Magnum Round",
+  "hunting rifle": "Hunting Rifle",
+  "bolt-action pipe gun": "Pipe Bolt-Action",
+  "heavy bolt-action pipe rifle": "Pipe Bolt-Action",
+  "pipe gun": "Pipe Gun",
+  "pipe rifle": "Pipe Rifle",
+  ".38 round": ".38 Round",
+  ".38 ammunition": ".38 Round",
+  "10mm ammunition": "10mm Round",
+  ".308 ammunition": ".308 Round",
+  "flamer fuel": "Flamer Fuel",
 };
 
 export interface CompendiumItemIndexEntry {

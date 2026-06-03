@@ -38,10 +38,38 @@
             "label": "Ranged weapon",
             "prompt": "Choose one ranged weapon:",
             "options": [
-              { "id": "10mm-auto", "label": "10mm automatic pistol" },
-              { "id": "44", "label": ".44 pistol" },
-              { "id": "hunting", "label": "Hunting rifle" },
-              { "id": "pipe-bolt", "label": "Bolt-action pipe gun" }
+              {
+                "id": "10mm-auto",
+                "label": "10mm automatic pistol with 10 +5 CD rounds of 10mm ammunition",
+                "grants": [
+                  { "name": "10mm Pistol" },
+                  { "name": "10mm Round", "quantityRoll": "10+5dc" }
+                ]
+              },
+              {
+                "id": "44",
+                "label": ".44 pistol with 10 +5 CD rounds of .44 ammunition",
+                "grants": [
+                  { "name": ".44 Pistol" },
+                  { "name": ".44 Magnum Round", "quantityRoll": "10+5dc" }
+                ]
+              },
+              {
+                "id": "hunting",
+                "label": "Hunting rifle with 10 +5 CD rounds of .308 ammunition",
+                "grants": [
+                  { "name": "Hunting Rifle" },
+                  { "name": ".308 Round", "quantityRoll": "10+5dc" }
+                ]
+              },
+              {
+                "id": "pipe-bolt",
+                "label": "Bolt-action pipe gun with 10 +5 CD rounds of .308 ammunition",
+                "grants": [
+                  { "name": "Pipe Bolt-Action" },
+                  { "name": ".308 Round", "quantityRoll": "10+5dc" }
+                ]
+              }
             ]
           }
         ]

@@ -10,6 +10,7 @@ import {
 } from "../integrations/equipmentItems.js";
 import { getActorItems } from "./actorItems.js";
 import type { ActorPdfSnapshot } from "./buildActorSnapshot.js";
+import { ammoLoadedShotsUpdate, ammoQuantityOverride } from "../wizard/ammoQuantity.js";
 
 const SILENT = { render: false } as const;
 
@@ -269,7 +270,10 @@ export async function importPdfInventory(
         (existing.system as { quantity?: number }).quantity ?? 0,
       );
       if (qty > current) {
-        await existing.update({ "system.quantity": qty }, SILENT);
+        await existing.update(
+          { "system.quantity": qty, ...ammoLoadedShotsUpdate() },
+          SILENT,
+        );
         ammo++;
       }
       continue;
@@ -278,8 +282,8 @@ export async function importPdfInventory(
     if (owned.has(key)) continue;
 
     await addCompendiumItemToActor(actor, enriched.compendiumUuid, {
-      quantity: qty,
       equipApparel: false,
+      systemOverrides: ammoQuantityOverride(qty),
     });
     owned.add(key);
     ammo++;

@@ -19,8 +19,15 @@ import {
 import originsData from "../data/origins-core.json";
 import survivorTraitsData from "../data/survivor-traits.json";
 import {
+  ammoLoadedShotsUpdate,
+  ammoQuantityOverride,
+  ammoQuantityOverrideFromRoll,
+  rollFalloutAmmoQuantity,
+} from "./ammoQuantity.js";
+import {
   getEquipmentPack,
-  getTagSkillLootLines,
+  getTagSkillLootApplyEntries,
+  grantToLine,
   resolvePackItems,
   rollTrinket,
   type ResolvedEquipmentLine,
@@ -129,14 +136,39 @@ function ammoSystemOverrides(
 ): Record<string, unknown> | undefined {
   if (source.type !== "ammo") return undefined;
   if (resolved.shots !== undefined) {
-    return {
-      shots: { current: resolved.shots, max: resolved.shots },
-    };
+    return ammoQuantityOverride(resolved.shots);
   }
   if (resolved.quantityRoll) {
-    return { quantityRoll: resolved.quantityRoll };
+    return ammoQuantityOverrideFromRoll(resolved.quantityRoll);
   }
   return undefined;
+}
+
+async function addShotsToOwnedAmmo(
+  actorId: string,
+  quantityRoll: string,
+): Promise<void> {
+  const add = rollFalloutAmmoQuantity(quantityRoll);
+  if (!add) return;
+
+  const parent = getWorldActor(actorId);
+  const ammoItems = parent.items.filter((item) => item.type === "ammo");
+  if (!ammoItems.length) return;
+
+  const updates = ammoItems.map((item) => {
+    const sys = item.system as {
+      shots?: { current?: number; max?: number };
+      quantity?: number;
+    };
+    const nextQty = Number(sys.quantity ?? 0) + add;
+    return {
+      _id: item.id,
+      "system.quantity": nextQty,
+      ...ammoLoadedShotsUpdate(),
+    };
+  });
+
+  await Item.implementation.updateDocuments(updates, { parent, ...SILENT });
 }
 
 async function addEquipmentLineToActor(
@@ -360,8 +392,18 @@ export async function applyWizardToActor(
       }
     }
 
-    for (const row of getTagSkillLootLines(state.taggedSkillNames)) {
-      bonusCaps += await addEquipmentLineToActor(actorId, row.loot, index);
+    for (const row of getTagSkillLootApplyEntries(state.taggedSkillNames)) {
+      if (row.kind === "grant") {
+        bonusCaps += await addEquipmentLineToActor(
+          actorId,
+          grantToLine(row.grant),
+          index,
+        );
+      } else if (row.kind === "addToOwnedAmmo") {
+        await addShotsToOwnedAmmo(actorId, row.quantityRoll);
+      } else {
+        bonusCaps += await addEquipmentLineToActor(actorId, row.text, index);
+      }
     }
 
     if (bonusCaps > 0) {

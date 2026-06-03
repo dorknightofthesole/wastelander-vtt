@@ -2,6 +2,7 @@ import equipmentPacksData from "../data/equipment-packs.json";
 import tagSkillLootData from "../data/tag-skill-loot.json";
 import trinketsData from "../data/trinkets-d20.json";
 import { expandRobotArmEquipmentLine, ROBOT_ARM_WEAPON_AMMO_SHOTS } from "./robotArmEquipment.js";
+import { expandWeaponAmmoBundle } from "./weaponAmmoBundles.js";
 
 export interface EquipmentGrant {
   name: string;
@@ -54,8 +55,28 @@ export interface ResolvedEquipmentLine {
 }
 
 const PACK_GROUPS = equipmentPacksData as Record<string, EquipmentPackGroup>;
-const TAG_SKILL_LOOT = tagSkillLootData as Record<string, string>;
+
+export interface TagSkillLootGrant {
+  name: string;
+  quantityRoll?: string;
+  shots?: number;
+}
+
+export type TagSkillLootEntry =
+  | string
+  | {
+      display: string;
+      grant?: TagSkillLootGrant;
+      /** Add rolled shots to each ammo item already on the actor (Small Guns tag loot). */
+      addToOwnedAmmo?: string;
+    };
+
+const TAG_SKILL_LOOT = tagSkillLootData as Record<string, TagSkillLootEntry>;
 const TRINKETS = trinketsData as string[];
+
+function tagSkillLootDisplay(entry: TagSkillLootEntry): string {
+  return typeof entry === "string" ? entry : entry.display;
+}
 
 export function getEquipmentPackGroup(groupId: string): EquipmentPackGroup | undefined {
   return PACK_GROUPS[groupId];
@@ -69,7 +90,8 @@ export function getEquipmentPack(
 }
 
 export function getTagSkillLoot(skillName: string): string | undefined {
-  return TAG_SKILL_LOOT[skillName];
+  const entry = TAG_SKILL_LOOT[skillName];
+  return entry ? tagSkillLootDisplay(entry) : undefined;
 }
 
 export function getTagSkillLootLines(taggedSkillNames: string[]): Array<{
@@ -77,8 +99,42 @@ export function getTagSkillLootLines(taggedSkillNames: string[]): Array<{
   loot: string;
 }> {
   return taggedSkillNames
-    .map((skill) => ({ skill, loot: TAG_SKILL_LOOT[skill] }))
-    .filter((row): row is { skill: string; loot: string } => Boolean(row.loot));
+    .map((skill) => {
+      const entry = TAG_SKILL_LOOT[skill];
+      if (!entry) return null;
+      return { skill, loot: tagSkillLootDisplay(entry) };
+    })
+    .filter((row): row is { skill: string; loot: string } => Boolean(row));
+}
+
+export type TagSkillLootApplyEntry =
+  | { skill: string; kind: "text"; text: string }
+  | { skill: string; kind: "grant"; grant: TagSkillLootGrant }
+  | { skill: string; kind: "addToOwnedAmmo"; quantityRoll: string };
+
+export function getTagSkillLootApplyEntries(
+  taggedSkillNames: string[],
+): TagSkillLootApplyEntry[] {
+  const out: TagSkillLootApplyEntry[] = [];
+  for (const skill of taggedSkillNames) {
+    const entry = TAG_SKILL_LOOT[skill];
+    if (!entry) continue;
+    if (typeof entry === "string") {
+      out.push({ skill, kind: "text", text: entry });
+      continue;
+    }
+    if (entry.grant) {
+      out.push({ skill, kind: "grant", grant: entry.grant });
+    }
+    if (entry.addToOwnedAmmo) {
+      out.push({
+        skill,
+        kind: "addToOwnedAmmo",
+        quantityRoll: entry.addToOwnedAmmo,
+      });
+    }
+  }
+  return out;
 }
 
 export function rollTrinket(d20: number): string {
@@ -92,7 +148,7 @@ export function rollTrinketRandom(): { roll: number; result: string } {
   return { roll, result: rollTrinket(roll) };
 }
 
-function grantToLine(grant: EquipmentGrant): ResolvedEquipmentLine {
+export function grantToLine(grant: EquipmentGrant): ResolvedEquipmentLine {
   return {
     text: grant.name,
     compendiumName: grant.name,
@@ -105,6 +161,9 @@ function expandPackLine(
   text: string,
   robotArmAmmoShots?: number,
 ): ResolvedEquipmentLine[] {
+  const weaponAmmo = expandWeaponAmmoBundle(text);
+  if (weaponAmmo) return weaponAmmo;
+
   if (robotArmAmmoShots) {
     return expandRobotArmEquipmentLine(text, robotArmAmmoShots);
   }
@@ -119,6 +178,8 @@ export function resolvePackItems(
   const { robotArmAmmoShots } = options ?? {};
   const lines: ResolvedEquipmentLine[] = [];
   for (const item of pack.items) {
+    // Mercenary (and similar): ammo is granted via the ranged `grants` choice, not this summary line.
+    if (/chosen ranged weapon/i.test(item)) continue;
     lines.push(...expandPackLine(item, robotArmAmmoShots));
   }
   for (const choice of pack.choices ?? []) {
