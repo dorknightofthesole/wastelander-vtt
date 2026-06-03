@@ -1,5 +1,9 @@
 import equipmentPacksData from "../data/equipment-packs.json";
 import tagSkillLootData from "../data/tag-skill-loot.json";
+import {
+  evaluateRoll,
+  postWizardRollChat,
+} from "../integrations/fallout.js";
 import trinketsData from "../data/trinkets-d20.json";
 import { expandRobotArmEquipmentLine, ROBOT_ARM_WEAPON_AMMO_SHOTS } from "./robotArmEquipment.js";
 import { expandWeaponAmmoBundle } from "./weaponAmmoBundles.js";
@@ -143,9 +147,22 @@ export function rollTrinket(d20: number): string {
 }
 
 /** Random d20 roll on the Personal Trinkets table (Core Rulebook p. 80). */
-export function rollTrinketRandom(): { roll: number; result: string } {
-  const roll = Math.floor(Math.random() * 20) + 1;
-  return { roll, result: rollTrinket(roll) };
+export async function rollTrinketRandom(
+  actor?: Actor | null,
+): Promise<{ roll: number; result: string }> {
+  const evaluated = await evaluateRoll("1d20");
+  const face = Math.max(1, Math.min(20, evaluated.total));
+  const result = rollTrinket(face);
+
+  await postWizardRollChat(evaluated.roll, {
+    actor,
+    detail: result,
+    formula: evaluated.formula,
+    label: game.i18n.localize("WASTELANDER.Wizard.RollChat.PersonalTrinket"),
+    total: face,
+  });
+
+  return { roll: face, result };
 }
 
 export function grantToLine(grant: EquipmentGrant): ResolvedEquipmentLine {

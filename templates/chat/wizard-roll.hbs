@@ -1,0 +1,52 @@
+<div class="fallout-chat-message wastelander-roll-chat">
+  <div class="content">
+    <h2>{{label}}</h2>
+    {{#if hasActor}}
+      <p><strong>{{strings.character}}:</strong> {{actorName}}</p>
+    {{/if}}
+    {{#if hasItem}}
+      <p><strong>{{strings.item}}:</strong> {{itemName}}</p>
+    {{/if}}
+    {{#if hasDetail}}
+      <p><strong>{{strings.detail}}:</strong> {{detail}}</p>
+    {{/if}}
+    {{#if hasCdSummary}}
+      <div class="damage-plaq flexrow">
+        <p class="flexlarge" style="margin: 0;">
+          {{#if hasModifier}}{{strings.cd}}: {{cdTotal}} | {{/if}}{{strings.effects}}: {{cdEffects}}{{#if hasModifier}} | {{strings.total}}: {{total}}{{/if}}
+        </p>
+      </div>
+    {{/if}}
+    {{#if hasCdDice}}
+      <div class="dices-result" style="display: flex; flex-wrap: wrap;">
+        {{#each cdDice}}
+          <span
+            class="dice-icon d6 face-{{face}}{{effectClass}}"
+            style="background-image: url('systems/fallout/assets/chat/d{{face}}.webp');"
+            data-face="{{face}}"
+          >&nbsp;</span>
+        {{/each}}
+      </div>
+    {{/if}}
+    {{#if hasD20Faces}}
+      <div class="dices-result" style="display: flex; flex-wrap: wrap;">
+        {{#each d20Faces}}
+          <span class="dice-icon d20">{{this}}</span>
+        {{/each}}
+      </div>
+    {{/if}}
+    {{#unless hasCdDice}}
+      {{#unless hasD20Faces}}
+        <p><strong>{{strings.formula}}:</strong> {{formula}}</p>
+      {{/unless}}
+    {{/unless}}
+    {{#if hasCdDice}}
+      <p class="hit-location-label" style="color: grey; margin-top: 0.25rem;">
+        <strong>{{strings.formula}}:</strong> {{formula}}
+      </p>
+    {{/if}}
+    {{#unless hasCdSummary}}
+      <p class="wastelander-roll-total"><strong>{{strings.total}}:</strong> {{total}}</p>
+    {{/unless}}
+  </div>
+</div>

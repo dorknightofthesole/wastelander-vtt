@@ -1,18 +1,24 @@
-import { rollCombatDicePool } from "./combatDice.js";
+import {
+  evaluateFalloutRoll,
+  type WizardRollContext,
+} from "../integrations/fallout.js";
 
 /**
- * Parse Fallout starting-ammo formulas (e.g. `10+5dc`).
- * Rolls each CD as a d6, converts via the Combat Dice Results table (Core Rulebook p.31),
- * then adds that total to the fixed base.
+ * Parse Fallout starting-ammo formulas (e.g. `10+5dc`) and roll via the
+ * Fallout system's `dc` die (`/r 10+5dc` equivalent).
  */
-export function rollFalloutAmmoQuantity(formula: string): number {
+export async function rollFalloutAmmoQuantity(
+  formula: string,
+  context?: WizardRollContext,
+): Promise<number> {
   const normalized = formula.replace(/\s+/g, "").toLowerCase();
   const match = normalized.match(/^(\d+)\+(\d+)dc$/);
   if (!match) return 1;
 
-  const base = Number(match[1]);
-  const diceCount = Number(match[2]);
-  return base + rollCombatDicePool(diceCount);
+  return evaluateFalloutRoll(normalized, {
+    label: game.i18n.localize("WASTELANDER.Wizard.RollChat.StartingAmmo"),
+    ...context,
+  });
 }
 
 /** Fallout ammo sheet: Current and Shots Remaining (max) both start at 1. */
@@ -29,10 +35,11 @@ export function ammoQuantityOverride(quantity: number): Record<string, unknown> 
   };
 }
 
-export function ammoQuantityOverrideFromRoll(
+export async function ammoQuantityOverrideFromRoll(
   formula: string,
-): Record<string, unknown> {
-  return ammoQuantityOverride(rollFalloutAmmoQuantity(formula));
+  context?: WizardRollContext,
+): Promise<Record<string, unknown>> {
+  return ammoQuantityOverride(await rollFalloutAmmoQuantity(formula, context));
 }
 
 /** @deprecated Use ammoQuantityOverride */

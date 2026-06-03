@@ -101,6 +101,21 @@
         "CompendiumHint": "Click underlined items to open them from the compendium. Hover for details.",
         "SelectPack": "Select an equipment pack to see contents and choices."
       },
+      "RollChat": {
+        "Character": "Character",
+        "Item": "Item",
+        "Detail": "Result",
+        "Formula": "Formula",
+        "Total": "Total",
+        "Cd": "CD",
+        "Effects": "Effects",
+        "StartingAmmo": "Starting ammunition",
+        "StartingCaps": "Starting caps",
+        "Caps": "Caps",
+        "PersonalTrinket": "Personal trinket",
+        "TagSkillLoot": "Tag skill loot — {skill}",
+        "TagSkillAmmoDetail": "Bonus ammunition ({formula})"
+      },
       "Review": {
         "Derived": "Derived statistics",
         "Immunities": "Immunities",

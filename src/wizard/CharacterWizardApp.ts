@@ -1252,13 +1252,13 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
     void this.render({ force: true });
   }
 
-  static #onRollTrinket(
+  static async #onRollTrinket(
     this: CharacterWizardApp,
     _event: PointerEvent,
     _target: HTMLElement,
-  ): void {
+  ): Promise<void> {
     if (this.state.step !== "equipment") return;
-    const { roll, result } = rollTrinketRandom();
+    const { roll, result } = await rollTrinketRandom(this.actor);
     this.state.trinketRoll = roll;
     ui.notifications.info(`Trinket (d20 = ${roll}): ${result}`);
     void this.render({ force: true });

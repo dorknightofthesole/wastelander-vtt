@@ -1,6 +1,7 @@
 import { MODULE_ID } from "../constants.js";
 import {
   addCompendiumItemToActor,
+  evaluateFalloutRoll,
   favoriteAllWeaponsOnActor,
   getCompendiumItem,
   isEquippableFalloutGear,
@@ -118,28 +119,26 @@ function parseCapsFromText(text: string): number {
   return m ? Number(m[1]) : 0;
 }
 
-function rollDiceFormula(formula: string): number {
-  const m = formula.match(/(\d+)d(\d+)/i);
-  if (!m) return 0;
-  const count = Number(m[1]);
-  const sides = Number(m[2]);
-  let total = 0;
-  for (let i = 0; i < count; i++) {
-    total += Math.floor(Math.random() * sides) + 1;
-  }
-  return total;
-}
-
-function ammoSystemOverrides(
+async function ammoSystemOverrides(
+  actorId: string,
   source: Item,
   resolved: ResolvedEquipmentLine,
-): Record<string, unknown> | undefined {
+  tagSkill?: string,
+): Promise<Record<string, unknown> | undefined> {
   if (source.type !== "ammo") return undefined;
   if (resolved.shots !== undefined) {
     return ammoQuantityOverride(resolved.shots);
   }
   if (resolved.quantityRoll) {
-    return ammoQuantityOverrideFromRoll(resolved.quantityRoll);
+    return ammoQuantityOverrideFromRoll(resolved.quantityRoll, {
+      actor: getWorldActor(actorId),
+      itemName: source.name,
+      label: tagSkill
+        ? game.i18n.format("WASTELANDER.Wizard.RollChat.TagSkillLoot", {
+            skill: tagSkill,
+          })
+        : game.i18n.localize("WASTELANDER.Wizard.RollChat.StartingAmmo"),
+    });
   }
   return undefined;
 }
@@ -147,8 +146,15 @@ function ammoSystemOverrides(
 async function addShotsToOwnedAmmo(
   actorId: string,
   quantityRoll: string,
+  skill: string,
 ): Promise<void> {
-  const add = rollFalloutAmmoQuantity(quantityRoll);
+  const add = await rollFalloutAmmoQuantity(quantityRoll, {
+    actor: getWorldActor(actorId),
+    detail: game.i18n.format("WASTELANDER.Wizard.RollChat.TagSkillAmmoDetail", {
+      formula: quantityRoll,
+    }),
+    label: game.i18n.format("WASTELANDER.Wizard.RollChat.TagSkillLoot", { skill }),
+  });
   if (!add) return;
 
   const parent = getWorldActor(actorId);
@@ -175,6 +181,7 @@ async function addEquipmentLineToActor(
   actorId: string,
   line: string | ResolvedEquipmentLine,
   index: Awaited<ReturnType<typeof buildEquipmentItemIndex>>,
+  tagSkill?: string,
 ): Promise<number> {
   const resolved: ResolvedEquipmentLine =
     typeof line === "string" ? { text: line } : line;
@@ -182,7 +189,12 @@ async function addEquipmentLineToActor(
   const enriched = enrichEquipmentLine(resolved, index);
   if (enriched.compendiumUuid) {
     const source = await getCompendiumItem(enriched.compendiumUuid);
-    const systemOverrides = ammoSystemOverrides(source!, resolved);
+    const systemOverrides = await ammoSystemOverrides(
+      actorId,
+      source!,
+      resolved,
+      tagSkill,
+    );
     await addCompendiumItemToActor(getWorldActor(actorId), enriched.compendiumUuid, {
       equipApparel: source ? isEquippableFalloutGear(source) : false,
       systemOverrides,
@@ -191,7 +203,16 @@ async function addEquipmentLineToActor(
   }
   const diceMatch = resolved.text.match(/(\d+d\d+)/i);
   if (diceMatch && /caps/i.test(resolved.text)) {
-    caps += rollDiceFormula(diceMatch[1]!);
+    caps += await evaluateFalloutRoll(diceMatch[1]!, {
+      actor: getWorldActor(actorId),
+      detail: resolved.text,
+      itemName: game.i18n.localize("WASTELANDER.Wizard.RollChat.Caps"),
+      label: tagSkill
+        ? game.i18n.format("WASTELANDER.Wizard.RollChat.TagSkillLoot", {
+            skill: tagSkill,
+          })
+        : game.i18n.localize("WASTELANDER.Wizard.RollChat.StartingCaps"),
+    });
   }
   return caps;
 }
@@ -398,11 +419,17 @@ export async function applyWizardToActor(
           actorId,
           grantToLine(row.grant),
           index,
+          row.skill,
         );
       } else if (row.kind === "addToOwnedAmmo") {
-        await addShotsToOwnedAmmo(actorId, row.quantityRoll);
+        await addShotsToOwnedAmmo(actorId, row.quantityRoll, row.skill);
       } else {
-        bonusCaps += await addEquipmentLineToActor(actorId, row.text, index);
+        bonusCaps += await addEquipmentLineToActor(
+          actorId,
+          row.text,
+          index,
+          row.skill,
+        );
       }
     }
 

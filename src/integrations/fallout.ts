@@ -1,6 +1,13 @@
 import { MODULE_ID } from "../constants.js";
 import { getWorldActor, resolveActorId } from "./falloutActor.js";
 
+export type { WizardRollContext } from "./falloutRollChat.js";
+export {
+  evaluateFalloutRoll,
+  evaluateRoll,
+  postWizardRollChat,
+} from "./falloutRollChat.js";
+
 export type FalloutAttributeKey = "str" | "per" | "end" | "cha" | "int" | "agi" | "luc";
 
 /**

@@ -1,6 +1,8 @@
 /* Minimal Foundry globals for compile-time checks (full types optional). */
 declare const game: {
   system: { id: string };
+  user: { id: string };
+  settings: { get: (scope: string, key: string) => string };
   actors: { get(id: string): Actor | undefined };
   i18n: {
     lang?: string;
@@ -18,6 +20,41 @@ declare const Hooks: {
 declare const ui: {
   notifications: { warn: (message: string) => void; info: (message: string) => void; error: (message: string) => void };
 };
+
+declare class Roll {
+  total: number | null;
+  terms?: unknown[];
+  dice?: DieTerm[];
+  constructor(formula: string);
+  evaluate(options?: object): Promise<Roll>;
+}
+
+type DieTerm = {
+  denomination?: string | number;
+  faces?: number;
+  results?: Array<{ result: number; active?: boolean }>;
+};
+
+declare const CONST: {
+  CHAT_MESSAGE_STYLES: {
+    OTHER: number;
+  };
+};
+
+declare class ChatMessage {
+  static getSpeaker(options: { actor?: Actor }): Record<string, unknown>;
+  static applyRollMode(data: Record<string, unknown>, mode: string): void;
+  static create(data: Record<string, unknown>): Promise<ChatMessage>;
+}
+
+interface FalloutGlobal {
+  Roller2D20?: {
+    showDiceSoNice: (roll: Roll) => Promise<void>;
+  };
+  utils?: {
+    getMessageStyles?: () => { OTHER: number };
+  };
+}
 
 declare const Dialog: {
   confirm: (options: {
