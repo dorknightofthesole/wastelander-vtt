@@ -82,8 +82,47 @@
     <div class="wastelander-scavenger-checks">
       <label><input type="checkbox" data-action="toggleProblem" data-problem="obstacle" {{#if problems.obstacle}}checked{{/if}} /> {{localize "WASTELANDER.Scavenging.Problems.Obstacle"}}</label>
       <label><input type="checkbox" data-action="toggleProblem" data-problem="hazard" {{#if problems.hazard}}checked{{/if}} /> {{localize "WASTELANDER.Scavenging.Problems.Hazard"}}</label>
-      <label><input type="checkbox" data-action="toggleProblem" data-problem="inhabitants" {{#if problems.inhabitants}}checked{{/if}} /> {{localize "WASTELANDER.Scavenging.Problems.Inhabitants"}}</label>
+      <label>
+        <input type="checkbox" data-action="toggleProblem" data-problem="inhabitants" {{#if problems.inhabitants}}checked{{/if}} {{#if inhabitantsUi.checkboxDisabled}}disabled{{/if}} />
+        {{localize "WASTELANDER.Scavenging.Problems.Inhabitants"}}
+      </label>
     </div>
+    {{#unless inhabitantsUi.allowed}}
+      <p class="wastelander-scavenger-hint">{{localize "WASTELANDER.Scavenging.Inhabitants.TinyNoInhabitants"}}</p>
+    {{/unless}}
+    <div class="wastelander-scavenger-field wastelander-scavenger-inhabitant-type">
+      <label for="loc-inhabitant-type">{{localize "WASTELANDER.Scavenging.Inhabitants.TypeLabel"}}</label>
+      <select id="loc-inhabitant-type" data-action="updateField" data-field="inhabitantType" {{#if inhabitantsUi.typeSelectDisabled}}disabled{{/if}}>
+        {{#each inhabitantsUi.typeOptions}}
+          <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+        {{/each}}
+      </select>
+    </div>
+    {{#if inhabitantsUi.showRoster}}
+      <div class="wastelander-scavenger-inhabitant-summary">
+        {{#if inhabitantsUi.countSummary}}
+          <p class="wastelander-scavenger-inhabitant-count">{{inhabitantsUi.countSummary}}</p>
+        {{/if}}
+        {{#if inhabitantsUi.rosterEmpty}}
+          <p class="wastelander-scavenger-warning">{{localize "WASTELANDER.Scavenging.Inhabitants.RosterEmpty"}}</p>
+        {{else}}
+          <ul class="wastelander-scavenger-inhabitant-roster">
+            {{#each inhabitantsUi.roster}}
+              <li>
+                {{#if actorUuid}}
+                  <button type="button" class="wastelander-scavenger-table-link" data-action="openInhabitantActor" data-actor-uuid="{{actorUuid}}">
+                    <i class="fas fa-user" aria-hidden="true"></i> {{name}}
+                  </button>
+                {{else}}
+                  {{name}}
+                {{/if}}
+                ({{localize "WASTELANDER.Scavenging.Inhabitants.LevelShort"}} {{level}}){{#if sizeLabel}} — {{sizeLabel}}{{/if}}
+              </li>
+            {{/each}}
+          </ul>
+        {{/if}}
+      </div>
+    {{/if}}
   </section>
 
   <section class="wastelander-scavenger-section">

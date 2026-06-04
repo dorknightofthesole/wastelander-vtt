@@ -8,6 +8,7 @@ import type {
   LootCategoryKey,
   OtherFoundRoll,
   ScavengerLocation,
+  ScavengerLocationInhabitants,
   ScavengerLocationProblems,
   ScavengerLocationRollLog,
 } from "./ScavengerLocation.js";
@@ -18,8 +19,10 @@ import {
   getSearchDifficulty,
   SEARCH_TIME_BY_SCALE,
 } from "./locationRules.js";
+import { buildLocationInhabitants, canHaveInhabitants } from "./inhabitantRules.js";
 import { rollOtherFoundCategoryDetailed } from "./lootRoller.js";
 import { rollLocationLevel } from "./locationRules.js";
+import type { InhabitantType } from "./ScavengerLocation.js";
 import type { PartyActorRow } from "./ScavengerLocation.js";
 
 type CategorySlots = Record<string, number>;
@@ -140,6 +143,7 @@ export async function generateScavengerLocation(params: {
   sceneId?: string;
 }): Promise<ScavengerLocation> {
   const rollLog: ScavengerLocationRollLog[] = [];
+  const warnings: string[] = [];
   const built = buildBaseItems(params.categoryId, params.scale);
   let items = built.items;
 
@@ -213,12 +217,29 @@ export async function generateScavengerLocation(params: {
       problems.hazardOngoing = level < 11;
     }
   }
-  if (problems.inhabitants && level >= 1) {
-    const pcCount = params.party.filter((p) => p.selected).length;
-    problems.inhabitantCount = Math.max(1, pcCount);
-    problems.inhabitantLevel = level;
-  } else if (level < 1) {
+  let inhabitants: ScavengerLocationInhabitants | undefined;
+  if (!canHaveInhabitants(params.scale) || level < 1) {
     problems.inhabitants = false;
+  } else if (problems.inhabitants) {
+    const inhabitantType: InhabitantType =
+      problems.inhabitantType && problems.inhabitantType !== "none"
+        ? problems.inhabitantType
+        : "raiders";
+    problems.inhabitantType = inhabitantType;
+    problems.inhabitantLevel = level;
+
+    const builtInhabitants = await buildLocationInhabitants({
+      scale: params.scale,
+      locationLevel: level,
+      inhabitantType,
+      animateRolls: true,
+    });
+    rollLog.push(...builtInhabitants.rollLogs);
+    warnings.push(...builtInhabitants.warnings);
+    inhabitants = builtInhabitants.inhabitants ?? undefined;
+    if (inhabitants) {
+      problems.inhabitantCount = inhabitants.count;
+    }
   }
 
   return {
@@ -233,11 +254,13 @@ export async function generateScavengerLocation(params: {
     searchMinutes: SEARCH_TIME_BY_SCALE[params.scale].minutes,
     items,
     otherFoundRolls: built.otherFoundRolls,
+    inhabitants,
     problems,
     partyActorIds: params.party.filter((p) => p.selected).map((p) => p.actorId),
     sceneId: params.sceneId,
     rollLog,
     createdAt: Date.now(),
+    warnings: warnings.length ? warnings : undefined,
   };
 }
 

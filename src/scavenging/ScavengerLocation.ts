@@ -43,6 +43,24 @@ export interface OtherFoundRoll {
   category: LootCategoryKey;
 }
 
+export interface InhabitantRosterEntry {
+  denizenId: string;
+  name: string;
+  level: number;
+  role: "normal";
+  npcSize?: "big" | "little" | null;
+  foundryUuid?: string | null;
+}
+
+export interface ScavengerLocationInhabitants {
+  type: InhabitantType;
+  /** Final count after Big/Little adjustment. */
+  count: number;
+  /** Count from scale dice before Big/Little. */
+  baseCount: number;
+  roster: InhabitantRosterEntry[];
+}
+
 export interface ScavengerLocationProblems {
   obstacle: boolean;
   hazard: boolean;
@@ -83,6 +101,7 @@ export interface ScavengerLocation {
   items: ItemCategoryRange[];
   /** Resolved d20 rolls for this location’s Other slots (not a loot-table row). */
   otherFoundRolls: OtherFoundRoll[];
+  inhabitants?: ScavengerLocationInhabitants;
   problems: ScavengerLocationProblems;
   partyActorIds: string[];
   sceneId?: string;
@@ -92,6 +111,8 @@ export interface ScavengerLocation {
   searchSimulated?: boolean;
   lootResults?: ScavengerLocationLootResult[];
   createdAt: number;
+  /** Non-fatal issues from generation (e.g. empty inhabitant pool). */
+  warnings?: string[];
 }
 
 export interface PartyActorRow {

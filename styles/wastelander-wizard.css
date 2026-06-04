@@ -2270,6 +2270,23 @@
   margin: 0 0 0.5rem;
 }
 
+.wastelander-scavenger-inhabitant-type {
+  margin-top: 0.5rem;
+}
+
+.wastelander-scavenger-inhabitant-summary {
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--wstl-amber-muted, #5c6238);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.wastelander-scavenger-inhabitant-roster {
+  margin: 0.35rem 0 0;
+  padding-left: 1.25rem;
+}
+
 .wastelander-scavenger-loot-grid {
   margin-top: 0.5rem;
   border: 1px solid var(--wstl-amber-muted, #5c6238);
@@ -2316,4 +2333,42 @@
 .wastelander-scavenger-table-meta {
   font-size: 0.85em;
   opacity: 0.8;
+}
+
+.wastelander-denizen-import-app {
+  color: lightyellow;
+}
+
+.wastelander-denizen-import-app .wastelander-denizen-import-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.wastelander-denizen-import-app .wastelander-denizen-import {
+  flex: 1 1 auto;
+  padding: 0.75rem 1rem;
+}
+
+.wastelander-denizen-import-app .wastelander-denizen-import-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--wstl-amber-muted, #6b5a2a);
+  background: var(--wstl-bg-panel, #0b0d07);
+}
+
+.wastelander-denizen-import-app .wastelander-btn-primary {
+  padding: 0.4rem 0.85rem;
+  border-radius: 3px;
+  cursor: pointer;
+  color: lightyellow;
+  background: var(--wstl-amber-muted, #8b6914);
+  border: 1px solid var(--wstl-amber-bright, #e8c170);
+}
+
+.wastelander-denizen-import-app .wastelander-btn-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }

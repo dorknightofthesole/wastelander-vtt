@@ -1,4 +1,5 @@
 import { MODULE_ID } from "../constants.js";
+import DenizenImportMenuApp from "./DenizenImportMenuApp.js";
 
 export const SCAVENGING_SETTINGS = {
   preferFoundryTables: "preferFoundryTables",
@@ -36,6 +37,15 @@ export function registerScavengingSettings(): void {
     config: true,
     type: Boolean,
     default: true,
+  });
+
+  settings.registerMenu(MODULE_ID, "importDenizens", {
+    name: "WASTELANDER.Denizens.Import.MenuName",
+    label: "WASTELANDER.Denizens.Import.MenuLabel",
+    hint: "WASTELANDER.Denizens.Import.MenuHint",
+    icon: "fas fa-file-import",
+    type: DenizenImportMenuApp,
+    restricted: true,
   });
 }
 

@@ -1,5 +1,6 @@
 import { t } from "../integrations/i18n.js";
 import ScavengerLocationApp from "./ScavengerLocationApp.js";
+import { registerDenizenImportHooks } from "./registerDenizenImportHooks.js";
 import { registerScavengingSettings } from "./scavengingSettings.js";
 
 /** Foundry v13+: Record of control name → SceneControl; tools are Record<string, SceneControlTool>. */
@@ -23,6 +24,7 @@ type SceneControlTool = {
 
 export function registerScavengingHooks(): void {
   registerScavengingSettings();
+  registerDenizenImportHooks();
 
   Hooks.on("getSceneControlButtons", (controls: SceneControlsRecord) => {
     if (!game.user?.isGM) return;

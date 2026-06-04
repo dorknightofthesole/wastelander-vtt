@@ -1,12 +1,21 @@
 import { evaluateFoundryRoll } from "../integrations/foundryRoll.js";
 
-/** Roll one or more d20; returns faces and sum. */
-export function rollD20(count: number): { faces: number[]; sum: number } {
+/** Roll one or more dice with the given number of sides. */
+export function rollDie(
+  sides: number,
+  count = 1,
+): { faces: number[]; sum: number } {
+  const n = Math.max(1, Math.floor(sides));
   const faces: number[] = [];
   for (let i = 0; i < count; i++) {
-    faces.push(Math.floor(Math.random() * 20) + 1);
+    faces.push(Math.floor(Math.random() * n) + 1);
   }
   return { faces, sum: faces.reduce((a, b) => a + b, 0) };
+}
+
+/** Roll one or more d20; returns faces and sum. */
+export function rollD20(count: number): { faces: number[]; sum: number } {
+  return rollDie(20, count);
 }
 
 /** Roll 2d20; returns faces and sum (used for loot table index). */

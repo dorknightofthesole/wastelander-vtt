@@ -58,7 +58,7 @@ export function isEquippableFalloutGear(item: Item): boolean {
 }
 
 /** Keys that must not be copied onto a new owned item (core drop keeps the rest). */
-const ITEM_CREATE_OMIT_KEYS = new Set([
+export const ITEM_CREATE_OMIT_KEYS = new Set([
   "_id",
   "folder",
   "ownership",

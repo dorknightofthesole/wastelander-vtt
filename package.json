@@ -7,7 +7,8 @@
     "build": "vite build",
     "dev": "vite build --watch",
     "prepare": "npm run build",
-    "list-pdf-fields": "node scripts/list-pdf-fields.mjs"
+    "list-pdf-fields": "node scripts/list-pdf-fields.mjs",
+    "build:denizens": "node --experimental-strip-types scripts/build-denizens-catalog.mjs"
   },
   "devDependencies": {
     "typescript": "^5.7.0",

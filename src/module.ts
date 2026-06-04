@@ -4,6 +4,7 @@ import {
   registerActorSheetControls,
 } from "./integrations/actorSheetControls.js";
 import { registerTranslations } from "./integrations/i18n.js";
+import { getBundledDenizenCount, importBundledDenizens } from "./scavenging/denizenImport.js";
 import { registerScavengingHooks } from "./scavenging/scavengingHooks.js";
 
 Hooks.once("init", () => {
@@ -11,6 +12,15 @@ Hooks.once("init", () => {
   registerActorSheetControlHooks();
   registerScavengingHooks();
   console.log(`${MODULE_ID} | initializing`);
+});
+
+Hooks.once("ready", () => {
+  const mod = game.modules.get(MODULE_ID) as { api?: Record<string, unknown> } | undefined;
+  if (!mod) return;
+  mod.api = {
+    importDenizens: importBundledDenizens,
+    bundledDenizenCount: getBundledDenizenCount,
+  };
 });
 
 Hooks.on("renderActorSheet", (...args: unknown[]) => {

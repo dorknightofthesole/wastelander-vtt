@@ -113,15 +113,34 @@ declare const ContextMenu: new (
 
 declare function fromUuid(uuid: string): Promise<unknown>;
 
+declare class Folder {
+  id: string;
+  name: string;
+  type: string;
+  folder: string | null;
+  static create(data: object): Promise<Folder>;
+  static implementation: {
+    createDocuments(
+      data: object[],
+      options?: { render?: boolean; keepId?: boolean },
+    ): Promise<Folder[]>;
+  };
+}
+
 declare class Actor {
   id: string;
   name: string;
   type: string;
+  static create(data: object, options?: object): Promise<Actor | null>;
   isOwner: boolean;
   isToken: boolean;
   token: { document?: { actorLink?: boolean; actorId: string } } | null;
   system: Record<string, unknown>;
   static implementation: {
+    createDocuments(
+      data: object[],
+      options?: { render?: boolean; keepId?: boolean },
+    ): Promise<Actor[]>;
     updateDocuments(
       updates: object[],
       options?: { render?: boolean },

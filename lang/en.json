@@ -149,6 +149,31 @@
         }
       }
     },
+    "Denizens": {
+      "Import": {
+        "MenuName": "Import denizen actors",
+        "MenuLabel": "Import denizens",
+        "MenuHint": "Opens the import window. Nothing is created until you click Import to world.",
+        "MenuTitle": "Import denizen actors",
+        "Intro": "Review the details below, then click Import to world to create actors under Denizens of the Wasteland.",
+        "OpenMenu": "Import denizens…",
+        "ConfirmTitle": "Import denizens?",
+        "ConfirmBody": "Create up to {count} actors in the sidebar (skips names that already exist).",
+        "Cancel": "Cancel",
+        "InProgress": "Importing denizens…",
+        "BundledCount": "{count} denizen JSON files are bundled in this build.",
+        "Hint": "Creates actors under “Denizens of the Wasteland” with rulebook subfolders (Animals and Insects, Raiders, Robots, etc.). Skips names that already exist in the world.",
+        "ReloadHint": "After importing, reload Foundry (F5 or close and reopen the world) if new actors do not appear in the Actors sidebar right away.",
+        "FolderFailed": "Could not create actor folders in the sidebar.",
+        "Run": "Import to world",
+        "RebuildHint": "Add Foundry actor exports to src/data/denizens/, then run npm run build and reload the module.",
+        "NoBundledFiles": "No denizen JSON is bundled in this build.",
+        "RequiresFallout": "The Fallout 2d20 system must be active.",
+        "GmOnly": "Only the GM can import denizens.",
+        "Done": "Denizen import finished: {created} created, {skipped} skipped (already in world), {failed} failed.",
+        "Failed": "Denizen import failed."
+      }
+    },
     "Scavenging": {
       "Title": "Scavenger Location Generator",
       "WindowTitle": "Wastelander – Scavenger Location",
@@ -178,6 +203,26 @@
         "Obstacle": "Obstacle",
         "Hazard": "Hazard",
         "Inhabitants": "Inhabitants"
+      },
+      "Inhabitants": {
+        "TypeLabel": "Inhabitant type",
+        "TinyNoInhabitants": "Tiny locations cannot have inhabitants (Core rulebook).",
+        "CountSummary": "{count} inhabitants present.",
+        "CountSummaryAdjusted": "{count} inhabitants present (rolled {baseCount} on scale dice, then Big/Little adjustment).",
+        "ActorOpenFailed": "Could not open that actor.",
+        "RosterEmpty": "No matching denizens in catalog for this type and location level.",
+        "LevelShort": "Lv",
+        "Types": {
+          "animals": "Animals",
+          "feralGhouls": "Feral ghouls",
+          "raiders": "Raiders",
+          "superMutants": "Super mutants",
+          "robots": "Robots"
+        },
+        "Size": {
+          "big": "Big",
+          "little": "Little"
+        }
       },
       "Preview": {
         "Title": "Generated location",

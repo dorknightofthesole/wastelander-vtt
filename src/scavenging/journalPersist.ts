@@ -37,10 +37,35 @@ function formatProblems(location: ScavengerLocation): string {
       `Hazard (${p.hazardOngoing ? "ongoing" : "occasional"}, ${p.hazardDamageDc ?? 3} DC typical)`,
     );
   }
-  if (p.inhabitants) {
-    parts.push(
-      `Inhabitants: ${p.inhabitantCount ?? "?"} at level ${p.inhabitantLevel ?? location.level}${p.hasLeader ? ", includes leader" : ""}`,
-    );
+  if (p.inhabitants || location.inhabitants) {
+    const inh = location.inhabitants;
+    if (inh) {
+      const typeLabel = inh.type.replace(/([A-Z])/g, " $1").trim();
+      const countNote =
+        inh.baseCount !== inh.count
+          ? ` (${inh.count} after Big/Little; rolled ${inh.baseCount} on scale dice)`
+          : "";
+      parts.push(
+        `Inhabitants (${typeLabel}): ${inh.count} at location level ${p.inhabitantLevel ?? location.level}${countNote}`,
+      );
+      if (inh.roster.length) {
+        parts.push(
+          inh.roster
+            .map((r) => {
+              const meta = `Lv ${r.level}${r.npcSize ? `, ${r.npcSize}` : ""}`;
+              if (r.foundryUuid) {
+                return `· <a class="entity-link" data-uuid="${r.foundryUuid}">${r.name}</a> (${meta})`;
+              }
+              return `· ${r.name} (${meta})`;
+            })
+            .join("<br>"),
+        );
+      }
+    } else {
+      parts.push(
+        `Inhabitants: ${p.inhabitantCount ?? "?"} at level ${p.inhabitantLevel ?? location.level}`,
+      );
+    }
   }
   return parts.length ? parts.join("<br>") : "None";
 }

@@ -1,6 +1,7 @@
 import { MODULE_ID, MODULE_PATH } from "../constants.js";
 import { t } from "../integrations/i18n.js";
 import type {
+  InhabitantType,
   ItemCategoryRange,
   LocationCategoryId,
   LocationDegree,
@@ -11,6 +12,12 @@ import type {
   ScavengerLocationProblems,
 } from "./ScavengerLocation.js";
 import {
+  canHaveInhabitants,
+  INHABITANT_TYPE_OPTIONS,
+} from "./inhabitantRules.js";
+import { loadDenizens } from "./loadDenizens.js";
+import { openActorByUuid } from "./resolveDenizenActor.js";
+import {
   getDegreeReductionPoints,
   getSearchDifficulty,
   SEARCH_TIME_BY_SCALE,
@@ -18,17 +25,16 @@ import {
 import {
   generateScavengerLocation,
   getCategoryOptions,
-  getOtherSlotCount,
 } from "./locationGenerator.js";
 import { getPartyActorsOnScene } from "./partyContext.js";
 import { saveLocationToJournal } from "./journalPersist.js";
 import {
   getRollTableDisplayName,
   getRollTableKeysForLocation,
+  SCAVENGING_ROLL_TABLE_KEYS,
   getScavengingRollTableStatus,
   openScavengingRollTable,
   resolveRollTableKey,
-  type ScavengingRollTableKey,
 } from "./rollTableRegistry.js";
 import { simulateScavengerSearch } from "./searchSimulator.js";
 import { getScavengingSettingBoolean, SCAVENGING_SETTINGS } from "./scavengingSettings.js";
@@ -41,13 +47,15 @@ type FormState = {
   scale: LocationScale;
   categoryId: LocationCategoryId;
   degree: LocationDegree;
+  inhabitantType: InhabitantType;
   problems: ScavengerLocationProblems;
 };
 
 const DEFAULT_PROBLEMS: ScavengerLocationProblems = {
   obstacle: false,
   hazard: false,
-  inhabitants: false,
+  inhabitants: true,
+  inhabitantType: "raiders",
 };
 
 export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
@@ -63,6 +71,7 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
     scale: "average",
     categoryId: "residential",
     degree: "partly",
+    inhabitantType: "raiders",
     problems: { ...DEFAULT_PROBLEMS },
   };
 
@@ -84,13 +93,11 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
     position: { width: 720, height: 820 },
     actions: {
       refreshParty: ScavengerLocationApp.#onRefreshParty,
-      toggleParty: ScavengerLocationApp.#onToggleParty,
-      updateField: ScavengerLocationApp.#onUpdateField,
-      toggleProblem: ScavengerLocationApp.#onToggleProblem,
       generate: ScavengerLocationApp.#onGenerate,
       simulateSearch: ScavengerLocationApp.#onSimulateSearch,
       saveJournal: ScavengerLocationApp.#onSaveJournal,
       openRollTable: ScavengerLocationApp.#onOpenRollTable,
+      openInhabitantActor: ScavengerLocationApp.#onOpenInhabitantActor,
     },
   };
 
@@ -139,20 +146,20 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
       "[data-action='updateField']",
     ).forEach((el) => {
       el.addEventListener("change", (event) => {
-        ScavengerLocationApp.#onUpdateField(this, event, el);
+        ScavengerLocationApp.#onUpdateField.call(this, event, el);
       });
     });
     root.querySelectorAll<HTMLInputElement>("[data-action='toggleParty']").forEach(
       (el) => {
         el.addEventListener("change", (event) => {
-          ScavengerLocationApp.#onToggleParty(this, event, el);
+          ScavengerLocationApp.#onToggleParty.call(this, event, el);
         });
       },
     );
     root.querySelectorAll<HTMLInputElement>("[data-action='toggleProblem']").forEach(
       (el) => {
         el.addEventListener("change", (event) => {
-          ScavengerLocationApp.#onToggleProblem(this, event, el);
+          ScavengerLocationApp.#onToggleProblem.call(this, event, el);
         });
       },
     );
@@ -191,7 +198,6 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
 
     const scale = this.location?.scale ?? this.#form.scale;
     const degree = this.location?.degree ?? this.#form.degree;
-    const categoryId = this.location?.categoryId ?? this.#form.categoryId;
     const searchTime = SEARCH_TIME_BY_SCALE[scale];
 
     const generated = {
@@ -205,17 +211,13 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
       searchTimeLabel: searchTime.label,
     };
 
-    const rollTableKeys = this.location
-      ? ([
-          ...getRollTableKeysForLocation(this.location.items),
-          "otherFoundItems",
-        ] as ScavengingRollTableKey[])
-      : undefined;
+    const rollTableKeys = (
+      this.location
+        ? getRollTableKeysForLocation(this.location.items)
+        : [...SCAVENGING_ROLL_TABLE_KEYS]
+    ).filter((k) => k !== "otherFoundItems");
     const rollTableStatus = getScavengingRollTableStatus(rollTableKeys);
-    const lootGridRows = buildLootGridRows(this.location, rollTableStatus.tables, {
-      categoryId,
-      scale,
-    });
+    const lootGridRows = buildLootGridRows(this.location, rollTableStatus.tables);
 
     const reductionPts = getDegreeReductionPoints(degree, scale);
     const scaleLabel = scale.charAt(0).toUpperCase() + scale.slice(1);
@@ -241,6 +243,58 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
       label: formatLootCategoryLabel(roll.category),
     }));
 
+    const inhabitantsAllowed = canHaveInhabitants(scale);
+    const inhabitantType =
+      this.location?.inhabitants?.type ??
+      this.#form.inhabitantType ??
+      "raiders";
+    if (this.location?.inhabitants) {
+      this.#form.inhabitantType = inhabitantType;
+      this.#form.problems.inhabitantType = inhabitantType;
+    }
+
+    const denizenCatalog = await loadDenizens();
+    const denizenCatalogSize = denizenCatalog.length;
+
+    const inhabitantTypeOptions = INHABITANT_TYPE_OPTIONS.map((value) => ({
+      value,
+      label: t(`WASTELANDER.Scavenging.Inhabitants.Types.${value}`),
+      selected: value === inhabitantType,
+    }));
+
+    const inh = this.location?.inhabitants;
+    const countSummary =
+      inh && inh.baseCount !== inh.count
+        ? t("WASTELANDER.Scavenging.Inhabitants.CountSummaryAdjusted", {
+            count: inh.count,
+            baseCount: inh.baseCount,
+          })
+        : inh
+          ? t("WASTELANDER.Scavenging.Inhabitants.CountSummary", {
+              count: inh.count,
+            })
+          : null;
+
+    const inhabitantsUi = {
+      allowed: inhabitantsAllowed,
+      checkboxDisabled: !inhabitantsAllowed,
+      typeSelectDisabled:
+        !inhabitantsAllowed || !this.#form.problems.inhabitants,
+      typeOptions: inhabitantTypeOptions,
+      showRoster: Boolean(inh),
+      countSummary,
+      roster: (inh?.roster ?? []).map((r) => ({
+        name: r.name,
+        level: r.level,
+        actorUuid: r.foundryUuid ?? null,
+        sizeLabel: r.npcSize
+          ? t(`WASTELANDER.Scavenging.Inhabitants.Size.${r.npcSize}`)
+          : "",
+      })),
+      denizenDataOk: denizenCatalogSize > 0,
+      rosterEmpty: Boolean(inh) && (inh?.roster.length ?? 0) === 0,
+    };
+
     return {
       party: this.party,
       partyEmpty: this.party.length === 0,
@@ -260,6 +314,7 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
         reduction,
       },
       otherFound,
+      inhabitantsUi,
     };
   }
 
@@ -285,21 +340,26 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
 
   static #onUpdateField(
     this: ScavengerLocationApp,
-    event: Event,
+    _event: Event,
     target: HTMLElement,
   ): void {
-    const field = target.dataset.field as keyof FormState | undefined;
-    if (!field) return;
     const el = target as HTMLInputElement | HTMLSelectElement;
+    const field = el.dataset.field as keyof FormState | undefined;
+    if (!field) return;
     if (field === "scale") {
       this.#form.scale = el.value as LocationScale;
+      if (!canHaveInhabitants(this.#form.scale)) {
+        this.#form.problems.inhabitants = false;
+      }
       void this.render();
     } else if (field === "categoryId") {
       this.#form.categoryId = el.value as LocationCategoryId;
       void this.render();
+    } else if (field === "inhabitantType") {
+      this.#form.inhabitantType = el.value as InhabitantType;
+      this.#form.problems.inhabitantType = this.#form.inhabitantType;
     } else if (field === "degree") {
       this.#form.degree = el.value as LocationDegree;
-      void this.render();
       void this.render();
     } else if (field === "name") {
       this.#form.name = el.value;
@@ -318,6 +378,7 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
     (this.#form.problems as Record<string, boolean>)[key] = (
       target as HTMLInputElement
     ).checked;
+    if (key === "inhabitants") void this.render();
   }
 
   static async #onGenerate(
@@ -335,7 +396,10 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
         categoryId: this.#form.categoryId,
         degree: this.#form.degree,
         party: this.party,
-        problems: { ...this.#form.problems },
+        problems: {
+          ...this.#form.problems,
+          inhabitantType: this.#form.inhabitantType,
+        },
         levelOverride: null,
         autoAllocateDegree: getScavengingSettingBoolean(
           SCAVENGING_SETTINGS.autoAllocateDegreeReduction,
@@ -348,6 +412,9 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
           level: this.location.level,
         }),
       );
+      for (const warning of this.location.warnings ?? []) {
+        ui.notifications.warn(warning);
+      }
       void this.render();
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -405,6 +472,16 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
     if (!tableId) return;
     openScavengingRollTable(tableId);
   }
+
+  static #onOpenInhabitantActor(
+    this: ScavengerLocationApp,
+    _event: Event,
+    target: HTMLElement,
+  ): void {
+    const actorUuid = target.dataset.actorUuid;
+    if (!actorUuid) return;
+    void openActorByUuid(actorUuid);
+  }
 }
 
 function formatLootCategoryLabel(category: LootCategoryKey): string {
@@ -427,43 +504,25 @@ type LootGridRow = {
 function buildLootGridRows(
   location: ScavengerLocation | null,
   statusRows: ReturnType<typeof getScavengingRollTableStatus>["tables"],
-  preview: { categoryId: LocationCategoryId; scale: LocationScale },
 ): LootGridRow[] {
   const statusByKey = new Map(
     statusRows.map((row) => [row.tableKey, row] as const),
   );
-  const otherSlotsPreview = getOtherSlotCount(preview.categoryId, preview.scale);
-  const otherStatus = statusByKey.get("otherFoundItems");
 
   if (!location) {
-    return statusRows.map((row) => {
-      const isOther = row.tableKey === "otherFoundItems";
-      const slotStr = String(otherSlotsPreview);
-      return {
-        label: row.name,
-        min: isOther ? slotStr : "—",
-        max: isOther ? slotStr : "—",
-        installed: row.installed,
-        tableId: row.tableId,
-        resultCount: row.resultCount,
-      };
-    });
+    return statusRows.map((row) => ({
+      label: row.name,
+      min: "—",
+      max: "—",
+      installed: row.installed,
+      tableId: row.tableId,
+      resultCount: row.resultCount,
+    }));
   }
 
-  const rows = location.items.map((item) =>
-    lootGridRowFromItem(item, statusByKey),
-  );
-  const otherSlots = location.otherFoundRolls?.length ?? otherSlotsPreview;
-  rows.push({
-    label: getRollTableDisplayName("otherFoundItems"),
-    min: String(otherSlots),
-    max: String(otherSlots),
-    installed: otherStatus?.installed ?? false,
-    tableId: otherStatus?.tableId,
-    resultCount: otherStatus?.resultCount,
-  });
-
-  return rows.sort((a, b) => a.label.localeCompare(b.label));
+  return location.items
+    .map((item) => lootGridRowFromItem(item, statusByKey))
+    .sort((a, b) => a.label.localeCompare(b.label));
 }
 
 function lootGridRowFromItem(
