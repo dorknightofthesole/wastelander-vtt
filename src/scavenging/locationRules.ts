@@ -1,6 +1,7 @@
 import degreeData from "../data/scavenging/creation/degree-reduction.json";
 import type { LocationDegree, LocationScale } from "./ScavengerLocation.js";
 import { rollCombatDice } from "./dice.js";
+import { postLocationLevelRollChat } from "./scavengerRollChat.js";
 
 const DEGREE_LABELS = degreeData.degrees as Record<
   LocationDegree,
@@ -53,19 +54,6 @@ export function getSearchDifficulty(degree: LocationDegree): number {
   return map[degree];
 }
 
-export function getObstacleDifficulty(locationLevel: number): number {
-  let diff = 1;
-  if (locationLevel >= 6) diff += 1;
-  if (locationLevel >= 11) diff += 1;
-  if (locationLevel >= 16) diff += 1;
-  if (locationLevel >= 21) diff += 1;
-  return Math.min(5, diff);
-}
-
-export function getOccasionalHazardDamageDc(locationLevel: number): number {
-  return 3 + Math.floor(locationLevel / 4);
-}
-
 /**
  * GM Screen Booklet p.19: roll DC equal to sum of PCs' levels, plus DC from
  * degree of search; total is location level. Each Effect on those DC adds +1
@@ -75,8 +63,10 @@ export async function rollLocationLevel(params: {
   partyLevelSum: number;
   degreeExtraDc: number;
   hasProblems: boolean;
-  /** Show combat dice in Dice So Nice (default true). */
+  /** Show 3D dice and post a chat card (default true). */
   animate?: boolean;
+  /** Post CD breakdown to chat when rolling (default matches animate). */
+  postToChat?: boolean;
 }): Promise<{
   level: number;
   dcCount: number;
@@ -93,9 +83,21 @@ export async function rollLocationLevel(params: {
     };
     return { level: 0, dcCount: 0, dcRoll: empty, bonusFromEffects: 0 };
   }
-  const dcRoll = await rollCombatDice(dcCount, { animate: params.animate });
+  const shouldPresent = params.animate !== false;
+  const dcRoll = await rollCombatDice(dcCount, { animate: shouldPresent });
   let level = dcRoll.sum;
   const bonusFromEffects = params.hasProblems ? dcRoll.effects : 0;
   level += bonusFromEffects;
+
+  const postToChat = params.postToChat ?? shouldPresent;
+  if (postToChat && dcRoll.roll) {
+    await postLocationLevelRollChat({
+      dcRoll,
+      level,
+      bonusFromEffects,
+      animate: shouldPresent,
+    });
+  }
+
   return { level, dcCount, dcRoll, bonusFromEffects };
 }

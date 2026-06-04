@@ -1,4 +1,5 @@
 import type { PartyActorRow } from "./ScavengerLocation.js";
+import { getActiveSceneId } from "./scenePersist.js";
 
 type UserDocument = {
   id: string;
@@ -144,11 +145,6 @@ function getLinkedActorIdsOnScene(sceneId: string): Set<string> {
 type SceneWithTokens = {
   tokens?: Array<{ actorId: string | null; actorLink: boolean }> | Record<string, { actorLink?: boolean; actorId?: string | null }>;
 };
-
-function getActiveSceneId(): string | undefined {
-  const canvas = (globalThis as { canvas?: { scene?: { id: string } | null } }).canvas;
-  return canvas?.scene?.id;
-}
 
 function getGameUsers(): UserDocument[] {
   const users = (game as { users?: { contents?: UserDocument[] } }).users;

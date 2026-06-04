@@ -29,6 +29,7 @@ export type InhabitantType =
   | "raiders"
   | "superMutants"
   | "robots"
+  | "overseerOverride"
   | "none";
 
 export interface ItemCategoryRange {
@@ -61,13 +62,27 @@ export interface ScavengerLocationInhabitants {
   roster: InhabitantRosterEntry[];
 }
 
+export type ObstacleType = "mechanical" | "electronic" | "collapsed" | "trap";
+export type HazardKind = "ongoing" | "occasional";
+/** Ongoing hazard tick rate (booklet: per 10 min, or per min at location level 11+). */
+export type HazardOngoingTick = "per10min" | "perMin";
+
 export interface ScavengerLocationProblems {
   obstacle: boolean;
   hazard: boolean;
   inhabitants: boolean;
+  obstacleType?: ObstacleType;
   obstacleDifficulty?: number;
-  hazardOngoing?: boolean;
+  /** 10 × difficulty minutes to bypass (booklet). */
+  obstacleBypassMinutes?: number;
+  /** GM marks when the party has overcome the obstacle (required before search). */
+  obstacleOvercome?: boolean;
+  hazardKind?: HazardKind;
+  hazardOngoingTick?: HazardOngoingTick;
+  /** Occasional hazard only: damage per trigger. */
   hazardDamageDc?: number;
+  /** @deprecated Use hazardKind; normalized on load/generate. */
+  hazardOngoing?: boolean;
   inhabitantType?: InhabitantType;
   inhabitantCount?: number;
   inhabitantLevel?: number;

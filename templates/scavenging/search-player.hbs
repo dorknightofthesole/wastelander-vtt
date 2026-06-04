@@ -1,0 +1,160 @@
+<div class="wastelander-scavenger-layout">
+  <div class="wastelander-scavenger-scroll">
+  <header class="wastelander-scavenger-header">
+    <h1>{{localize "WASTELANDER.Scavenging.PlayerSearch.Title"}}</h1>
+    {{#if sceneScope}}
+      <p class="wastelander-scavenger-scene-scope">{{sceneScope}}</p>
+    {{/if}}
+  </header>
+
+  {{#if empty}}
+    <p class="wastelander-scavenger-hint">{{localize "WASTELANDER.Scavenging.PlayerSearch.NoLocation"}}</p>
+  {{else}}
+    <section class="wastelander-scavenger-section">
+      <h2>{{locationName}}</h2>
+      {{#if locationConcept}}
+        <p class="wastelander-scavenger-hint">{{locationConcept}}</p>
+      {{/if}}
+      <dl class="wastelander-scavenger-location-meta">
+        <div><dt>{{localize "WASTELANDER.Scavenging.Fields.Level"}}</dt><dd>{{level}}</dd></div>
+        <div><dt>{{localize "WASTELANDER.Scavenging.Generated.SearchDifficulty"}}</dt><dd>{{searchDifficulty}}</dd></div>
+        <div><dt>{{localize "WASTELANDER.Scavenging.PlayerSearch.PartyAp"}}</dt><dd>{{partyAp}}</dd></div>
+      </dl>
+    </section>
+
+    {{#if obstacleBlocked}}
+      <p class="wastelander-scavenger-warning">{{obstacleBlockedHint}}</p>
+    {{else}}
+      {{#if searchPending}}
+        <section class="wastelander-scavenger-section">
+          <h2>{{localize "WASTELANDER.Scavenging.PlayerSearch.SearchSection"}}</h2>
+          <p class="wastelander-scavenger-hint">{{localize "WASTELANDER.Scavenging.PlayerSearch.SearchHint"}}</p>
+          {{#if actingActors.length}}
+            <label class="wastelander-scavenger-field">
+              <span>{{localize "WASTELANDER.Scavenging.PlayerSearch.ActingCharacter"}}</span>
+              <select data-action="selectActor" {{#if busy}}disabled{{/if}}>
+                {{#each actingActors}}
+                  <option value="{{actorId}}" data-actor-id="{{actorId}}" {{#if selected}}selected{{/if}}>{{name}} ({{localize "WASTELANDER.Scavenging.PlayerSearch.Luck"}} {{luckPoints}})</option>
+                {{/each}}
+              </select>
+            </label>
+          {{else}}
+            <p class="wastelander-scavenger-warning">{{localize "WASTELANDER.Scavenging.PlayerSearch.NoCharacter"}}</p>
+          {{/if}}
+          <button type="button" class="wastelander-btn-primary" data-action="rollSearch" {{#unless canSearch}}disabled{{/unless}} {{#if busy}}disabled{{/if}}>
+            {{localize "WASTELANDER.Scavenging.PlayerSearch.RollSearch"}}
+          </button>
+        </section>
+      {{/if}}
+
+      {{#if searchFailed}}
+        <p class="wastelander-scavenger-warning">{{noLootMessage}}</p>
+        {{#if searchLog}}
+          <p class="wastelander-scavenger-hint">{{searchLog}}</p>
+        {{/if}}
+      {{/if}}
+
+    {{/if}}
+
+    {{#if showLootTables}}
+      <section class="wastelander-scavenger-section">
+        <h2>{{localize "WASTELANDER.Scavenging.PlayerSearch.LootSection"}}</h2>
+        <p class="wastelander-scavenger-hint">{{localize "WASTELANDER.Scavenging.PlayerSearch.LootHint" luckMax=luckMax}}</p>
+        {{#if actingActors.length}}
+          <label class="wastelander-scavenger-field">
+            <span>{{localize "WASTELANDER.Scavenging.PlayerSearch.ActingCharacter"}}</span>
+            <select data-action="selectActor" {{#if busy}}disabled{{/if}}>
+              {{#each actingActors}}
+                <option value="{{actorId}}" data-actor-id="{{actorId}}" {{#if selected}}selected{{/if}}>{{name}} ({{localize "WASTELANDER.Scavenging.PlayerSearch.Luck"}} {{luckPoints}})</option>
+              {{/each}}
+            </select>
+          </label>
+        {{/if}}
+        <table class="wastelander-scavenger-loot-table">
+          <thead>
+            <tr>
+              <th>{{localize "WASTELANDER.Scavenging.Tables.ColumnTable"}}</th>
+              <th>{{localize "WASTELANDER.Scavenging.Tables.ColumnMin"}}</th>
+              <th>{{localize "WASTELANDER.Scavenging.Tables.ColumnMax"}}</th>
+              <th>{{localize "WASTELANDER.Scavenging.PlayerSearch.RemainingMin"}}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each lootRows}}
+              <tr>
+                <td>
+                  {{#if tableId}}
+                    <button type="button" class="wastelander-scavenger-table-link" data-action="openRollTable" data-table-id="{{tableId}}">{{label}}</button>
+                  {{else}}
+                    {{label}}
+                  {{/if}}
+                  {{#unless installed}} <span class="wastelander-scavenger-hint">({{localize "WASTELANDER.Scavenging.Tables.NotInstalled"}})</span>{{/unless}}
+                </td>
+                <td>{{min}}</td>
+                <td>{{max}}</td>
+                <td>{{remainingMin}}</td>
+                <td class="wastelander-scavenger-loot-actions">
+                  {{#if canRollMin}}
+                    <button type="button" class="wastelander-btn-secondary" data-action="rollMin" data-category="{{category}}" {{#if ../busy}}disabled{{/if}}>{{localize "WASTELANDER.Scavenging.PlayerSearch.RollMin"}}</button>
+                  {{/if}}
+                  {{#if canSpendAp}}
+                    <button type="button" class="wastelander-btn-secondary" data-action="spendAp" data-category="{{category}}" {{#if ../busy}}disabled{{/if}}>{{localize "WASTELANDER.Scavenging.PlayerSearch.SpendAp"}}</button>
+                  {{/if}}
+                </td>
+              </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </section>
+
+      {{#if rollEntries.length}}
+        <section class="wastelander-scavenger-section">
+          <h2>{{localize "WASTELANDER.Scavenging.PlayerSearch.ResultsSection"}}</h2>
+          <ul class="wastelander-scavenger-roll-results">
+            {{#each rollEntries}}
+              <li class="wastelander-scavenger-roll-entry">
+                <div class="wastelander-scavenger-roll-entry-header">
+                  <strong>{{categoryLabel}}</strong>
+                  <span class="wastelander-scavenger-hint">— {{userName}}</span>
+                </div>
+                {{#unless luckLocked}}
+                  {{#if previewRows.length}}
+                    <ul class="wastelander-scavenger-luck-ladder wastelander-scavenger-luck-preview">
+                      {{#each previewRows}}
+                        <li class="wastelander-scavenger-luck-ladder-row{{#unless canJump}} is-unaffordable{{/unless}}">
+                          {{#if canJump}}
+                            <button type="button" class="wastelander-scavenger-luck-jump" data-action="luckJump" data-entry-id="{{../id}}" data-target-shift="{{luckDelta}}" {{#if ../../busy}}disabled{{/if}}>
+                              <span class="wastelander-scavenger-luck-cost">{{luckPrefix}}</span>
+                              <span class="wastelander-scavenger-luck-roll">{{rollSum}}.</span>
+                              <span class="wastelander-scavenger-luck-item">{{label}}</span>
+                            </button>
+                          {{else}}
+                            {{#if luckPrefix}}<span class="wastelander-scavenger-luck-cost">{{luckPrefix}}</span>{{/if}}
+                            <span class="wastelander-scavenger-luck-roll">{{rollSum}}.</span>
+                            <span class="wastelander-scavenger-luck-item">{{label}}</span>
+                          {{/if}}
+                        </li>
+                      {{/each}}
+                    </ul>
+                  {{/if}}
+                {{/unless}}
+                {{#if showUnlockedLoot}}
+                  <div class="wastelander-scavenger-loot-unlocked">
+                    <span class="wastelander-scavenger-loot-unlocked-label">{{localize "WASTELANDER.Scavenging.PlayerSearch.UnlockedLoot"}}</span>
+                    {{#if itemUuid}}
+                      <span class="wastelander-loot-item" data-item-uuid="{{itemUuid}}" data-loot-unlocked="true" draggable="true" title="{{localize "WASTELANDER.Scavenging.PlayerSearch.LootItemHint"}}"><span class="wastelander-scavenger-luck-roll">{{rollSum}}.</span> <span class="wastelander-scavenger-luck-item">{{label}}</span></span>
+                    {{else}}
+                      <span class="wastelander-scavenger-luck-roll">{{rollSum}}.</span> <span class="wastelander-scavenger-luck-item">{{label}}</span>
+                    {{/if}}
+                  </div>
+                {{/if}}
+              </li>
+            {{/each}}
+          </ul>
+        </section>
+      {{/if}}
+    {{/if}}
+  {{/if}}
+  </div>
+</div>

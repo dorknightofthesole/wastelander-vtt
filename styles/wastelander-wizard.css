@@ -2177,14 +2177,110 @@
   padding: 0.75rem 1rem;
 }
 
+.wastelander-scavenger-scene-scope {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.wastelander-scavenger-tabs {
+  display: flex;
+  gap: 0;
+  margin: 0 1.25rem 1rem;
+  border-bottom: 1px solid var(--wstl-amber-muted, #6b5a2a);
+}
+
+.wastelander-scavenger-tab {
+  flex: 1 1 auto;
+  padding: 0.55rem 1rem;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  background: transparent;
+  color: lightyellow;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.9rem;
+  opacity: 0.75;
+}
+
+.wastelander-scavenger-tab:hover {
+  opacity: 1;
+}
+
+.wastelander-scavenger-tab.is-active {
+  opacity: 1;
+  border-bottom-color: var(--wstl-amber-bright, #e8c170);
+  font-weight: 600;
+}
+
+.wastelander-scavenger-tab-panel {
+  padding: 0 0.25rem;
+}
+
+.wastelander-scavenger-location-meta {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem 1rem;
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+}
+
+.wastelander-scavenger-location-meta dt {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
+  margin: 0 0 0.15rem;
+}
+
+.wastelander-scavenger-location-meta dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.wastelander-scavenger-wip-badge {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.1rem 0.35rem;
+  margin-left: 0.35rem;
+  vertical-align: middle;
+  border: 1px solid var(--wstl-amber-muted, #6b5a2a);
+  border-radius: 2px;
+  opacity: 0.8;
+}
+
 .wastelander-scavenger-actions {
   flex: 0 0 auto;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 0.75rem;
   padding: 0.75rem 1.25rem 1rem;
   border-top: 1px solid var(--wstl-amber-muted, #6b5a2a);
   background: var(--wstl-bg-panel, #0b0d07);
+}
+
+.wastelander-scavenger-actions-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+/* Create tab: grow the left button group so Generate stays on the far right */
+.wastelander-scavenger-actions.is-create-tab .wastelander-scavenger-actions-group {
+  flex: 1 1 auto;
+}
+
+.wastelander-scavenger-actions-generate {
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 
 .wastelander-scavenger-app .wastelander-btn-primary,
@@ -2274,12 +2370,50 @@
   margin-top: 0.5rem;
 }
 
+.wastelander-scavenger-hazard-kind {
+  margin: 0.5rem 0 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--wstl-amber-muted, #5c6238);
+  border-radius: 4px;
+}
+
+.wastelander-scavenger-hazard-kind legend {
+  font-size: 0.85rem;
+  padding: 0 0.25rem;
+}
+
+.wastelander-scavenger-hazard-kind label {
+  display: block;
+  margin: 0.25rem 0;
+}
+
 .wastelander-scavenger-inhabitant-summary {
   margin-top: 0.5rem;
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--wstl-amber-muted, #5c6238);
   border-radius: 4px;
   background: rgba(0, 0, 0, 0.15);
+}
+
+.wastelander-scavenger-inhabitant-row {
+  text-align: left;
+}
+
+.wastelander-inhabitant-drag {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.35rem;
+  cursor: grab;
+}
+
+.wastelander-inhabitant-drag:active {
+  cursor: grabbing;
+}
+
+.wastelander-scavenger-inhabitant-meta {
+  font-size: 0.95em;
+  opacity: 0.9;
 }
 
 .wastelander-scavenger-inhabitant-roster {
@@ -2333,6 +2467,140 @@
 .wastelander-scavenger-table-meta {
   font-size: 0.85em;
   opacity: 0.8;
+}
+
+.wastelander-scavenger-roll-results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.wastelander-scavenger-roll-entry {
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--wstl-amber-muted, #6b5a2a);
+}
+
+.wastelander-scavenger-roll-entry:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.wastelander-scavenger-roll-entry-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.wastelander-scavenger-luck-ladder {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.95em;
+  text-align: left;
+}
+
+.wastelander-scavenger-luck-ladder-row {
+  padding: 0.15rem 0;
+  opacity: 0.75;
+  text-align: left;
+}
+
+.wastelander-scavenger-luck-ladder-row.is-current {
+  opacity: 1;
+  font-weight: 600;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 0.35rem;
+}
+
+.wastelander-scavenger-luck-ladder-row.is-unaffordable {
+  opacity: 0.45;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 0.35rem;
+}
+
+.wastelander-scavenger-luck-jump {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 0.35rem;
+  width: 100%;
+  margin: 0;
+  padding: 0.2rem 0;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.wastelander-scavenger-luck-jump:hover:not(:disabled) {
+  border-color: var(--wstl-amber-muted, #6b5a2a);
+  background: rgba(232, 197, 71, 0.08);
+}
+
+.wastelander-scavenger-luck-jump:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.wastelander-scavenger-luck-cost {
+  font-size: 0.85em;
+  color: var(--wstl-amber-bright, #e8c547);
+  flex: 0 0 auto;
+}
+
+.wastelander-scavenger-luck-roll {
+  flex: 0 0 auto;
+}
+
+.wastelander-scavenger-luck-item {
+  flex: 1 1 auto;
+  text-align: left;
+}
+
+.wastelander-scavenger-loot-unlocked {
+  margin: 0.35rem 0 0;
+  padding: 0;
+  text-align: left;
+}
+
+.wastelander-scavenger-loot-unlocked-label {
+  display: block;
+  font-size: 0.85em;
+  opacity: 0.85;
+  margin-bottom: 0.2rem;
+}
+
+.wastelander-scavenger-luck-preview .wastelander-loot-item {
+  cursor: default;
+  color: inherit;
+  text-decoration: none;
+}
+
+.wastelander-loot-item {
+  display: inline;
+  cursor: grab;
+  color: var(--wstl-amber-bright, #e8c547);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+}
+
+.wastelander-loot-item:active {
+  cursor: grabbing;
 }
 
 .wastelander-denizen-import-app {

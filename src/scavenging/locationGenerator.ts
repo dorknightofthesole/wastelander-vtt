@@ -13,13 +13,12 @@ import type {
   ScavengerLocationRollLog,
 } from "./ScavengerLocation.js";
 import {
-  getObstacleDifficulty,
-  getOccasionalHazardDamageDc,
   getScaleMultiplier,
   getSearchDifficulty,
   SEARCH_TIME_BY_SCALE,
 } from "./locationRules.js";
 import { buildLocationInhabitants, canHaveInhabitants } from "./inhabitantRules.js";
+import { resolveLocationProblems } from "./problemRules.js";
 import { rollOtherFoundCategoryDetailed } from "./lootRoller.js";
 import { rollLocationLevel } from "./locationRules.js";
 import type { InhabitantType } from "./ScavengerLocation.js";
@@ -141,6 +140,10 @@ export async function generateScavengerLocation(params: {
   levelOverride?: number | null;
   autoAllocateDegree?: boolean;
   sceneId?: string;
+  /** Animate only the location-level CD roll (avoids Dice So Nice cancelling an in-flight roll). */
+  animateLevelRoll?: boolean;
+  /** Animate inhabitant count dice (default false during full generate). */
+  animateInhabitantRoll?: boolean;
 }): Promise<ScavengerLocation> {
   const rollLog: ScavengerLocationRollLog[] = [];
   const warnings: string[] = [];
@@ -171,6 +174,7 @@ export async function generateScavengerLocation(params: {
       partyLevelSum,
       degreeExtraDc,
       hasProblems,
+      animate: params.animateLevelRoll ?? true,
     });
     level = levelRoll.level;
     const levelDetailParts: string[] = [];
@@ -207,16 +211,7 @@ export async function generateScavengerLocation(params: {
     });
   }
 
-  const problems = { ...params.problems };
-  if (problems.obstacle) {
-    problems.obstacleDifficulty = getObstacleDifficulty(level);
-  }
-  if (problems.hazard) {
-    problems.hazardDamageDc = getOccasionalHazardDamageDc(level);
-    if (problems.hazardOngoing === undefined) {
-      problems.hazardOngoing = level < 11;
-    }
-  }
+  const problems = resolveLocationProblems({ ...params.problems }, level);
   let inhabitants: ScavengerLocationInhabitants | undefined;
   if (!canHaveInhabitants(params.scale) || level < 1) {
     problems.inhabitants = false;
@@ -232,7 +227,8 @@ export async function generateScavengerLocation(params: {
       scale: params.scale,
       locationLevel: level,
       inhabitantType,
-      animateRolls: true,
+      animateRolls:
+        params.animateInhabitantRoll !== false && problems.inhabitants,
     });
     rollLog.push(...builtInhabitants.rollLogs);
     warnings.push(...builtInhabitants.warnings);

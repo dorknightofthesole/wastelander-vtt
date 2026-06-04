@@ -113,9 +113,10 @@ function parseRollBreakdown(roll: Roll, formula: string): RollBreakdown {
 
 export async function evaluateRoll(
   formula: string,
+  options?: { animate?: boolean },
 ): Promise<{ roll: Roll; total: number; formula: string }> {
   const normalized = formula.replace(/\s+/g, "").toLowerCase();
-  const roll = await evaluateFoundryRoll(normalized);
+  const roll = await evaluateFoundryRoll(normalized, options);
   return {
     formula: normalized,
     roll,
@@ -191,7 +192,7 @@ export async function evaluateFalloutRoll(
   formula: string,
   context?: WizardRollContext,
 ): Promise<number> {
-  const evaluated = await evaluateRoll(formula);
+  const evaluated = await evaluateRoll(formula, { animate: true });
 
   if (context) {
     await postWizardRollChat(evaluated.roll, {

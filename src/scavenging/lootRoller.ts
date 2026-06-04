@@ -1,9 +1,16 @@
 import otherFound from "../data/scavenging/creation/other-found-items.json";
 import type { LootCategoryKey } from "./ScavengerLocation.js";
-import { roll2d20, roll3d20, rollD20 } from "./dice.js";
+import { roll2d20, rollD20 } from "./dice.js";
+import { itemUuidFromTableRow } from "./lootItemInteract.js";
+import {
+  clampLootRollSum,
+  lookupLootAtRollSum,
+  type TableResultRow,
+} from "./rollTableLookup.js";
 import {
   findRollTableForCategory,
   getRollTableDisplayName,
+  resolveRollTableDocument,
   resolveRollTableKey,
   resolveWeaponSubcategory,
 } from "./rollTableRegistry.js";
@@ -40,15 +47,37 @@ export function rollOtherFoundCategory(): LootCategoryKey {
   return rollOtherFoundCategoryDetailed().category;
 }
 
-type DrawnLoot = {
+export type DrawnLoot = {
   label: string;
   rollSum: number;
+  itemUuid?: string;
   quantity?: number;
   formula?: string;
+  /** Foundry posted the table draw to chat (skip duplicate module message). */
+  drewToChat?: boolean;
 };
 
+type TableResultRow = {
+  type?: string;
+  documentUuid?: string;
+  name?: string;
+  text?: string;
+  range?: [number, number];
+};
+
+function normalizeRollTableDraw(raw: unknown): { results: TableResultRow[] } {
+  if (!raw || typeof raw !== "object") return { results: [] };
+  const obj = raw as Record<string, unknown>;
+  const inner =
+    obj.RollTableDraw && typeof obj.RollTableDraw === "object"
+      ? (obj.RollTableDraw as Record<string, unknown>)
+      : obj;
+  const results = Array.isArray(inner.results) ? (inner.results as TableResultRow[]) : [];
+  return { results };
+}
+
 function resultLabelFromDraw(
-  result: { name?: string; text?: string },
+  result: TableResultRow,
   tableKey: LootCategoryKey,
 ): string {
   const name = result.name?.trim();
@@ -61,57 +90,68 @@ function resultLabelFromDraw(
 
 async function drawFromFoundryTable(
   category: LootCategoryKey,
+  displayChat = true,
 ): Promise<DrawnLoot | null> {
-  const found = findRollTableForCategory(category);
+  const found = await findRollTableForCategory(category);
   if (!found) return null;
 
-  const table = (game as { tables?: { get?: (id: string) => RollTableDoc } }).tables?.get?.(
-    found.id,
-  );
+  const table = await resolveRollTableDocument(found.ref);
   if (!table?.draw) return null;
 
-  const draw = await table.draw({ displayChat: false });
-  const results = draw.results ?? [];
+  const whisper = getScavengingSettingBoolean(SCAVENGING_SETTINGS.searchRollWhisper);
+  const drawRaw = await table.draw({
+    displayChat,
+    ...(displayChat && whisper ? { messageMode: CONST.DICE_ROLL_MODES.PRIVATE } : {}),
+  });
+  const { results, rollTotal } = normalizeRollTableDraw(drawRaw);
   const picked =
-    results.find((r) => r.type === "document" || r.documentUuid) ??
-    results[0];
+    results.find((r) => r.type === "document" || r.documentUuid) ?? results[0];
   if (!picked) {
     return {
       label: `(No result on ${found.name})`,
       rollSum: 0,
+      drewToChat: displayChat,
     };
   }
 
+  const range = picked.range;
+  const rollSum =
+    rollTotal ??
+    (range
+      ? Math.round((Math.min(range[0]!, range[1]!) + Math.max(range[0]!, range[1]!)) / 2)
+      : 0);
+
   return {
     label: resultLabelFromDraw(picked, found.tableKey),
-    rollSum: picked.range?.[0] ?? 0,
+    rollSum: clampLootRollSum(category, rollSum),
+    itemUuid: itemUuidFromTableRow(picked),
+    drewToChat: displayChat,
   };
 }
-
-type RollTableDoc = {
-  draw: (options?: { displayChat?: boolean }) => Promise<{
-    results?: Array<{
-      type?: string;
-      documentUuid?: string;
-      name?: string;
-      text?: string;
-      range?: [number, number];
-    }>;
-  }>;
-};
 
 export async function rollLootCategory(
   category: LootCategoryKey,
   luckShift = 0,
+  options?: { displayChat?: boolean },
 ): Promise<DrawnLoot> {
-  const tableCategory =
+  const tableCategory: LootCategoryKey =
     category === "weapons" ? resolveWeaponSubcategory() : category;
 
   if (getScavengingSettingBoolean(SCAVENGING_SETTINGS.preferFoundryTables)) {
-    const drawn = await drawFromFoundryTable(tableCategory);
-    if (drawn) {
-      if (luckShift !== 0 && drawn.rollSum > 0) {
-        drawn.rollSum = Math.max(2, Math.min(40, drawn.rollSum + luckShift));
+    const drawn = await drawFromFoundryTable(
+      tableCategory,
+      options?.displayChat !== false,
+    );
+    if (drawn && drawn.rollSum > 0) {
+      if (luckShift !== 0) {
+        const base = drawn.rollSum;
+        const shifted = await lookupLootAtRollSum(tableCategory, base + luckShift);
+        return {
+          label: shifted.label,
+          rollSum: shifted.rollSum,
+          itemUuid: shifted.itemUuid,
+          drewToChat: drawn.drewToChat,
+        };
       }
       return drawn;
     }

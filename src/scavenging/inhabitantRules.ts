@@ -7,6 +7,7 @@ import type {
   ScavengerLocationRollLog,
 } from "./ScavengerLocation.js";
 import { evaluateFoundryRoll } from "../integrations/foundryRoll.js";
+import { postInhabitantCountRollChat } from "./scavengerRollChat.js";
 import {
   filterDenizensByLevelBand,
   filterDenizensByType,
@@ -15,6 +16,7 @@ import {
   type NpcSize,
 } from "./loadDenizens.js";
 import { findActorUuidForDenizen } from "./resolveDenizenActor.js";
+import { t } from "../integrations/i18n.js";
 
 type RangeOutcome = { min: number; max: number; count: number };
 type FaceOutcome = { face: number; count: number };
@@ -78,11 +80,20 @@ export async function rollInhabitantCount(
   }
 
   const def = COUNT_TABLE[scale];
-  const roll = await evaluateFoundryRoll(def.formula, {
-    animate: options?.animate ?? true,
-  });
+  const present = options?.animate !== false;
+  const roll = await evaluateFoundryRoll(def.formula, { animate: false });
   const dieFace = firstDieFaceFromRoll(roll);
   const count = resolveCountFromRoll(scale, dieFace);
+
+  if (present) {
+    await postInhabitantCountRollChat({
+      roll,
+      formula: def.formula,
+      dieFace,
+      count,
+      animate: true,
+    });
+  }
 
   return {
     count,
@@ -149,6 +160,42 @@ async function toRosterEntry(entry: DenizenEntry): Promise<InhabitantRosterEntry
   };
 }
 
+export function formatLocationLevelOrdinal(level: number): string {
+  const n = Math.max(1, Math.floor(level));
+  const mod100 = n % 100;
+  const mod10 = n % 10;
+  let suffix = "th";
+  if (mod100 < 11 || mod100 > 13) {
+    if (mod10 === 1) suffix = "st";
+    else if (mod10 === 2) suffix = "nd";
+    else if (mod10 === 3) suffix = "rd";
+  }
+  return `${n}${suffix}`;
+}
+
+export function inhabitantLevelBand(locationLevel: number): { min: number; max: number } {
+  const max = Math.max(1, Math.floor(locationLevel));
+  return { min: Math.max(1, max - 2), max };
+}
+
+export function formatInhabitantCountSummary(
+  inh: { count: number; baseCount: number },
+  locationLevel: number,
+): string {
+  const levelOrdinal = formatLocationLevelOrdinal(locationLevel);
+  if (inh.baseCount !== inh.count) {
+    return t("WASTELANDER.Scavenging.Inhabitants.CountSummaryAdjustedAtLevel", {
+      count: inh.count,
+      baseCount: inh.baseCount,
+      levelOrdinal,
+    });
+  }
+  return t("WASTELANDER.Scavenging.Inhabitants.CountSummaryAtLevel", {
+    count: inh.count,
+    levelOrdinal,
+  });
+}
+
 export async function buildLocationInhabitants(params: {
   scale: LocationScale;
   locationLevel: number;
@@ -171,6 +218,19 @@ export async function buildLocationInhabitants(params: {
     { animate: params.animateRolls },
   );
   rollLogs.push(countRoll);
+
+  if (params.inhabitantType === "overseerOverride") {
+    return {
+      inhabitants: {
+        type: "overseerOverride",
+        count: baseCount,
+        baseCount,
+        roster: [],
+      },
+      rollLogs,
+      warnings,
+    };
+  }
 
   const allDenizens = await loadDenizens();
   if (!allDenizens.length) {
@@ -244,4 +304,5 @@ export const INHABITANT_TYPE_OPTIONS: InhabitantType[] = [
   "raiders",
   "superMutants",
   "robots",
+  "overseerOverride",
 ];

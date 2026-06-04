@@ -1,5 +1,12 @@
 import { MODULE_ID } from "../constants.js";
+import { t } from "../integrations/i18n.js";
 import type { ScavengerLocation } from "./ScavengerLocation.js";
+import {
+  formatHazardSummary,
+  formatObstacleSummary,
+  normalizeHazardKind,
+  resolveLocationProblems,
+} from "./problemRules.js";
 
 const FLAG_KEY = "scavengerLocation";
 
@@ -26,15 +33,36 @@ function formatOtherFoundList(location: ScavengerLocation): string {
   return `<p><strong>Other found (d20):</strong><br>${lines}</p>`;
 }
 
+function problemSummaryLabels(): Parameters<typeof formatObstacleSummary>[1] {
+  return {
+    obstacleTypeLabel: "",
+    obstacleSkillLabel: "",
+    hazardKindLabel: "",
+    obstacleOvercomeNote: ` (${t("WASTELANDER.Scavenging.Problems.ObstacleOvercome")})`,
+    obstacleNotOvercomeNote: ` (${t("WASTELANDER.Scavenging.Problems.ObstacleNotOvercome")})`,
+  };
+}
+
 function formatProblems(location: ScavengerLocation): string {
   const p = location.problems;
   const parts: string[] = [];
   if (p.obstacle) {
-    parts.push(`Obstacle (Lockpick/Science diff ${p.obstacleDifficulty ?? "—"})`);
+    const type = p.obstacleType ?? "mechanical";
+    const base = problemSummaryLabels();
+    parts.push(
+      formatObstacleSummary(p, {
+        ...base,
+        obstacleTypeLabel: t(`WASTELANDER.Scavenging.Problems.ObstacleTypes.${type}`),
+        obstacleSkillLabel: t(
+          `WASTELANDER.Scavenging.Problems.ObstacleSkills.${type}`,
+        ),
+      }),
+    );
   }
   if (p.hazard) {
+    const kind = normalizeHazardKind(p, location.level);
     parts.push(
-      `Hazard (${p.hazardOngoing ? "ongoing" : "occasional"}, ${p.hazardDamageDc ?? 3} DC typical)`,
+      `${t(`WASTELANDER.Scavenging.Problems.HazardKinds.${kind}`)}: ${formatHazardSummary(p, location.level)}`,
     );
   }
   if (p.inhabitants || location.inhabitants) {
@@ -101,7 +129,11 @@ export async function saveLocationToJournal(
   location: ScavengerLocation,
   options?: { journalId?: string },
 ): Promise<ScavengerLocation> {
-  const html = renderLocationHtml(location);
+  const normalized: ScavengerLocation = {
+    ...location,
+    problems: resolveLocationProblems(location.problems, location.level),
+  };
+  const html = renderLocationHtml(normalized);
   const JournalEntry = (globalThis as { JournalEntry?: JournalEntryClass })
     .JournalEntry;
   const JournalEntryPage = (globalThis as { JournalEntryPage?: JournalEntryPageClass })
@@ -110,38 +142,38 @@ export async function saveLocationToJournal(
     throw new Error("Journal documents are not available.");
   }
 
-  let journalId = options?.journalId ?? location.journalId;
+  let journalId = options?.journalId ?? normalized.journalId;
   if (!journalId) {
     const journal = await JournalEntry.create({
-      name: `Scavenging: ${location.name}`,
+      name: `Scavenging: ${normalized.name}`,
       folder: null,
     });
     journalId = journal.id;
   }
 
-  let pageId = location.journalPageId;
+  let pageId = normalized.journalPageId;
   if (pageId) {
     const page = (globalThis as { JournalEntryPage?: { get: (id: string) => { update: (d: object) => Promise<unknown> } } })
       .JournalEntryPage?.get(pageId);
     if (page) {
       await page.update({
-        name: location.name,
+        name: normalized.name,
         text: { content: html, format: 1 },
       });
-      await page.setFlag(MODULE_ID, FLAG_KEY, location);
+      await page.setFlag(MODULE_ID, FLAG_KEY, normalized);
     }
   } else {
     const page = await JournalEntryPage.create({
-      name: location.name,
+      name: normalized.name,
       journal: journalId,
       text: { content: html, format: 1 },
     });
     pageId = page.id;
-    await page.setFlag(MODULE_ID, FLAG_KEY, location);
+    await page.setFlag(MODULE_ID, FLAG_KEY, normalized);
   }
 
   return {
-    ...location,
+    ...normalized,
     journalId,
     journalPageId: pageId,
   };

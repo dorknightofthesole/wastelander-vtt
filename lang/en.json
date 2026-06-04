@@ -177,8 +177,24 @@
     "Scavenging": {
       "Title": "Scavenger Location Generator",
       "WindowTitle": "Wastelander – Scavenger Location",
+      "WindowTitleScene": "Wastelander – Scavenger Location ({scene})",
+      "SceneScope": "Saved for scene: {scene}",
       "Tooltip": "Generate scavenger location",
       "Hint": "Creates a location using the GM Screen booklet rules (category, scale, degree, level). Save to a Journal for play.",
+      "Tabs": {
+        "Current": "Current scavenge location",
+        "Create": "Create"
+      },
+      "Current": {
+        "Empty": "No location generated yet. Use the Create tab to configure party and options, then generate.",
+        "GoCreate": "Go to Create",
+        "Inhabitants": "Inhabitants",
+        "Hazards": "Hazards",
+        "Obstacles": "Obstacles",
+        "None": "None",
+        "Wip": "WIP",
+        "ObstacleOvercome": "Obstacle overcome"
+      },
       "Party": {
         "Title": "Party on scene",
         "Empty": "No player-owned characters with linked tokens on this scene. Assign a character in User Configuration (or give a player OWNER on the actor), and use linked tokens.",
@@ -202,14 +218,43 @@
         "Title": "Problems",
         "Obstacle": "Obstacle",
         "Hazard": "Hazard",
-        "Inhabitants": "Inhabitants"
+        "Inhabitants": "Inhabitants",
+        "ObstacleTypeLabel": "Obstacle type",
+        "HazardKindLabel": "Hazard type",
+        "ObstacleTypes": {
+          "mechanical": "Mechanical lock",
+          "electronic": "Electronic lock",
+          "collapsed": "Collapsed structure",
+          "trap": "Trap (disarm as obstacle)"
+        },
+        "ObstacleSkills": {
+          "mechanical": "PER + Lockpick",
+          "electronic": "INT + Science",
+          "collapsed": "PER + Survival or STR/AGI + Athletics",
+          "trap": "AGI + Small Guns, Survival, or Explosives"
+        },
+        "HazardKinds": {
+          "ongoing": "Ongoing",
+          "occasional": "Occasional"
+        },
+        "HazardSummaryOngoingPer10Min": "+1 CD per 10 minutes within the location",
+        "HazardSummaryOngoingPerMin": "+1 CD per minute within the location (level 11+)",
+        "HazardSummaryOccasional": "+{cd} CD per trigger (failed search, complication, etc.)",
+        "ObstacleOvercome": "overcome",
+        "ObstacleNotOvercome": "not yet overcome — search blocked",
+        "GeneratedSummary": "After generate: {summary}",
+        "ConfigureOnCreate": "Set type/kind above, then generate to roll location level and apply booklet difficulties."
       },
       "Inhabitants": {
         "TypeLabel": "Inhabitant type",
         "TinyNoInhabitants": "Tiny locations cannot have inhabitants (Core rulebook).",
         "CountSummary": "{count} inhabitants present.",
         "CountSummaryAdjusted": "{count} inhabitants present (rolled {baseCount} on scale dice, then Big/Little adjustment).",
+        "CountSummaryAtLevel": "{count} inhabitants present at {levelOrdinal} level, or normally within 2 levels.",
+        "CountSummaryAdjustedAtLevel": "{count} inhabitants present at {levelOrdinal} level, or normally within 2 levels (rolled {baseCount} on scale dice, then Big/Little adjustment).",
+        "OverseerOverrideNote": "Choose inhabitants yourself (drag denizens from the compendium onto the scene). No automatic roster is generated for this type.",
         "ActorOpenFailed": "Could not open that actor.",
+        "DragHint": "Click to open actor; drag onto the scene to place a token.",
         "RosterEmpty": "No matching denizens in catalog for this type and location level.",
         "LevelShort": "Lv",
         "Types": {
@@ -217,7 +262,8 @@
           "feralGhouls": "Feral ghouls",
           "raiders": "Raiders",
           "superMutants": "Super mutants",
-          "robots": "Robots"
+          "robots": "Robots",
+          "overseerOverride": "Overseer override"
         },
         "Size": {
           "big": "Big",
@@ -246,6 +292,13 @@
         "Results": "results",
         "OpenFailed": "Could not open that Roll Table."
       },
+      "RollChat": {
+        "LocationLevel": "Location level",
+        "LevelFinal": "Location level {level}",
+        "LevelWithEffects": "+{effects} from Effects (problems) → location level {level}",
+        "InhabitantCount": "Inhabitant count",
+        "InhabitantCountDetail": "Rolled {dieFace} on {formula} → {count} inhabitants"
+      },
       "Actions": {
         "Generate": "Generate location",
         "SimulateSearch": "Simulate search (success)",
@@ -253,7 +306,9 @@
       },
       "Simulate": {
         "Title": "Simulate search",
-        "Body": "Assume the party succeeded on PER + Survival at minimum loot. Roll loot tables now?"
+        "Body": "Assume the party succeeded on PER + Survival at minimum loot. Roll loot tables now?",
+        "ObstacleBlocksTitle": "Obstacle not overcome",
+        "ObstacleBlocksBody": "The rulebook requires overcoming the obstacle before searching. Mark it overcome on the Current tab, or simulate anyway?"
       },
       "Notify": {
         "Generated": "Location generated (level {level}).",
@@ -269,6 +324,60 @@
         "SearchRollWhisperHint": "Loot roll chat cards are only visible to the GM.",
         "AutoDegreeReduction": "Auto-allocate degree reductions",
         "AutoDegreeReductionHint": "Randomly apply minimum reductions when generating a location."
+      },
+      "PlayerSearch": {
+        "Title": "Scavenge location",
+        "WindowTitle": "Wastelander – Scavenge",
+        "WindowTitleScene": "Wastelander – Scavenge ({scene})",
+        "Tooltip": "Scavenge this location (players)",
+        "NoLocation": "No scavenger location on this scene yet. Ask the Overseer to generate one.",
+        "PartyAp": "Party AP",
+        "PartyApUnavailable": "— (Fallout AP tracker unavailable)",
+        "SearchSection": "Search the location",
+        "SearchHint": "Roll PER + Survival vs the location search difficulty. If you succeed, loot tables are revealed.",
+        "RollSearch": "Roll PER + Survival",
+        "ActingCharacter": "Character",
+        "Luck": "Luck",
+        "NoCharacter": "Select a character with a linked token on this scene (players: assign your character in User Configuration).",
+        "NoActiveScene": "No active scene — open the scavenger scene first.",
+        "ObstacleBlocked": "The obstacle must be overcome before searching (Overseer marks this on the Current tab).",
+        "SearchFailed": "Search failed — no loot found.",
+        "SearchSucceeded": "Search succeeded.",
+        "LootSection": "Loot tables",
+        "LootHint": "Roll each category at its minimum, then spend party AP for extra rolls (up to max). Adjust results with luck (±{luckMax} per point spent).",
+        "RemainingMin": "Min left",
+        "RollMin": "Roll",
+        "SpendAp": "Spend 1 AP",
+        "ResultsSection": "Roll results",
+        "RollSum": "sum",
+        "LuckShift": "luck shift",
+        "LuckSpend": "[{cost} Luck]",
+        "UnlockedLoot": "Your loot",
+        "LootItemHint": "Click to preview; drag onto a character sheet to add.",
+        "LootRollChat": "Scavenge: {category}",
+        "ActionDone": "Scavenge updated.",
+        "GmMarkSuccess": "Mark search succeeded",
+        "GmMarkFail": "Mark search failed",
+        "GmReset": "Reset player scavenge",
+        "GmResetSearch": "Reset player search",
+        "GmResetHint": "Clears persisted player search and loot rolls for this scene (players must search again).",
+        "GmResetSearchDone": "Player search progress cleared for this scene.",
+        "GmOutcomeSet": "Player scavenge state set ({outcome}).",
+        "GmOnlyMutation": "Only the GM can update scavenge state.",
+        "GmOffline": "No GM is connected to process this action.",
+        "SocketUnavailable": "Socket API unavailable.",
+        "AlreadySucceeded": "Search already succeeded for this location.",
+        "ActorNotFound": "Character not found.",
+        "NeedSearchSuccess": "Succeed on the search test before rolling loot.",
+        "UnknownCategory": "Unknown loot category.",
+        "CannotRollMin": "No minimum rolls remaining for this category.",
+        "CannotSpendAp": "Cannot spend AP on this category right now.",
+        "NoPartyAp": "Not enough party AP.",
+        "EntryNotFound": "Roll entry not found.",
+        "NotYourRoll": "You can only adjust luck on your own rolls.",
+        "LuckShiftLimit": "Luck shift cannot exceed ±{max} for this location.",
+        "NoLuck": "No luck points remaining.",
+        "NoLuckForJump": "Need {cost} Luck to choose that result (you have {have})."
       }
     }
   }

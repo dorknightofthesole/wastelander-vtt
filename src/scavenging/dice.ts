@@ -127,7 +127,8 @@ export async function rollCombatDice(
   }
 
   const formula = `${count}dc`;
-  const roll = await evaluateFoundryRoll(formula, { animate: options?.animate });
+  // Presentation (3D dice + chat) is handled by rollLocationLevel after all math is done.
+  const roll = await evaluateFoundryRoll(formula, { animate: false });
 
   return parseCombatDiceRoll(roll, formula);
 }

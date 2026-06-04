@@ -169,7 +169,7 @@ declare class Actor {
     scope: string,
     key: string,
     value: unknown,
-    options?: { render?: boolean },
+    options?: { render?: boolean; merge?: boolean },
   ): Promise<unknown>;
 }
 
@@ -190,6 +190,18 @@ declare class Item {
       context?: { parent?: Actor; render?: boolean; keepId?: boolean },
     ): Promise<Item | undefined>;
   };
+}
+
+declare class Scene {
+  id: string;
+  getFlag(scope: string, key: string): unknown;
+  setFlag(
+    scope: string,
+    key: string,
+    value: unknown,
+    options?: { merge?: boolean },
+  ): Promise<unknown>;
+  unsetFlag(scope: string, key: string): Promise<unknown>;
 }
 
 declare namespace foundry {

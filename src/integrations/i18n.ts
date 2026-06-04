@@ -76,9 +76,13 @@ export function t(
   options: LocalizeOptions = {},
 ): string {
   const fullKey = key.startsWith("WASTELANDER.") ? key : `WASTELANDER.${key}`;
-  let template = game.i18n.localize(fullKey);
-  if (isMissingTranslation(template, fullKey)) {
-    template = FLAT_EN[fullKey] ?? fallbackLabel(fullKey);
+  // Prefer bundled strings so Foundry localize/format does not strip unfilled `{placeholders}`.
+  let template = FLAT_EN[fullKey];
+  if (!template) {
+    template = game.i18n.localize(fullKey);
+    if (isMissingTranslation(template, fullKey)) {
+      template = fallbackLabel(fullKey);
+    }
   }
   const resolved = data ? formatString(template, data) : template;
   if (options.glossary === false) return resolved;

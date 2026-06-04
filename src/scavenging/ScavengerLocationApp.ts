@@ -1,22 +1,25 @@
 import { MODULE_ID, MODULE_PATH } from "../constants.js";
 import { t } from "../integrations/i18n.js";
 import type {
+  HazardKind,
   InhabitantType,
   ItemCategoryRange,
   LocationCategoryId,
   LocationDegree,
   LocationScale,
   LootCategoryKey,
+  ObstacleType,
   PartyActorRow,
   ScavengerLocation,
   ScavengerLocationProblems,
 } from "./ScavengerLocation.js";
 import {
   canHaveInhabitants,
+  formatInhabitantCountSummary,
   INHABITANT_TYPE_OPTIONS,
 } from "./inhabitantRules.js";
 import { loadDenizens } from "./loadDenizens.js";
-import { openActorByUuid } from "./resolveDenizenActor.js";
+import { openActorByUuid, startActorDrag } from "./resolveDenizenActor.js";
 import {
   getDegreeReductionPoints,
   getSearchDifficulty,
@@ -27,57 +30,59 @@ import {
   getCategoryOptions,
 } from "./locationGenerator.js";
 import { getPartyActorsOnScene } from "./partyContext.js";
+import {
+  applyScavengerSceneState,
+  defaultFormState,
+  getActiveSceneId,
+  getSceneDocument,
+  loadScavengerSceneState,
+  persistScavengerSceneState,
+  type ScavengerFormState,
+  type ScavengerTab,
+} from "./scenePersist.js";
 import { saveLocationToJournal } from "./journalPersist.js";
 import {
   getRollTableDisplayName,
   getRollTableKeysForLocation,
   SCAVENGING_ROLL_TABLE_KEYS,
   getScavengingRollTableStatus,
+  type ScavengingRollTableStatusRow,
   openScavengingRollTable,
   resolveRollTableKey,
 } from "./rollTableRegistry.js";
-import { simulateScavengerSearch } from "./searchSimulator.js";
+import {
+  canSearchLocation,
+  formatHazardSummary,
+  formatObstacleSummary,
+  HAZARD_KINDS,
+  normalizeHazardKind,
+  OBSTACLE_TYPES,
+  resolveLocationProblems,
+} from "./problemRules.js";
+import { formatLootCategoryLabel } from "./lootGrid.js";
+import { executePlayerSearchAction } from "./playerSearchActions.js";
+import ScavengerSearchApp from "./ScavengerSearchApp.js";
 import { getScavengingSettingBoolean, SCAVENGING_SETTINGS } from "./scavengingSettings.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
-type FormState = {
-  name: string;
-  concept: string;
-  scale: LocationScale;
-  categoryId: LocationCategoryId;
-  degree: LocationDegree;
-  inhabitantType: InhabitantType;
-  problems: ScavengerLocationProblems;
-};
-
-const DEFAULT_PROBLEMS: ScavengerLocationProblems = {
-  obstacle: false,
-  hazard: false,
-  inhabitants: true,
-  inhabitantType: "raiders",
-};
+type FormState = ScavengerFormState;
 
 export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
   ApplicationV2,
 ) {
   static #open: ScavengerLocationApp | null = null;
+  static #generating = false;
 
   party: PartyActorRow[] = [];
   location: ScavengerLocation | null = null;
-  #form: FormState = {
-    name: "New scavenger location",
-    concept: "",
-    scale: "average",
-    categoryId: "residential",
-    degree: "partly",
-    inhabitantType: "raiders",
-    problems: { ...DEFAULT_PROBLEMS },
-  };
+  #activeTab: ScavengerTab = "current";
+  #form: FormState = defaultFormState();
+  #sceneId: string | null = null;
+  #persistDebounce: ReturnType<typeof setTimeout> | null = null;
 
   constructor(options: ApplicationConfiguration = {}) {
     super(options);
-    this.party = getPartyActorsOnScene(getActiveSceneId());
     ScavengerLocationApp.#open = this;
   }
 
@@ -92,12 +97,16 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
     },
     position: { width: 720, height: 820 },
     actions: {
-      refreshParty: ScavengerLocationApp.#onRefreshParty,
-      generate: ScavengerLocationApp.#onGenerate,
-      simulateSearch: ScavengerLocationApp.#onSimulateSearch,
-      saveJournal: ScavengerLocationApp.#onSaveJournal,
-      openRollTable: ScavengerLocationApp.#onOpenRollTable,
-      openInhabitantActor: ScavengerLocationApp.#onOpenInhabitantActor,
+      switchTab: ScavengerLocationApp.onSwitchTab,
+      refreshParty: ScavengerLocationApp.onRefreshParty,
+      generate: ScavengerLocationApp.onGenerate,
+      saveJournal: ScavengerLocationApp.onSaveJournal,
+      openRollTable: ScavengerLocationApp.onOpenRollTable,
+      openInhabitantActor: ScavengerLocationApp.onOpenInhabitantActor,
+      toggleObstacleOvercome: ScavengerLocationApp.onToggleObstacleOvercome,
+      markSearchSuccess: ScavengerLocationApp.onMarkSearchSuccess,
+      markSearchFail: ScavengerLocationApp.onMarkSearchFail,
+      resetPlayerSearch: ScavengerLocationApp.onResetPlayerSearch,
     },
   };
 
@@ -109,15 +118,32 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
   };
 
   get title(): string {
+    const scene = this.#sceneId ? getSceneDocument(this.#sceneId) : undefined;
+    if (scene?.name) {
+      return t("WASTELANDER.Scavenging.WindowTitleScene", { scene: scene.name });
+    }
     return t("WASTELANDER.Scavenging.WindowTitle");
+  }
+
+  static async onActivateScene(sceneId: string): Promise<void> {
+    const app = ScavengerLocationApp.#open;
+    if (!app?.rendered) return;
+    await app.#bindScene(sceneId);
+    void app.render();
   }
 
   static async renderOpen(): Promise<ScavengerLocationApp> {
     if (ScavengerLocationApp.#open?.rendered) {
+      const activeId = getActiveSceneId();
+      if (activeId && ScavengerLocationApp.#open.#sceneId !== activeId) {
+        await ScavengerLocationApp.#open.#bindScene(activeId);
+        void ScavengerLocationApp.#open.render();
+      }
       ScavengerLocationApp.#open.bringToFront?.();
       return ScavengerLocationApp.#open;
     }
     const app = new ScavengerLocationApp();
+    await app.#bindScene(getActiveSceneId());
     return app.render({ force: true });
   }
 
@@ -129,10 +155,64 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
   }
 
   protected override async _onClose(options?: object): Promise<void> {
+    if (this.#persistDebounce) {
+      clearTimeout(this.#persistDebounce);
+      this.#persistDebounce = null;
+    }
+    await this.#persistSceneState();
+    const root = this.#rootElement();
+    if (root) delete root.dataset.wastelanderBound;
     if (ScavengerLocationApp.#open === this) {
       ScavengerLocationApp.#open = null;
     }
+    ScavengerLocationApp.#generating = false;
     return super._onClose(options);
+  }
+
+  async #bindScene(sceneId: string | undefined): Promise<void> {
+    if (!sceneId) {
+      if (this.#sceneId) await this.#persistSceneState();
+      this.#sceneId = null;
+      const applied = applyScavengerSceneState(null, "");
+      this.#form = applied.form;
+      this.location = applied.location;
+      this.#activeTab = applied.activeTab;
+      this.party = applied.party;
+      return;
+    }
+
+    if (this.#sceneId && this.#sceneId !== sceneId) {
+      await this.#persistSceneState();
+    }
+
+    const saved = loadScavengerSceneState(sceneId);
+    const applied = applyScavengerSceneState(saved, sceneId);
+    this.#form = applied.form;
+    this.location = applied.location;
+    this.#activeTab = applied.activeTab;
+    this.party = applied.party;
+    this.#sceneId = sceneId;
+  }
+
+  async #persistSceneState(options?: { clearPlayerSearch?: boolean }): Promise<void> {
+    const sceneId = this.#sceneId ?? getActiveSceneId();
+    if (!sceneId) return;
+    await persistScavengerSceneState({
+      sceneId,
+      form: this.#form,
+      location: this.location,
+      activeTab: this.#activeTab,
+      party: this.party,
+      clearPlayerSearch: options?.clearPlayerSearch,
+    });
+  }
+
+  #schedulePersistSceneState(): void {
+    if (this.#persistDebounce) clearTimeout(this.#persistDebounce);
+    this.#persistDebounce = setTimeout(() => {
+      this.#persistDebounce = null;
+      void this.#persistSceneState();
+    }, 400);
   }
 
   protected override async _onRender(
@@ -141,28 +221,29 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
   ): Promise<void> {
     await super._onRender(context, options);
     const root = this.#rootElement();
-    if (!root) return;
-    root.querySelectorAll<HTMLInputElement | HTMLSelectElement>(
-      "[data-action='updateField']",
-    ).forEach((el) => {
-      el.addEventListener("change", (event) => {
-        ScavengerLocationApp.#onUpdateField.call(this, event, el);
-      });
+    if (!root || root.dataset.wastelanderBound === "1") return;
+    root.dataset.wastelanderBound = "1";
+    root.addEventListener("change", (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      const action = target.dataset.action;
+      if (action === "updateField") {
+        ScavengerLocationApp.#onUpdateField.call(this, event, target);
+      } else if (action === "toggleParty") {
+        ScavengerLocationApp.#onToggleParty.call(this, event, target);
+      } else if (action === "toggleProblem") {
+        ScavengerLocationApp.#onToggleProblem.call(this, event, target);
+      }
     });
-    root.querySelectorAll<HTMLInputElement>("[data-action='toggleParty']").forEach(
-      (el) => {
-        el.addEventListener("change", (event) => {
-          ScavengerLocationApp.#onToggleParty.call(this, event, el);
-        });
-      },
-    );
-    root.querySelectorAll<HTMLInputElement>("[data-action='toggleProblem']").forEach(
-      (el) => {
-        el.addEventListener("change", (event) => {
-          ScavengerLocationApp.#onToggleProblem.call(this, event, el);
-        });
-      },
-    );
+    root.addEventListener("dragstart", (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      const el = target.closest<HTMLElement>("[data-inhabitant-drag]");
+      if (!el) return;
+      const actorUuid = el.dataset.actorUuid?.trim();
+      if (!actorUuid) return;
+      void startActorDrag(event, actorUuid);
+    });
   }
 
   #rootElement(): HTMLElement | null {
@@ -216,7 +297,7 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
         ? getRollTableKeysForLocation(this.location.items)
         : [...SCAVENGING_ROLL_TABLE_KEYS]
     ).filter((k) => k !== "otherFoundItems");
-    const rollTableStatus = getScavengingRollTableStatus(rollTableKeys);
+    const rollTableStatus = await getScavengingRollTableStatus(rollTableKeys);
     const lootGridRows = buildLootGridRows(this.location, rollTableStatus.tables);
 
     const reductionPts = getDegreeReductionPoints(degree, scale);
@@ -238,10 +319,13 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
       (r) => r.category !== "junk",
     );
 
-    const otherFound = (this.location?.otherFoundRolls ?? []).map((roll) => ({
-      d20: roll.d20,
-      label: formatLootCategoryLabel(roll.category),
-    }));
+    const otherFound =
+      this.#activeTab === "create"
+        ? (this.location?.otherFoundRolls ?? []).map((roll) => ({
+            d20: roll.d20,
+            label: formatLootCategoryLabel(roll.category),
+          }))
+        : [];
 
     const inhabitantsAllowed = canHaveInhabitants(scale);
     const inhabitantType =
@@ -263,17 +347,11 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
     }));
 
     const inh = this.location?.inhabitants;
-    const countSummary =
-      inh && inh.baseCount !== inh.count
-        ? t("WASTELANDER.Scavenging.Inhabitants.CountSummaryAdjusted", {
-            count: inh.count,
-            baseCount: inh.baseCount,
-          })
-        : inh
-          ? t("WASTELANDER.Scavenging.Inhabitants.CountSummary", {
-              count: inh.count,
-            })
-          : null;
+    const locationLevel = this.location?.level ?? 1;
+    const countSummary = inh
+      ? formatInhabitantCountSummary(inh, locationLevel)
+      : null;
+    const isOverseerOverride = inh?.type === "overseerOverride";
 
     const inhabitantsUi = {
       allowed: inhabitantsAllowed,
@@ -281,7 +359,9 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
       typeSelectDisabled:
         !inhabitantsAllowed || !this.#form.problems.inhabitants,
       typeOptions: inhabitantTypeOptions,
-      showRoster: Boolean(inh),
+      showCount: Boolean(inh),
+      showRoster: Boolean(inh) && !isOverseerOverride,
+      overseerOverride: isOverseerOverride,
       countSummary,
       roster: (inh?.roster ?? []).map((r) => ({
         name: r.name,
@@ -292,10 +372,24 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
           : "",
       })),
       denizenDataOk: denizenCatalogSize > 0,
-      rosterEmpty: Boolean(inh) && (inh?.roster.length ?? 0) === 0,
+      rosterEmpty:
+        Boolean(inh) && !isOverseerOverride && (inh?.roster.length ?? 0) === 0,
     };
 
+    const tabCurrent = this.#activeTab === "current";
+    const tabCreate = this.#activeTab === "create";
+    const problemsUi = buildProblemsUiContext(this.#form.problems, this.location);
+    const sceneDoc = this.#sceneId ? getSceneDocument(this.#sceneId) : undefined;
+
     return {
+      tabCurrent,
+      tabCreate,
+      generating: ScavengerLocationApp.#generating,
+      sceneScope: sceneDoc?.name
+        ? t("WASTELANDER.Scavenging.SceneScope", { scene: sceneDoc.name })
+        : null,
+      current: buildCurrentTabContext(this.location),
+      problemsUi,
       party: this.party,
       partyEmpty: this.party.length === 0,
       name: this.#form.name,
@@ -318,12 +412,34 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
     };
   }
 
-  static #onRefreshParty(
+  static onSwitchTab(
+    this: ScavengerLocationApp,
+    _event: Event,
+    target: HTMLElement,
+  ): void {
+    const tab = target.dataset.tab as ScavengerTab | undefined;
+    if (tab !== "current" && tab !== "create") return;
+    if (this.#activeTab === tab) return;
+    this.#activeTab = tab;
+    void this.#persistSceneState();
+    void this.render();
+  }
+
+  static onRefreshParty(
     this: ScavengerLocationApp,
     _event: Event,
     _target: HTMLElement,
   ): void {
-    this.party = getPartyActorsOnScene(getActiveSceneId());
+    const sceneId = this.#sceneId ?? getActiveSceneId();
+    const saved = sceneId ? loadScavengerSceneState(sceneId) : null;
+    this.party = getPartyActorsOnScene(sceneId);
+    if (saved?.partySelections) {
+      this.party = this.party.map((row) => ({
+        ...row,
+        selected: saved.partySelections[row.actorId] ?? row.selected,
+      }));
+    }
+    void this.#persistSceneState();
     void this.render();
   }
 
@@ -336,6 +452,7 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
     if (!actorId) return;
     const row = this.party.find((p) => p.actorId === actorId);
     if (row) row.selected = (target as HTMLInputElement).checked;
+    void this.#persistSceneState();
   }
 
   static #onUpdateField(
@@ -363,9 +480,20 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
       void this.render();
     } else if (field === "name") {
       this.#form.name = el.value;
+      this.#schedulePersistSceneState();
+      return;
     } else if (field === "concept") {
       this.#form.concept = el.value;
+      this.#schedulePersistSceneState();
+      return;
+    } else if (field === "obstacleType") {
+      this.#form.problems.obstacleType = el.value as ObstacleType;
+      void this.render();
+    } else if (field === "hazardKind") {
+      this.#form.problems.hazardKind = el.value as HazardKind;
+      void this.render();
     }
+    void this.#persistSceneState();
   }
 
   static #onToggleProblem(
@@ -378,15 +506,50 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
     (this.#form.problems as Record<string, boolean>)[key] = (
       target as HTMLInputElement
     ).checked;
-    if (key === "inhabitants") void this.render();
+    if (key === "obstacle" && this.#form.problems.obstacle) {
+      this.#form.problems.obstacleType ??= "mechanical";
+    }
+    if (key === "hazard" && this.#form.problems.hazard) {
+      this.#form.problems.hazardKind ??= "ongoing";
+    }
+    if (key === "obstacle" || key === "hazard" || key === "inhabitants") {
+      void this.render();
+    }
+    void this.#persistSceneState();
   }
 
-  static async #onGenerate(
+  static onToggleObstacleOvercome(
+    this: ScavengerLocationApp,
+    _event: Event,
+    target: HTMLElement,
+  ): void {
+    if (!this.location?.problems.obstacle) return;
+    this.location = {
+      ...this.location,
+      problems: {
+        ...this.location.problems,
+        obstacleOvercome: (target as HTMLInputElement).checked,
+      },
+    };
+    void this.#persistSceneState();
+    void this.render();
+  }
+
+  static async onGenerate(
     this: ScavengerLocationApp,
     _event: Event,
     _target: HTMLElement,
   ): Promise<void> {
-    const sceneId = getActiveSceneId();
+    if (ScavengerLocationApp.#generating) return;
+
+    const sceneId = getActiveSceneId() ?? this.#sceneId ?? undefined;
+    if (sceneId) this.#sceneId = sceneId;
+    const problemsForGenerate = problemsForGeneration(this.#form.problems);
+
+    ScavengerLocationApp.#generating = true;
+    const generateBtn =
+      _target instanceof HTMLButtonElement ? _target : null;
+    if (generateBtn) generateBtn.disabled = true;
 
     try {
       this.location = await generateScavengerLocation({
@@ -397,7 +560,7 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
         degree: this.#form.degree,
         party: this.party,
         problems: {
-          ...this.#form.problems,
+          ...problemsForGenerate,
           inhabitantType: this.#form.inhabitantType,
         },
         levelOverride: null,
@@ -405,8 +568,12 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
           SCAVENGING_SETTINGS.autoAllocateDegreeReduction,
         ),
         sceneId,
+        animateLevelRoll: true,
+        animateInhabitantRoll: problemsForGenerate.inhabitants,
       });
 
+      this.#activeTab = "current";
+      this.#form.problems = { ...this.location.problems };
       ui.notifications.info(
         t("WASTELANDER.Scavenging.Notify.Generated", {
           level: this.location.level,
@@ -415,37 +582,20 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
       for (const warning of this.location.warnings ?? []) {
         ui.notifications.warn(warning);
       }
-      void this.render();
+      await this.#persistSceneState({ clearPlayerSearch: true });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       ui.notifications.error(
         t("WASTELANDER.Scavenging.Notify.GenerateError", { error: message }),
       );
+    } finally {
+      ScavengerLocationApp.#generating = false;
+      if (generateBtn) generateBtn.disabled = false;
+      void this.render();
     }
   }
 
-  static #onSimulateSearch(
-    this: ScavengerLocationApp,
-    _event: Event,
-    _target: HTMLElement,
-  ): void {
-    if (!this.location) return;
-
-    Dialog.confirm({
-      title: t("WASTELANDER.Scavenging.Simulate.Title"),
-      content: t("WASTELANDER.Scavenging.Simulate.Body"),
-      yes: () => {
-        if (!this.location) return;
-        void simulateScavengerSearch(this.location, true).then((updated) => {
-          this.location = updated;
-          void this.render();
-          ui.notifications.info(t("WASTELANDER.Scavenging.Notify.SearchDone"));
-        });
-      },
-    });
-  }
-
-  static async #onSaveJournal(
+  static async onSaveJournal(
     this: ScavengerLocationApp,
     _event: Event,
     _target: HTMLElement,
@@ -453,6 +603,7 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
     if (!this.location) return;
     try {
       this.location = await saveLocationToJournal(this.location);
+      await this.#persistSceneState();
       ui.notifications.info(t("WASTELANDER.Scavenging.Notify.JournalSaved"));
       void this.render();
     } catch (error) {
@@ -463,7 +614,7 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
     }
   }
 
-  static #onOpenRollTable(
+  static onOpenRollTable(
     this: ScavengerLocationApp,
     _event: Event,
     target: HTMLElement,
@@ -473,7 +624,7 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
     openScavengingRollTable(tableId);
   }
 
-  static #onOpenInhabitantActor(
+  static onOpenInhabitantActor(
     this: ScavengerLocationApp,
     _event: Event,
     target: HTMLElement,
@@ -482,14 +633,236 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
     if (!actorUuid) return;
     void openActorByUuid(actorUuid);
   }
+
+  static onMarkSearchSuccess(
+    this: ScavengerLocationApp,
+    _event: Event,
+    _target: HTMLElement,
+  ): void {
+    void this.#gmSetSearchOutcome("success");
+  }
+
+  static onMarkSearchFail(
+    this: ScavengerLocationApp,
+    _event: Event,
+    _target: HTMLElement,
+  ): void {
+    void this.#gmSetSearchOutcome("fail");
+  }
+
+  static onResetPlayerSearch(
+    this: ScavengerLocationApp,
+    _event: Event,
+    _target: HTMLElement,
+  ): void {
+    void this.#gmSetSearchOutcome("reset");
+  }
+
+  async #gmSetSearchOutcome(
+    outcome: "success" | "fail" | "reset",
+  ): Promise<void> {
+    const sceneId = this.#sceneId ?? getActiveSceneId();
+    if (!sceneId) return;
+    const result = await executePlayerSearchAction(
+      { action: "gmSetSearchOutcome", sceneId, outcome },
+      game.user?.id ?? "",
+    );
+    if (!result.ok) {
+      ui.notifications.warn(result.error);
+      return;
+    }
+    const applied = applyScavengerSceneState(result.state, sceneId);
+    this.#form = applied.form;
+    this.location = applied.location;
+    this.#activeTab = applied.activeTab;
+    this.party = applied.party;
+    void this.render();
+    if (outcome === "reset") {
+      ScavengerSearchApp.onSceneUpdated(sceneId);
+      ui.notifications.info(t("WASTELANDER.Scavenging.PlayerSearch.GmResetSearchDone"));
+    } else {
+      ui.notifications.info(
+        t("WASTELANDER.Scavenging.PlayerSearch.GmOutcomeSet", { outcome }),
+      );
+    }
+  }
 }
 
-function formatLootCategoryLabel(category: LootCategoryKey): string {
-  if (category === "junk") return "Junk";
-  if (category === "weapons") return "Weapons";
-  const key = resolveRollTableKey(category);
-  if (key) return getRollTableDisplayName(key);
-  return category;
+type CurrentTabContext = {
+  empty: boolean;
+  name?: string;
+  concept?: string;
+  scaleLabel?: string;
+  categoryLabel?: string;
+  degreeLabel?: string;
+  generated?: {
+    level: string;
+    searchDifficulty: number;
+    searchMinutes: number;
+    searchTimeLabel: string;
+  };
+  inhabitants?: {
+    countSummary: string | null;
+    typeLabel: string;
+    overseerOverride: boolean;
+    rosterEmpty: boolean;
+    roster: {
+      name: string;
+      level: number;
+      actorUuid: string | null;
+      sizeLabel: string;
+    }[];
+  } | null;
+  hazard: { present: boolean; kindLabel?: string; summary?: string };
+  obstacle: {
+    present: boolean;
+    summary?: string;
+    showOvercome: boolean;
+    overcome: boolean;
+  };
+};
+
+function problemSummaryLabelBase() {
+  return {
+    obstacleTypeLabel: "",
+    obstacleSkillLabel: "",
+    obstacleOvercomeNote: ` (${t("WASTELANDER.Scavenging.Problems.ObstacleOvercome")})`,
+    obstacleNotOvercomeNote: ` (${t("WASTELANDER.Scavenging.Problems.ObstacleNotOvercome")})`,
+  };
+}
+
+function buildProblemsUiContext(
+  formProblems: ScavengerLocationProblems,
+  location: ScavengerLocation | null,
+) {
+  const obstacleType = formProblems.obstacleType ?? "mechanical";
+  const hazardKind = formProblems.hazardKind ?? "ongoing";
+
+  let obstacleSummary: string | null = null;
+  let hazardSummary: string | null = null;
+  if (location) {
+    const p = location.problems;
+    if (p.obstacle) {
+      const type = p.obstacleType ?? "mechanical";
+      obstacleSummary = formatObstacleSummary(p, {
+        ...problemSummaryLabelBase(),
+        obstacleTypeLabel: t(
+          `WASTELANDER.Scavenging.Problems.ObstacleTypes.${type}`,
+        ),
+        obstacleSkillLabel: t(
+          `WASTELANDER.Scavenging.Problems.ObstacleSkills.${type}`,
+        ),
+      });
+    }
+    if (p.hazard) {
+      hazardSummary = formatHazardSummary(p, location.level);
+    }
+  }
+
+  return {
+    showObstacleFields: formProblems.obstacle,
+    showHazardFields: formProblems.hazard,
+    obstacleTypeOptions: OBSTACLE_TYPES.map((value) => ({
+      value,
+      label: t(`WASTELANDER.Scavenging.Problems.ObstacleTypes.${value}`),
+      selected: value === obstacleType,
+    })),
+    hazardKindOngoing: hazardKind === "ongoing",
+    hazardKindOccasional: hazardKind === "occasional",
+    hazardKinds: HAZARD_KINDS,
+    obstacleSummary,
+    hazardSummary,
+    hasGenerated: Boolean(location),
+    configureHint: t("WASTELANDER.Scavenging.Problems.ConfigureOnCreate"),
+  };
+}
+
+function buildCurrentTabContext(
+  location: ScavengerLocation | null,
+): CurrentTabContext {
+  if (!location) {
+    return {
+      empty: true,
+      hazard: { present: false },
+      obstacle: { present: false },
+    };
+  }
+
+  const scaleLabel =
+    location.scale.charAt(0).toUpperCase() + location.scale.slice(1);
+  const degreeLabel =
+    location.degree.charAt(0).toUpperCase() + location.degree.slice(1);
+  const category =
+    getCategoryOptions().find((c) => c.id === location.categoryId)?.label ??
+    location.categoryId;
+  const searchTime = SEARCH_TIME_BY_SCALE[location.scale];
+
+  const p = resolveLocationProblems(location.problems, location.level);
+  const base = problemSummaryLabelBase();
+  const obstacle = {
+    present: Boolean(p.obstacle),
+    summary: p.obstacle
+      ? formatObstacleSummary(p, {
+          ...base,
+          obstacleTypeLabel: t(
+            `WASTELANDER.Scavenging.Problems.ObstacleTypes.${p.obstacleType ?? "mechanical"}`,
+          ),
+          obstacleSkillLabel: t(
+            `WASTELANDER.Scavenging.Problems.ObstacleSkills.${p.obstacleType ?? "mechanical"}`,
+          ),
+        })
+      : undefined,
+    showOvercome: Boolean(p.obstacle),
+    overcome: Boolean(p.obstacleOvercome),
+  };
+  const hazardKind = p.hazard
+    ? normalizeHazardKind(p, location.level)
+    : null;
+  const hazard = {
+    present: Boolean(p.hazard),
+    kindLabel: hazardKind
+      ? t(`WASTELANDER.Scavenging.Problems.HazardKinds.${hazardKind}`)
+      : undefined,
+    summary: p.hazard ? formatHazardSummary(p, location.level) : undefined,
+  };
+
+  const inh = location.inhabitants;
+  let inhabitants: CurrentTabContext["inhabitants"] = null;
+  if (inh) {
+    const isOverseerOverride = inh.type === "overseerOverride";
+    inhabitants = {
+      countSummary: formatInhabitantCountSummary(inh, location.level),
+      typeLabel: t(`WASTELANDER.Scavenging.Inhabitants.Types.${inh.type}`),
+      overseerOverride: isOverseerOverride,
+      rosterEmpty: !isOverseerOverride && inh.roster.length === 0,
+      roster: inh.roster.map((r) => ({
+        name: r.name,
+        level: r.level,
+        actorUuid: r.foundryUuid ?? null,
+        sizeLabel: r.npcSize
+          ? t(`WASTELANDER.Scavenging.Inhabitants.Size.${r.npcSize}`)
+          : "",
+      })),
+    };
+  }
+
+  return {
+    empty: false,
+    name: location.name,
+    concept: location.concept,
+    scaleLabel,
+    categoryLabel: category,
+    degreeLabel,
+    generated: {
+      level: String(location.level),
+      searchDifficulty: location.searchDifficulty,
+      searchMinutes: location.searchMinutes,
+      searchTimeLabel: searchTime.label,
+    },
+    inhabitants,
+    hazard,
+    obstacle,
+  };
 }
 
 type LootGridRow = {
@@ -503,7 +876,7 @@ type LootGridRow = {
 
 function buildLootGridRows(
   location: ScavengerLocation | null,
-  statusRows: ReturnType<typeof getScavengingRollTableStatus>["tables"],
+  statusRows: ScavengingRollTableStatusRow[],
 ): LootGridRow[] {
   const statusByKey = new Map(
     statusRows.map((row) => [row.tableKey, row] as const),
@@ -527,10 +900,7 @@ function buildLootGridRows(
 
 function lootGridRowFromItem(
   item: ItemCategoryRange,
-  statusByKey: Map<
-    string,
-    ReturnType<typeof getScavengingRollTableStatus>["tables"][number]
-  >,
+  statusByKey: Map<string, ScavengingRollTableStatusRow>,
 ): LootGridRow {
   const tableKey = resolveRollTableKey(item.category);
   const label = formatLootCategoryLabel(item.category);
@@ -546,8 +916,24 @@ function lootGridRowFromItem(
   };
 }
 
-function getActiveSceneId(): string | undefined {
-  const canvas = (globalThis as { canvas?: { scene?: { id: string } | null } })
-    .canvas;
-  return canvas?.scene?.id;
+/** Strip resolved-only fields so generation does not pass stale data into rolls. */
+function problemsForGeneration(
+  problems: ScavengerLocationProblems,
+): ScavengerLocationProblems {
+  const next: ScavengerLocationProblems = {
+    obstacle: problems.obstacle,
+    hazard: problems.hazard,
+    inhabitants: problems.inhabitants,
+  };
+  if (problems.obstacle) {
+    next.obstacleType = problems.obstacleType ?? "mechanical";
+  }
+  if (problems.hazard) {
+    next.hazardKind = problems.hazardKind ?? "ongoing";
+  }
+  if (problems.inhabitants) {
+    next.inhabitantType = problems.inhabitantType;
+  }
+  return next;
 }
+

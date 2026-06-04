@@ -19,6 +19,16 @@ const TABLE_NAMES = rollTableNames.tables as Record<
   TableNameEntry
 >;
 
+const FALLOUT_SYSTEM_ID = "fallout";
+const FALLOUT_ROLLABLE_TABLES_PACK = "fallout.rollable_tables";
+
+/** Fallout scavenging settings use slightly different category keys. */
+const FALLOUT_SCAVENGING_CATEGORY_KEY: Partial<
+  Record<ScavengingRollTableKey, string>
+> = {
+  otherFoundItems: "other",
+};
+
 /** All loot tables from the GM Screen booklet (for status UI). */
 export const SCAVENGING_ROLL_TABLE_KEYS: ScavengingRollTableKey[] = [
   "ammunition",
@@ -33,6 +43,12 @@ export const SCAVENGING_ROLL_TABLE_KEYS: ScavengingRollTableKey[] = [
   "weaponsThrown",
   "otherFoundItems",
 ];
+
+export type RollTableRef = {
+  /** World document id or compendium UUID. */
+  ref: string;
+  name: string;
+};
 
 export function getRollTableDisplayName(key: ScavengingRollTableKey): string {
   return TABLE_NAMES[key]?.names[0] ?? key;
@@ -69,52 +85,173 @@ export function resolveRollTableKey(
   return null;
 }
 
-function getGameTables(): Array<{ id: string; name: string; results?: { size: number } }> {
-  const tables = (game as { tables?: { contents?: Array<{ id: string; name: string; results?: { size: number } }> } })
-    .tables?.contents;
-  return tables ?? [];
+type RollTableSummary = { id: string; name: string; results?: { size: number } };
+
+function getGameTables(): RollTableSummary[] {
+  const out: RollTableSummary[] = [];
+  const tables = (
+    game as {
+      tables?: {
+        contents?: RollTableSummary[];
+        forEach?: (fn: (t: RollTableSummary) => void) => void;
+        values?: () => IterableIterator<RollTableSummary>;
+      };
+    }
+  ).tables;
+
+  if (tables?.contents?.length) return tables.contents;
+
+  if (tables?.forEach) {
+    tables.forEach((t) => out.push(t));
+    if (out.length) return out;
+  }
+
+  if (tables?.values) {
+    return [...tables.values()];
+  }
+
+  const collection = (
+    game as { collections?: { get?: (name: string) => { contents?: RollTableSummary[] } } }
+  ).collections?.get?.("RollTable");
+  return collection?.contents ?? [];
 }
 
 function normalizeName(name: string): string {
   return name.trim().toLowerCase();
 }
 
-export function findRollTableByKey(
+function falloutCategorySettingKey(key: ScavengingRollTableKey): string {
+  if (key.startsWith("weapons")) return "weapons";
+  return FALLOUT_SCAVENGING_CATEGORY_KEY[key] ?? key;
+}
+
+function getFalloutScavengingTableUuid(key: ScavengingRollTableKey): string | undefined {
+  if (game.system?.id !== FALLOUT_SYSTEM_ID) return undefined;
+  const tables = game.settings.get(FALLOUT_SYSTEM_ID, "scavengingCategoryTables") as
+    | Record<string, string>
+    | undefined;
+  const uuid = tables?.[falloutCategorySettingKey(key)]?.trim();
+  return uuid || undefined;
+}
+
+function findWorldRollTableByKey(
   key: ScavengingRollTableKey,
-): { id: string; name: string } | undefined {
-  const candidates = getRollTableNameCandidates(key).map(normalizeName);
-  const tables = getGameTables();
-  for (const table of tables) {
-    if (candidates.includes(normalizeName(table.name))) {
-      return table;
+): RollTableRef | undefined {
+  const candidates = new Set(getRollTableNameCandidates(key).map(normalizeName));
+  for (const table of getGameTables()) {
+    if (candidates.has(normalizeName(table.name))) {
+      return { ref: table.id, name: table.name };
     }
   }
   return undefined;
 }
 
-export function findRollTableForCategory(
+/** Sync lookup: world tables by name, then Fallout scavenging table UUIDs. */
+export function findRollTableByKey(
+  key: ScavengingRollTableKey,
+): RollTableRef | undefined {
+  const world = findWorldRollTableByKey(key);
+  if (world) return world;
+
+  const falloutUuid = getFalloutScavengingTableUuid(key);
+  if (falloutUuid) {
+    return { ref: falloutUuid, name: getRollTableDisplayName(key) };
+  }
+
+  return undefined;
+}
+
+async function findCompendiumRollTableByKey(
+  key: ScavengingRollTableKey,
+): Promise<RollTableRef | undefined> {
+  const candidates = new Set(getRollTableNameCandidates(key).map(normalizeName));
+  const packIds: string[] = [];
+
+  if (game.system?.id === FALLOUT_SYSTEM_ID) {
+    const scavPack = game.settings.get(FALLOUT_SYSTEM_ID, "scavengingCompendium") as string;
+    if (scavPack?.trim()) packIds.push(scavPack.trim());
+    packIds.push(FALLOUT_ROLLABLE_TABLES_PACK);
+  }
+
+  for (const pack of (game as { packs?: Iterable<{ metadata: { id: string; type: string } }> })
+    .packs ?? []) {
+    if (pack.metadata.type !== "RollTable") continue;
+    if (!packIds.includes(pack.metadata.id)) {
+      packIds.push(pack.metadata.id);
+    }
+  }
+
+  for (const packId of packIds) {
+    const pack = (game as { packs?: { get?: (id: string) => CompendiumPackLike } }).packs?.get?.(
+      packId,
+    );
+    if (!pack) continue;
+
+    const index = await pack.getIndex({ fields: ["name", "uuid"] });
+    for (const entry of index) {
+      const name = String((entry as { name?: string }).name ?? "");
+      if (!candidates.has(normalizeName(name))) continue;
+      const uuid = String((entry as { uuid?: string }).uuid ?? "");
+      if (!uuid) continue;
+      return { ref: uuid, name };
+    }
+  }
+
+  return undefined;
+}
+
+export async function findRollTableRefByKey(
+  key: ScavengingRollTableKey,
+): Promise<RollTableRef | undefined> {
+  return findRollTableByKey(key) ?? findCompendiumRollTableByKey(key);
+}
+
+export async function findRollTableForCategory(
   category: LootCategoryKey,
-): { id: string; name: string; tableKey: ScavengingRollTableKey } | undefined {
+): Promise<(RollTableRef & { tableKey: ScavengingRollTableKey }) | undefined> {
   const tableKey = resolveRollTableKey(category);
   if (!tableKey) return undefined;
-  const found = findRollTableByKey(tableKey);
+  const found = await findRollTableRefByKey(tableKey);
   if (!found) return undefined;
   return { ...found, tableKey };
 }
 
-function getTableDocument(
-  tableId: string,
-): {
+export type RollTableDocument = {
   results?: { size: number };
   sheet?: { render: (force?: boolean) => Promise<unknown> };
-} | undefined {
-  const doc = (game as { tables?: { get?: (id: string) => unknown } }).tables?.get?.(
-    tableId,
-  );
-  return doc as ReturnType<typeof getTableDocument>;
+  draw?: (options?: Record<string, unknown>) => Promise<unknown>;
+};
+
+type CompendiumPackLike = {
+  getIndex: (options?: { fields?: string[] }) => Promise<
+    Array<{ name?: string; uuid?: string }>
+  >;
+};
+
+export function getRollTableDocument(tableId: string): RollTableDocument | undefined {
+  const tables = (game as { tables?: { get?: (id: string) => unknown } }).tables;
+  const fromTables = tables?.get?.(tableId);
+  if (fromTables) return fromTables as RollTableDocument;
+
+  const collection = (
+    game as { collections?: { get?: (name: string) => { get?: (id: string) => unknown } } }
+  ).collections?.get?.("RollTable");
+  const fromCollection = collection?.get?.(tableId);
+  return fromCollection ? (fromCollection as RollTableDocument) : undefined;
 }
 
-function tableHasResults(doc: NonNullable<ReturnType<typeof getTableDocument>>): boolean {
+/** Resolve a world id or compendium UUID to a roll table document. */
+export async function resolveRollTableDocument(
+  tableRef: string,
+): Promise<RollTableDocument | undefined> {
+  if (tableRef.startsWith("Compendium.")) {
+    const doc = await fromUuid(tableRef);
+    return doc ? (doc as RollTableDocument) : undefined;
+  }
+  return getRollTableDocument(tableRef);
+}
+
+function tableHasResults(doc: RollTableDocument): boolean {
   return (doc.results?.size ?? 0) > 0;
 }
 
@@ -126,33 +263,39 @@ export type ScavengingRollTableStatusRow = {
   resultCount: number;
 };
 
-export function getScavengingRollTableStatus(keys?: ScavengingRollTableKey[]): {
+export async function getScavengingRollTableStatus(
+  keys?: ScavengingRollTableKey[],
+): Promise<{
   tables: ScavengingRollTableStatusRow[];
   allInstalled: boolean;
-} {
+}> {
   const list = keys ?? SCAVENGING_ROLL_TABLE_KEYS;
-  const tables: ScavengingRollTableStatusRow[] = list.map((tableKey) => {
+  const tables: ScavengingRollTableStatusRow[] = [];
+
+  for (const tableKey of list) {
     const name = getRollTableDisplayName(tableKey);
-    const found = findRollTableByKey(tableKey);
+    const found = await findRollTableRefByKey(tableKey);
     if (!found) {
-      return {
+      tables.push({
         tableKey,
         name,
         installed: false,
         resultCount: 0,
-      };
+      });
+      continue;
     }
-    const doc = getTableDocument(found.id);
+
+    const doc = await resolveRollTableDocument(found.ref);
     const resultCount = doc?.results?.size ?? 0;
     const installed = Boolean(doc && tableHasResults(doc));
-    return {
+    tables.push({
       tableKey,
       name,
       installed,
-      tableId: found.id,
+      tableId: found.ref,
       resultCount,
-    };
-  });
+    });
+  }
 
   return {
     tables,
@@ -182,16 +325,25 @@ export function getRollTableKeysForLocation(
   );
 }
 
-export function openScavengingRollTable(tableId: string): void {
-  const doc = getTableDocument(tableId);
-  if (!doc) return;
-  if (doc.sheet?.render) {
-    void doc.sheet.render(true);
-    return;
-  }
-  ui.notifications.warn(
-    (game.i18n as { localize: (k: string) => string }).localize(
-      "WASTELANDER.Scavenging.Tables.OpenFailed",
-    ),
-  );
+export function openScavengingRollTable(tableRef: string): void {
+  void (async () => {
+    const doc = await resolveRollTableDocument(tableRef);
+    if (!doc) {
+      ui.notifications.warn(
+        (game.i18n as { localize: (k: string) => string }).localize(
+          "WASTELANDER.Scavenging.Tables.OpenFailed",
+        ),
+      );
+      return;
+    }
+    if (doc.sheet?.render) {
+      void doc.sheet.render(true);
+      return;
+    }
+    ui.notifications.warn(
+      (game.i18n as { localize: (k: string) => string }).localize(
+        "WASTELANDER.Scavenging.Tables.OpenFailed",
+      ),
+    );
+  })();
 }

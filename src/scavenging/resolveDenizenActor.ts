@@ -66,6 +66,28 @@ export async function findActorUuidForDenizen(
   );
 }
 
+/** Drag an actor/compendium entry onto the scene canvas to place a token. */
+export async function startActorDrag(
+  event: DragEvent,
+  actorUuid: string,
+): Promise<void> {
+  if (!actorUuid || !event.dataTransfer) return;
+  try {
+    const resolved = await fromUuid(actorUuid);
+    if (!(resolved instanceof Actor)) return;
+
+    const dragData =
+      typeof resolved.toDragData === "function"
+        ? resolved.toDragData()
+        : { type: "Actor", uuid: resolved.uuid ?? actorUuid };
+
+    event.dataTransfer.setData("text/plain", JSON.stringify(dragData));
+    event.dataTransfer.effectAllowed = "copy";
+  } catch {
+    /* drag aborted */
+  }
+}
+
 export async function openActorByUuid(actorUuid: string): Promise<void> {
   let doc: Actor | null = null;
   try {

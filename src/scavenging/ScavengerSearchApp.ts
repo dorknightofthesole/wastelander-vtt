@@ -1,0 +1,502 @@
+import { MODULE_PATH } from "../constants.js";
+import { t } from "../integrations/i18n.js";
+import type { LootCategoryKey, PartyActorRow, ScavengerLocation } from "./ScavengerLocation.js";
+import { buildPlayerLootRows } from "./lootGrid.js";
+import { getPartyActorsOnScene } from "./partyContext.js";
+import { canSearchLocation } from "./problemRules.js";
+import {
+  canRollMin,
+  canSpendApOnCategory,
+  remainingMinFor,
+  rollsUsedFor,
+  type ScavengerPlayerSearchState,
+} from "./playerSearchState.js";
+import {
+  readPartyApForDisplay,
+  requestPlayerSearchAction,
+  type PlayerSearchSocketAction,
+} from "./playerSearchActions.js";
+import { openScavengingRollTable } from "./rollTableRegistry.js";
+import { handleLootItemPointer } from "./lootItemInteract.js";
+import {
+  buildLuckNeighborRows,
+  clearRollTableLookupCache,
+  type LuckNeighborRow,
+} from "./rollTableLookup.js";
+import {
+  getActiveSceneId,
+  getSceneDocument,
+  loadScavengerSceneState,
+  type ScavengerScenePersistedState,
+} from "./scenePersist.js";
+
+const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+
+type ActingActorOption = {
+  actorId: string;
+  name: string;
+  selected: boolean;
+  luckPoints: number;
+};
+
+type LootRowContext = {
+  category: LootCategoryKey;
+  label: string;
+  min: number;
+  max: number;
+  remainingMin: number;
+  rollsUsed: number;
+  canRollMin: boolean;
+  canSpendAp: boolean;
+  installed: boolean;
+  tableId?: string;
+};
+
+type RollEntryContext = {
+  id: string;
+  label: string;
+  categoryLabel: string;
+  rollSum: number;
+  luckShift: number;
+  luckSpent: number;
+  userName: string;
+  isOwn: boolean;
+  luckLocked: boolean;
+  itemUuid?: string;
+  /** Ladder options only (excludes the committed roll). */
+  previewRows: Array<LuckNeighborRow & { canJump: boolean }>;
+  showUnlockedLoot: boolean;
+};
+
+export default class ScavengerSearchApp extends HandlebarsApplicationMixin(
+  ApplicationV2,
+) {
+  static #open: ScavengerSearchApp | null = null;
+
+  #sceneId: string | null = null;
+  #sceneState: ScavengerScenePersistedState | null = null;
+  #actingActorId: string | null = null;
+  #partyAp: number | null = null;
+  #partyApAvailable = false;
+  #busy = false;
+
+  constructor(options: ApplicationConfiguration = {}) {
+    super(options);
+    ScavengerSearchApp.#open = this;
+  }
+
+  static override DEFAULT_OPTIONS = {
+    id: "wastelander-scavenger-search",
+    uniqueId: true,
+    classes: ["wastelander-wizard", "wastelander-scavenger-app", "wastelander-scavenger-search"],
+    window: {
+      title: "WASTELANDER.Scavenging.PlayerSearch.WindowTitle",
+      icon: "fa-solid fa-magnifying-glass",
+      resizable: true,
+    },
+    position: { width: 640, height: 720 },
+    actions: {
+      rollSearch: ScavengerSearchApp.onRollSearch,
+      rollMin: ScavengerSearchApp.onRollMin,
+      spendAp: ScavengerSearchApp.onSpendAp,
+      openRollTable: ScavengerSearchApp.onOpenRollTable,
+      luckJump: ScavengerSearchApp.onLuckJump,
+    },
+  };
+
+  static override PARTS = {
+    body: {
+      template: `${MODULE_PATH}/templates/scavenging/search-player.hbs`,
+      scrollable: [".wastelander-scavenger-scroll"],
+    },
+  };
+
+  get title(): string {
+    const scene = this.#sceneId ? getSceneDocument(this.#sceneId) : undefined;
+    if (scene?.name) {
+      return t("WASTELANDER.Scavenging.PlayerSearch.WindowTitleScene", {
+        scene: scene.name,
+      });
+    }
+    return t("WASTELANDER.Scavenging.PlayerSearch.WindowTitle");
+  }
+
+  static async onActivateScene(sceneId: string): Promise<void> {
+    const app = ScavengerSearchApp.#open;
+    if (!app?.rendered) return;
+    await app.#bindScene(sceneId);
+    void app.render();
+  }
+
+  static onSceneUpdated(sceneId: string): void {
+    const app = ScavengerSearchApp.#open;
+    if (!app?.rendered || app.#sceneId !== sceneId) return;
+    void app.#bindScene(sceneId).then(() => app.render());
+  }
+
+  static async renderOpen(): Promise<ScavengerSearchApp> {
+    if (ScavengerSearchApp.#open?.rendered) {
+      const activeId = getActiveSceneId();
+      if (activeId && ScavengerSearchApp.#open.#sceneId !== activeId) {
+        await ScavengerSearchApp.#open.#bindScene(activeId);
+        void ScavengerSearchApp.#open.render();
+      }
+      ScavengerSearchApp.#open.bringToFront?.();
+      return ScavengerSearchApp.#open;
+    }
+    const app = new ScavengerSearchApp();
+    await app.#bindScene(getActiveSceneId());
+    return app.render({ force: true });
+  }
+
+  protected override async _onClose(options?: object): Promise<void> {
+    if (ScavengerSearchApp.#open === this) {
+      ScavengerSearchApp.#open = null;
+    }
+    return super._onClose(options);
+  }
+
+  async #bindScene(sceneId: string | undefined): Promise<void> {
+    this.#sceneId = sceneId ?? null;
+    this.#sceneState = sceneId ? loadScavengerSceneState(sceneId) : null;
+
+    const ap = await readPartyApForDisplay();
+    this.#partyAp = ap.value;
+    this.#partyApAvailable = ap.available;
+
+    this.#actingActorId = this.#resolveDefaultActorId();
+  }
+
+  #resolveDefaultActorId(): string | null {
+    const char = (game.user as { character?: { id: string } | string | null })
+      ?.character;
+    const charId = typeof char === "string" ? char : char?.id;
+    if (charId && game.actors.get(charId)) return charId;
+
+    const rows = this.#partyActorsForUi();
+    return rows[0]?.actorId ?? null;
+  }
+
+  #partyActorsForUi(): PartyActorRow[] {
+    if (!this.#sceneId) return [];
+    const rows = getPartyActorsOnScene(this.#sceneId);
+    const list = game.user?.isGM
+      ? rows
+      : rows.filter((r) => r.userId === game.user?.id);
+
+    if (list.length > 0) return list;
+
+    const char = (game.user as { character?: { id: string; name?: string } | string | null })
+      ?.character;
+    const charId = typeof char === "string" ? char : char?.id;
+    const actor = charId ? game.actors.get(charId) : undefined;
+    if (!actor) return [];
+
+    return [
+      {
+        actorId: actor.id,
+        actorName: actor.name,
+        userId: game.user?.id ?? "",
+        userName: (game.user as { name?: string })?.name ?? "",
+        userActive: true,
+        level: Number((actor.system as { level?: { value?: number } }).level?.value ?? 1),
+        selected: true,
+      },
+    ];
+  }
+
+  #location(): ScavengerLocation | null {
+    return this.#sceneState?.location ?? null;
+  }
+
+  #playerSearch(): ScavengerPlayerSearchState | undefined {
+    return this.#sceneState?.playerSearch;
+  }
+
+  protected override async _onRender(
+    context: Record<string, unknown>,
+    options: object,
+  ): Promise<void> {
+    await super._onRender(context, options);
+    const root = this.#rootElement();
+    if (!root || root.dataset.wastelanderSearchBound === "1") return;
+    root.dataset.wastelanderSearchBound = "1";
+    root.addEventListener("change", (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLSelectElement)) return;
+      if (target.dataset.action !== "selectActor") return;
+      const actorId = target.value;
+      if (actorId) {
+        this.#actingActorId = actorId;
+        void this.render();
+      }
+    });
+
+    if (root.dataset.wastelanderLootInteractBound !== "1") {
+      root.dataset.wastelanderLootInteractBound = "1";
+      root.addEventListener("dragstart", (event) => {
+        handleLootItemPointer(event, "dragstart");
+      });
+      root.addEventListener("click", (event) => {
+        handleLootItemPointer(event, "click");
+      });
+    }
+  }
+
+  #rootElement(): HTMLElement | null {
+    const el = this.element;
+    if (el instanceof HTMLElement) return el;
+    if (Array.isArray(el) && el[0] instanceof HTMLElement) return el[0];
+    return null;
+  }
+
+  protected override async _prepareContext(
+    _options?: object,
+  ): Promise<Record<string, unknown>> {
+    if (this.#sceneId) {
+      this.#sceneState = loadScavengerSceneState(this.#sceneId);
+    }
+
+    const location = this.#location();
+    const playerSearch = this.#playerSearch();
+    const scene = this.#sceneId ? getSceneDocument(this.#sceneId) : undefined;
+
+    const empty = !location;
+    const searchSuccess = playerSearch?.searchSuccess === true;
+    const searchFailed = playerSearch?.searchSuccess === false;
+    const showLootTables = searchSuccess && Boolean(location);
+
+    const obstacleBlocked =
+      Boolean(location) && !canSearchLocation(location!.problems);
+
+    const actingOptions = this.#buildActingOptions();
+    const luckMax = location?.level ?? 0;
+
+    let lootRows: LootRowContext[] = [];
+    let rollEntries: RollEntryContext[] = [];
+
+    if (showLootTables && location && playerSearch) {
+      clearRollTableLookupCache();
+      lootRows = (await buildPlayerLootRows(location)).map((row) => ({
+        category: row.category,
+        label: row.label,
+        min: row.min,
+        max: row.max,
+        remainingMin: remainingMinFor(playerSearch, row.category),
+        rollsUsed: rollsUsedFor(playerSearch, row.category),
+        canRollMin: canRollMin(playerSearch, location, row.category),
+        canSpendAp:
+          this.#partyApAvailable &&
+          (this.#partyAp ?? 0) >= 1 &&
+          canSpendApOnCategory(playerSearch, location, row.category),
+        installed: row.installed,
+        tableId: row.tableId,
+      }));
+
+      const luckSpendLabel = (cost: number) =>
+        t("WASTELANDER.Scavenging.PlayerSearch.LuckSpend", { cost });
+
+      const reversed = [...playerSearch.entries].reverse();
+      rollEntries = await Promise.all(
+        reversed.map(async (entry) => {
+          const row = lootRows.find((r) => r.category === entry.category);
+          const isOwn = entry.userId === game.user?.id;
+          const shift = entry.luckShift;
+          const actorLuck = this.#actorLuck(entry.actorId);
+          const luckLocked = entry.luckSpent > 0;
+          const canEditLuck =
+            isOwn && entry.actorId === this.#actingActorId;
+          const neighborRows = luckLocked
+            ? []
+            : (
+                await buildLuckNeighborRows(entry, luckMax, luckSpendLabel)
+              ).map((row) => ({
+                ...row,
+                canJump:
+                  canEditLuck &&
+                  !row.isCurrent &&
+                  row.jumpCost > 0 &&
+                  row.jumpCost <= actorLuck,
+              }));
+          const previewRows = neighborRows.filter((row) => !row.isCurrent);
+          return {
+            id: entry.id,
+            label: entry.label,
+            categoryLabel: row?.label ?? entry.category,
+            rollSum: entry.rollSum,
+            luckShift: shift,
+            luckSpent: entry.luckSpent,
+            userName: entry.userName,
+            isOwn,
+            luckLocked,
+            itemUuid: entry.itemUuid,
+            previewRows,
+            showUnlockedLoot: entry.rollSum > 0,
+          };
+        }),
+      );
+    }
+
+    return {
+      empty,
+      sceneScope: scene?.name
+        ? t("WASTELANDER.Scavenging.SceneScope", { scene: scene.name })
+        : "",
+      locationName: location?.name ?? "",
+      locationConcept: location?.concept ?? "",
+      level: location?.level ?? "—",
+      searchDifficulty: location?.searchDifficulty ?? "—",
+      partyAp: this.#partyApAvailable
+        ? String(this.#partyAp ?? 0)
+        : t("WASTELANDER.Scavenging.PlayerSearch.PartyApUnavailable"),
+      partyApAvailable: this.#partyApAvailable,
+      obstacleBlocked,
+      obstacleBlockedHint: t("WASTELANDER.Scavenging.PlayerSearch.ObstacleBlocked"),
+      showLootTables,
+      searchSuccess,
+      searchFailed,
+      searchPending:
+        !playerSearch ||
+        playerSearch.searchSuccess === null ||
+        playerSearch.searchSuccess === undefined,
+      searchLog: playerSearch?.searchRollLog?.detail ?? "",
+      canSearch:
+        !empty &&
+        !obstacleBlocked &&
+        !searchSuccess &&
+        !searchFailed &&
+        Boolean(this.#actingActorId),
+      noLootMessage: searchFailed
+        ? t("WASTELANDER.Scavenging.PlayerSearch.SearchFailed")
+        : "",
+      luckMax,
+      actingActors: actingOptions,
+      lootRows,
+      rollEntries,
+      busy: this.#busy,
+    };
+  }
+
+  #buildActingOptions(): ActingActorOption[] {
+    const mine = this.#partyActorsForUi();
+    return mine.map((row) => ({
+      actorId: row.actorId,
+      name: row.actorName,
+      selected: row.actorId === this.#actingActorId,
+      luckPoints: this.#actorLuck(row.actorId),
+    }));
+  }
+
+  #actorLuck(actorId: string | null): number {
+    if (!actorId) return 0;
+    const actor = game.actors.get(actorId);
+    if (!actor) return 0;
+    return Math.max(0, Math.floor(Number((actor.system as { luckPoints?: number }).luckPoints ?? 0)));
+  }
+
+  async #runAction(data: PlayerSearchSocketAction): Promise<void> {
+    if (this.#busy || !this.#sceneId) return;
+    this.#busy = true;
+    void this.render();
+    try {
+      const result = await requestPlayerSearchAction(data);
+      if (!result.ok) {
+        ui.notifications.warn(result.error);
+        return;
+      }
+      this.#sceneState = result.state;
+      const ap = await readPartyApForDisplay();
+      this.#partyAp = ap.value;
+      this.#partyApAvailable = ap.available;
+      ui.notifications.info(t("WASTELANDER.Scavenging.PlayerSearch.ActionDone"));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      ui.notifications.error(message);
+    } finally {
+      this.#busy = false;
+      void this.render();
+    }
+  }
+
+  static onRollSearch(
+    this: ScavengerSearchApp,
+    _event: Event,
+    _target: HTMLElement,
+  ): void {
+    if (!this.#sceneId) {
+      ui.notifications.warn(t("WASTELANDER.Scavenging.PlayerSearch.NoActiveScene"));
+      return;
+    }
+    if (!this.#actingActorId) {
+      ui.notifications.warn(t("WASTELANDER.Scavenging.PlayerSearch.NoCharacter"));
+      return;
+    }
+    void this.#runAction({
+      action: "searchRoll",
+      sceneId: this.#sceneId,
+      actorId: this.#actingActorId,
+    });
+  }
+
+  static onOpenRollTable(
+    this: ScavengerSearchApp,
+    _event: Event,
+    target: HTMLElement,
+  ): void {
+    const el = target.closest<HTMLElement>("[data-table-id]") ?? target;
+    const tableId = el.dataset.tableId;
+    if (!tableId) return;
+    openScavengingRollTable(tableId);
+  }
+
+  static onRollMin(
+    this: ScavengerSearchApp,
+    _event: Event,
+    target: HTMLElement,
+  ): void {
+    const el = target.closest<HTMLElement>("[data-category]") ?? target;
+    const category = el.dataset.category as LootCategoryKey | undefined;
+    if (!this.#sceneId || !this.#actingActorId || !category) return;
+    void this.#runAction({
+      action: "lootRollMin",
+      sceneId: this.#sceneId,
+      actorId: this.#actingActorId,
+      category,
+    });
+  }
+
+  static onSpendAp(
+    this: ScavengerSearchApp,
+    _event: Event,
+    target: HTMLElement,
+  ): void {
+    const el = target.closest<HTMLElement>("[data-category]") ?? target;
+    const category = el.dataset.category as LootCategoryKey | undefined;
+    if (!this.#sceneId || !this.#actingActorId || !category) return;
+    void this.#runAction({
+      action: "lootRollAp",
+      sceneId: this.#sceneId,
+      actorId: this.#actingActorId,
+      category,
+    });
+  }
+
+  static onLuckJump(
+    this: ScavengerSearchApp,
+    _event: Event,
+    target: HTMLElement,
+  ): void {
+    const el = target.closest<HTMLElement>("[data-entry-id][data-target-shift]") ?? target;
+    const entryId = el.dataset.entryId;
+    const targetShift = Number(el.dataset.targetShift);
+    if (!this.#sceneId || !this.#actingActorId || !entryId) return;
+    if (!Number.isFinite(targetShift)) return;
+    void this.#runAction({
+      action: "luckJump",
+      sceneId: this.#sceneId,
+      actorId: this.#actingActorId,
+      entryId,
+      targetShift,
+    });
+  }
+}
