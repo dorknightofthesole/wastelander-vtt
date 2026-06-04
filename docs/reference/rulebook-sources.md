@@ -11,17 +11,22 @@
 
 Character creation rules for the Wastelander wizard come from the **Fallout: The Roleplaying Game** core rulebook (Modiphius), Chapter 3.
 
-## Primary PDF (local)
+## Primary PDFs (local)
 
-Path on Eddie’s machine (not committed to git — copyrighted PDF):
+Paths in-repo (gitignored under `docs/reference/source/*.pdf`) or on Eddie’s machine:
+
+| PDF | Use |
+|-----|-----|
+| `docs/reference/source/Fallout-Core-Rulebook.pdf` | Scavenging play + loot tables (Ch.5); character creation |
+| `docs/reference/source/Fallout-GM-Screen-Booklet.pdf` | **Creating scavenging locations** (pp.17–19), loot tables on screen (pp.8–16) |
+
+Char-creation extract (machine copy):
 
 ```
 /Users/eddiegonzales/Documents/ttrpg/Fallout/wasteland/Fallout-Core-Rulebook-Char-Creation.pdf
 ```
 
-This extract covers origins, S.P.E.C.I.A.L., skills, perks (including companion stat blocks such as **Dogmeat**, p. 63), derived stats, and starting equipment.
-
-When working in Cursor, attach or reference this path if the agent needs to verify rules text.
+When working in Cursor, attach or reference these paths if the agent needs to verify rules text.
 
 ## In-repo rule data
 
@@ -31,5 +36,6 @@ When working in Cursor, attach or reference this path if the agent needs to veri
 | `src/data/survivor-traits.json` | Survivor traits (p. 51–52) |
 | `src/data/perk-companion-statblocks.json` | Companion profiles printed beside perks (e.g. Dogmeat) |
 | `docs/fallout-character-wizard.plan.md` | Wizard scope and step list |
+| `src/data/scavenging/**` | Scavenger location generator (creation + loot JSON) |
 
 Fallout **items** (traits, perks, skills, gear) resolve from the [foundryvtt-fallout](https://github.com/Muttley/foundryvtt-fallout) compendiums at runtime. Companion stat blocks are not always present in the compendium perk description, so we mirror the rulebook in `perk-companion-statblocks.json`.

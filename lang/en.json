@@ -148,6 +148,83 @@
           "luc": "Fortune and twists of fate; luck points and rerolls."
         }
       }
+    },
+    "Scavenging": {
+      "Title": "Scavenger Location Generator",
+      "WindowTitle": "Wastelander – Scavenger Location",
+      "Tooltip": "Generate scavenger location",
+      "Hint": "Creates a location using the GM Screen booklet rules (category, scale, degree, level). Save to a Journal for play.",
+      "Party": {
+        "Title": "Party on scene",
+        "Empty": "No player-owned characters with linked tokens on this scene. Assign a character in User Configuration (or give a player OWNER on the actor), and use linked tokens.",
+        "Refresh": "Refresh from scene"
+      },
+      "Fields": {
+        "Name": "Location name",
+        "Concept": "Concept (optional)",
+        "Scale": "Scale",
+        "Category": "Category",
+        "Degree": "Degree of search",
+        "Level": "Location level"
+      },
+      "Generated": {
+        "NotYet": "—",
+        "SearchDifficulty": "Search difficulty",
+        "TimeTaken": "Time taken",
+        "Minutes": "min"
+      },
+      "Problems": {
+        "Title": "Problems",
+        "Obstacle": "Obstacle",
+        "Hazard": "Hazard",
+        "Inhabitants": "Inhabitants"
+      },
+      "Preview": {
+        "Title": "Generated location",
+        "Level": "Level",
+        "Search": "Search",
+        "Loot": "Loot rolled"
+      },
+      "Tables": {
+        "Title": "Scavenging Roll Tables",
+        "SidebarHint": "Foundry sidebar → Roll Tables. Names must match the GM Screen booklet (e.g. Food, Oddities and Valuables, Weapons (Ranged)).",
+        "GenerateForRanges": "Generate the location to see min/max rolls per table.",
+        "OtherFoundTitle": "Other found (d20)",
+        "ReductionFormula": "{tinyReduced} ({degree}, tiny) × {scaleMult} ({scale}) = {total} item minimums to reduce",
+        "ReductionHint": "Each point lowers one listed category’s minimum by 1 (or its maximum if minimum is already 0, to a minimum of 1).",
+        "ColumnTable": "Loot table",
+        "ColumnMin": "Min",
+        "ColumnMax": "Max",
+        "AllInstalled": "All required Roll Tables are present.",
+        "Missing": "One or more required Roll Tables were not found (check exact names).",
+        "NotInstalled": "not found",
+        "Results": "results",
+        "OpenFailed": "Could not open that Roll Table."
+      },
+      "Actions": {
+        "Generate": "Generate location",
+        "SimulateSearch": "Simulate search (success)",
+        "SaveJournal": "Save to Journal"
+      },
+      "Simulate": {
+        "Title": "Simulate search",
+        "Body": "Assume the party succeeded on PER + Survival at minimum loot. Roll loot tables now?"
+      },
+      "Notify": {
+        "Generated": "Location generated (level {level}).",
+        "GenerateError": "Could not generate location: {error}",
+        "SearchDone": "Search simulated; loot rolled at category minimums.",
+        "JournalSaved": "Location saved to Journal.",
+        "JournalError": "Could not save Journal: {error}"
+      },
+      "Settings": {
+        "PreferFoundryTables": "Prefer Foundry RollTables",
+        "PreferFoundryTablesHint": "When enabled, simulate search draws from your world Roll Tables (GM Screen booklet names).",
+        "SearchRollWhisper": "Whisper simulate-search loot to GM",
+        "SearchRollWhisperHint": "Loot roll chat cards are only visible to the GM.",
+        "AutoDegreeReduction": "Auto-allocate degree reductions",
+        "AutoDegreeReductionHint": "Randomly apply minimum reductions when generating a location."
+      }
     }
   }
 }

@@ -76,6 +76,10 @@ function escapeTooltipAttr(text: string): string {
 
 let cachedIndex: CompendiumItemIndexEntry[] | null = null;
 
+export function clearEquipmentItemIndexCache(): void {
+  cachedIndex = null;
+}
+
 function equipmentLookupCandidates(text: string): string[] {
   const trimmed = text.trim();
   const lower = trimmed.toLowerCase();
@@ -161,7 +165,7 @@ export async function buildEquipmentItemIndex(): Promise<CompendiumItemIndexEntr
   return cachedIndex;
 }
 
-function findExactCompendiumMatch(
+export function findExactCompendiumMatch(
   name: string,
   index: CompendiumItemIndexEntry[],
 ): CompendiumItemIndexEntry | undefined {

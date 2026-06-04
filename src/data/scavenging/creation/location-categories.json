@@ -1,0 +1,62 @@
+{
+  "scaleMultipliers": { "tiny": 1, "small": 2, "average": 3, "large": 4 },
+  "categories": {
+    "residential": {
+      "label": "Residential (homes and gardens)",
+      "slots": {
+        "clothing": 1,
+        "food": 1,
+        "beverages": 1,
+        "junk": 2,
+        "other": 1
+      }
+    },
+    "commercial": {
+      "label": "Commercial (shops, restaurants, etc.)",
+      "slots": {
+        "food": 1,
+        "beverages": 1,
+        "junk": 2,
+        "other": 2
+      }
+    },
+    "industry": {
+      "label": "Industry (factories, garages)",
+      "slots": {
+        "clothing": 1,
+        "armor": 1,
+        "beverages": 1,
+        "junk": 2,
+        "other": 1
+      }
+    },
+    "medical": {
+      "label": "Medical (hospitals, clinics, ambulances)",
+      "slots": {
+        "clothing": 1,
+        "chems": 2,
+        "junk": 2,
+        "other": 1
+      }
+    },
+    "agriculture": {
+      "label": "Agriculture",
+      "slots": {
+        "food": 3,
+        "beverages": 1,
+        "junk": 1,
+        "other": 1
+      }
+    },
+    "military": {
+      "label": "Military",
+      "slots": {
+        "ammunition": 1,
+        "armor": 1,
+        "clothing": 1,
+        "weapons": 1,
+        "other": 2
+      }
+    }
+  }
+}

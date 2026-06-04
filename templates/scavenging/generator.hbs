@@ -1,0 +1,153 @@
+<div class="wastelander-scavenger-layout">
+  <div class="wastelander-scavenger-scroll">
+  <header class="wastelander-scavenger-header">
+    <h1>{{localize "WASTELANDER.Scavenging.Title"}}</h1>
+    <p class="wastelander-scavenger-hint">{{localize "WASTELANDER.Scavenging.Hint"}}</p>
+  </header>
+
+  <section class="wastelander-scavenger-section">
+    <h2>{{localize "WASTELANDER.Scavenging.Party.Title"}}</h2>
+    {{#if partyEmpty}}
+      <p class="wastelander-scavenger-warning">{{localize "WASTELANDER.Scavenging.Party.Empty"}}</p>
+    {{else}}
+      <ul class="wastelander-scavenger-party-list">
+        {{#each party}}
+          <li>
+            <label>
+              <input type="checkbox" name="party" data-action="toggleParty" data-actor-id="{{actorId}}" {{#if selected}}checked{{/if}} />
+              <span class="wastelander-scavenger-party-user">{{userName}}{{#unless userActive}} <em class="wastelander-scavenger-offline">(offline)</em>{{/unless}}</span>
+              <span class="wastelander-scavenger-party-actor">{{actorName}} (Lv {{level}})</span>
+            </label>
+          </li>
+        {{/each}}
+      </ul>
+    {{/if}}
+    <button type="button" data-action="refreshParty" class="wastelander-btn-secondary">
+      <i class="fas fa-sync" aria-hidden="true"></i> {{localize "WASTELANDER.Scavenging.Party.Refresh"}}
+    </button>
+  </section>
+
+  <section class="wastelander-scavenger-section wastelander-scavenger-grid">
+    <div class="wastelander-scavenger-field">
+      <label for="loc-name">{{localize "WASTELANDER.Scavenging.Fields.Name"}}</label>
+      <input id="loc-name" type="text" name="name" value="{{name}}" data-action="updateField" data-field="name" />
+    </div>
+    <div class="wastelander-scavenger-field">
+      <label for="loc-concept">{{localize "WASTELANDER.Scavenging.Fields.Concept"}}</label>
+      <input id="loc-concept" type="text" name="concept" value="{{concept}}" data-action="updateField" data-field="concept" />
+    </div>
+    <div class="wastelander-scavenger-field">
+      <label for="loc-scale">{{localize "WASTELANDER.Scavenging.Fields.Scale"}}</label>
+      <select id="loc-scale" data-action="updateField" data-field="scale">
+        {{#each scaleOptions}}
+          <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+        {{/each}}
+      </select>
+    </div>
+    <div class="wastelander-scavenger-field">
+      <label for="loc-category">{{localize "WASTELANDER.Scavenging.Fields.Category"}}</label>
+      <select id="loc-category" data-action="updateField" data-field="categoryId">
+        {{#each categoryOptions}}
+          <option value="{{id}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+        {{/each}}
+      </select>
+    </div>
+    <div class="wastelander-scavenger-field">
+      <label for="loc-degree">{{localize "WASTELANDER.Scavenging.Fields.Degree"}}</label>
+      <select id="loc-degree" data-action="updateField" data-field="degree">
+        {{#each degreeOptions}}
+          <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+        {{/each}}
+      </select>
+    </div>
+  </section>
+
+  <section class="wastelander-scavenger-section wastelander-scavenger-generated-stats">
+    <div class="wastelander-scavenger-stat">
+      <span class="wastelander-scavenger-stat-label">{{localize "WASTELANDER.Scavenging.Fields.Level"}}</span>
+      <output class="wastelander-scavenger-stat-value" id="loc-level">{{generated.level}}</output>
+    </div>
+    <div class="wastelander-scavenger-stat">
+      <span class="wastelander-scavenger-stat-label">{{localize "WASTELANDER.Scavenging.Generated.SearchDifficulty"}}</span>
+      <output class="wastelander-scavenger-stat-value" id="loc-search-diff">{{generated.searchDifficulty}}</output>
+    </div>
+    <div class="wastelander-scavenger-stat">
+      <span class="wastelander-scavenger-stat-label">{{localize "WASTELANDER.Scavenging.Generated.TimeTaken"}}</span>
+      <output class="wastelander-scavenger-stat-value" id="loc-search-time">{{generated.searchMinutes}} {{localize "WASTELANDER.Scavenging.Generated.Minutes"}} <span class="wastelander-scavenger-stat-sub">({{generated.searchTimeLabel}})</span></output>
+    </div>
+  </section>
+
+  <section class="wastelander-scavenger-section">
+    <h2>{{localize "WASTELANDER.Scavenging.Problems.Title"}}</h2>
+    <div class="wastelander-scavenger-checks">
+      <label><input type="checkbox" data-action="toggleProblem" data-problem="obstacle" {{#if problems.obstacle}}checked{{/if}} /> {{localize "WASTELANDER.Scavenging.Problems.Obstacle"}}</label>
+      <label><input type="checkbox" data-action="toggleProblem" data-problem="hazard" {{#if problems.hazard}}checked{{/if}} /> {{localize "WASTELANDER.Scavenging.Problems.Hazard"}}</label>
+      <label><input type="checkbox" data-action="toggleProblem" data-problem="inhabitants" {{#if problems.inhabitants}}checked{{/if}} /> {{localize "WASTELANDER.Scavenging.Problems.Inhabitants"}}</label>
+    </div>
+  </section>
+
+  <section class="wastelander-scavenger-section">
+    <h2>{{localize "WASTELANDER.Scavenging.Tables.Title"}}</h2>
+    <p class="wastelander-scavenger-hint">{{rollTables.sidebarHint}}</p>
+    {{#unless rollTables.showMinMax}}
+      <p class="wastelander-scavenger-hint">{{localize "WASTELANDER.Scavenging.Tables.GenerateForRanges"}}</p>
+    {{/unless}}
+    {{#if rollTables.showMinMax}}
+      {{#if rollTables.allInstalled}}
+        <p class="wastelander-scavenger-ok">{{localize "WASTELANDER.Scavenging.Tables.AllInstalled"}}</p>
+      {{else}}
+        <p class="wastelander-scavenger-warning">{{localize "WASTELANDER.Scavenging.Tables.Missing"}}</p>
+      {{/if}}
+    {{/if}}
+    {{#if otherFound.length}}
+      <h3 class="wastelander-scavenger-other-found-title">{{localize "WASTELANDER.Scavenging.Tables.OtherFoundTitle"}}</h3>
+      <ul class="wastelander-scavenger-other-found">
+        {{#each otherFound}}
+          <li><span class="wastelander-scavenger-other-d20">d20 {{d20}}</span> → {{label}}</li>
+        {{/each}}
+      </ul>
+    {{/if}}
+    <div class="wastelander-scavenger-loot-grid" role="table">
+      <div class="wastelander-scavenger-loot-grid-header" role="row">
+        <span role="columnheader">{{localize "WASTELANDER.Scavenging.Tables.ColumnTable"}}</span>
+        <span role="columnheader">{{localize "WASTELANDER.Scavenging.Tables.ColumnMin"}}</span>
+        <span role="columnheader">{{localize "WASTELANDER.Scavenging.Tables.ColumnMax"}}</span>
+      </div>
+      {{#each rollTables.rows}}
+        <div class="wastelander-scavenger-loot-grid-row" role="row">
+          <span class="wastelander-scavenger-loot-name" role="cell">
+            {{#if installed}}
+              <button type="button" class="wastelander-scavenger-table-link" data-action="openRollTable" data-table-id="{{tableId}}">
+                <i class="fas fa-dice" aria-hidden="true"></i> {{label}}
+              </button>
+            {{else}}
+              {{label}}
+            {{/if}}
+          </span>
+          <span class="wastelander-scavenger-loot-min" role="cell">{{min}}</span>
+          <span class="wastelander-scavenger-loot-max" role="cell">{{max}}</span>
+        </div>
+      {{/each}}
+    </div>
+    <p class="wastelander-scavenger-reduction-formula">{{rollTables.reduction.formulaLine}}</p>
+    <p class="wastelander-scavenger-hint wastelander-scavenger-reduction-hint">{{rollTables.reduction.hint}}</p>
+  </section>
+
+  {{#if location.simulateLoot}}
+    <section class="wastelander-scavenger-preview">
+      <h2>{{localize "WASTELANDER.Scavenging.Preview.Loot"}}</h2>
+      <ul>
+        {{#each location.simulateLoot}}
+          <li>{{category}}: {{label}}</li>
+        {{/each}}
+      </ul>
+    </section>
+  {{/if}}
+  </div>
+
+  <footer class="wastelander-scavenger-actions">
+    <button type="button" data-action="generate" class="wastelander-btn-primary">{{localize "WASTELANDER.Scavenging.Actions.Generate"}}</button>
+    <button type="button" data-action="simulateSearch" class="wastelander-btn-secondary" {{#unless location}}disabled{{/unless}}>{{localize "WASTELANDER.Scavenging.Actions.SimulateSearch"}}</button>
+    <button type="button" data-action="saveJournal" class="wastelander-btn-primary" {{#unless location}}disabled{{/unless}}>{{localize "WASTELANDER.Scavenging.Actions.SaveJournal"}}</button>
+  </footer>
+</div>

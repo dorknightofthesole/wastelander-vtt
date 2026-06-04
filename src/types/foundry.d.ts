@@ -1,9 +1,21 @@
 /* Minimal Foundry globals for compile-time checks (full types optional). */
 declare const game: {
   system: { id: string };
-  user: { id: string };
-  settings: { get: (scope: string, key: string) => string };
+  user: { id: string; isGM: boolean };
+  settings: {
+    get: (scope: string, key: string) => unknown;
+    set: (scope: string, key: string, value: unknown) => Promise<unknown>;
+    register: (
+      namespace: string,
+      key: string,
+      data: Record<string, unknown>,
+    ) => void;
+  };
   actors: { get(id: string): Actor | undefined };
+  tables?: {
+    contents?: Array<{ name: string; id: string }>;
+    find?: (q: string) => { id: string } | undefined;
+  };
   i18n: {
     lang?: string;
     translations: Record<string, Record<string, string>>;
@@ -12,13 +24,36 @@ declare const game: {
   };
 };
 
+declare const canvas: {
+  scene?: { id: string; tokens?: Map<string, { document: { actorId: string | null; actorLink: boolean } }> } | null;
+};
+
 declare const Hooks: {
   once: (hook: string, fn: () => void) => void;
   on: (hook: string, fn: (...args: unknown[]) => void) => void;
 };
 
 declare const ui: {
-  notifications: { warn: (message: string) => void; info: (message: string) => void; error: (message: string) => void };
+  notifications: {
+    warn: (message: string) => void;
+    info: (message: string) => void;
+    error: (message: string) => void;
+  };
+};
+
+declare const JournalEntry: {
+  create: (data: object) => Promise<{ id: string; name?: string }>;
+};
+
+declare const JournalEntryPage: {
+  create: (data: object) => Promise<{
+    id: string;
+    setFlag: (scope: string, key: string, value: unknown) => Promise<unknown>;
+  }>;
+  get: (id: string) => {
+    update: (data: object) => Promise<unknown>;
+    setFlag: (scope: string, key: string, value: unknown) => Promise<unknown>;
+  };
 };
 
 declare class Roll {

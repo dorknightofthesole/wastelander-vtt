@@ -1,4 +1,5 @@
 import { MODULE_PATH } from "../constants.js";
+import { evaluateFoundryRoll } from "./foundryRoll.js";
 
 export type WizardRollContext = {
   actor?: Actor | null;
@@ -110,20 +111,11 @@ function parseRollBreakdown(roll: Roll, formula: string): RollBreakdown {
   return { modifier, cdDice, d20Faces };
 }
 
-async function showDiceSoNice(roll: Roll): Promise<void> {
-  const showDice = getFalloutGlobal()?.Roller2D20?.showDiceSoNice;
-  if (showDice) {
-    await showDice(roll);
-  }
-}
-
 export async function evaluateRoll(
   formula: string,
 ): Promise<{ roll: Roll; total: number; formula: string }> {
   const normalized = formula.replace(/\s+/g, "").toLowerCase();
-  const roll = new Roll(normalized);
-  await roll.evaluate();
-  await showDiceSoNice(roll);
+  const roll = await evaluateFoundryRoll(normalized);
   return {
     formula: normalized,
     roll,
