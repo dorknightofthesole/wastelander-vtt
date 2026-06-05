@@ -209,19 +209,40 @@ function applyAmmo(snapshot: ActorPdfSnapshot, actor: Actor): void {
   });
 }
 
+const PDF_GEAR_ITEM_TYPES = new Set([
+  "apparel",
+  "robot_armor",
+  "robot_mod",
+  "ammo",
+  "consumable",
+  "misc",
+  "book",
+  "mod",
+  "apparel_mod",
+  "weapon_mod",
+]);
+
+/** Lower sorts earlier — keep plating/mods on the sheet before ammo (ammo has its own rows). */
+function gearExportSortRank(item: Item, actorType: string): number {
+  if (actorType === "robot") {
+    if (item.type === "robot_armor") return 0;
+    if (item.type === "robot_mod") return 1;
+    if (item.type === "apparel") return 2;
+  } else if (item.type === "apparel") {
+    return 0;
+  }
+  if (item.type === "ammo") return 40;
+  return 20;
+}
+
 function applyGear(snapshot: ActorPdfSnapshot, actor: Actor): void {
-  const gearTypes = new Set([
-    "apparel",
-    "ammo",
-    "consumable",
-    "misc",
-    "book",
-    "mod",
-    "apparel_mod",
-    "weapon_mod",
-  ]);
   const lines = getActorItems(actor)
-    .filter((i) => gearTypes.has(i.type))
+    .filter((i) => PDF_GEAR_ITEM_TYPES.has(i.type))
+    .sort(
+      (a, b) =>
+        gearExportSortRank(a, actor.type) - gearExportSortRank(b, actor.type) ||
+        a.name.localeCompare(b.name),
+    )
     .slice(0, 18);
 
   lines.forEach((item, index) => {

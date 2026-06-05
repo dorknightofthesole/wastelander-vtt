@@ -22,8 +22,7 @@
         "NothingApplied": "no fields applied",
         "Error": "PDF import failed: {error}",
         "InvalidFile": "Please choose a PDF file.",
-        "RobotNotSupported": "Parse PDF is not available for robot actors yet.",
-        "NoFormFields": "No form fields could be read from that PDF. Use a fillable Fallout 2d20 human character sheet.",
+        "NoFormFields": "No form fields could be read from that PDF. Use a fillable Fallout 2d20 character sheet (human or robot).",
         "MoreWarnings": "{count} more warnings were logged to the console."
       }
     },
@@ -43,6 +42,7 @@
         "equipment": "Equipment",
         "review": "Review"
       },
+      "StepPeekTitle": "Preview this step. You can return anytime; Finish requires every step to be complete.",
       "StepHeading": {
         "origin": "Step 1: Choose Your Origin",
         "special": "Step 2: S.P.E.C.I.A.L.",
@@ -356,11 +356,22 @@
         "GenerateError": "Could not generate location: {error}",
         "JournalSyncError": "Scavenger journal could not update: {error}"
       },
+      "WorldClock": {
+        "DurationMinutes": "{minutes} minutes",
+        "DurationHours": "{hours} hours",
+        "DurationHoursMinutes": "{hours} hours {minutes} minutes",
+        "Advanced": "World clock advanced {duration} while searching {location}.",
+        "Failed": "Could not advance the world clock: {error}",
+        "ChatBody": "The party spent <strong>{duration}</strong> searching <strong>{location}</strong>.",
+        "ChatClock": "World time is now {clock}."
+      },
       "Settings": {
         "PreferFoundryTables": "Prefer Foundry RollTables",
         "PreferFoundryTablesHint": "When enabled, simulate search draws from your world Roll Tables (GM Screen booklet names).",
         "SearchRollWhisper": "Whisper simulate-search loot to GM",
         "SearchRollWhisperHint": "Loot roll chat cards are only visible to the GM.",
+        "AdvanceWorldClockOnSearch": "Advance world clock after search",
+        "AdvanceWorldClockOnSearchHint": "When a search attempt completes, advance Simple Calendar by the location's Time Taken (requires the Simple Calendar module).",
         "AutoDegreeReduction": "Auto-allocate degree reductions",
         "AutoDegreeReductionHint": "Randomly apply minimum reductions when generating a location."
       },

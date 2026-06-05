@@ -64,6 +64,8 @@ export type ScavengerPlayerSearchState = {
   remainingMin: Partial<Record<LootCategoryKey, number>>;
   rollsUsed: Partial<Record<LootCategoryKey, number>>;
   entries: PlayerLootRollEntry[];
+  /** World clock advanced for this search attempt (Simple Calendar). */
+  searchTimeAdvanced?: boolean;
   updatedAt: number;
 };
 
@@ -145,6 +147,7 @@ export function normalizePlayerSearch(
     entries: Array.isArray(data.entries)
       ? (data.entries as PlayerLootRollEntry[])
       : [],
+    searchTimeAdvanced: data.searchTimeAdvanced === true,
     updatedAt: typeof data.updatedAt === "number" ? data.updatedAt : Date.now(),
   };
 }

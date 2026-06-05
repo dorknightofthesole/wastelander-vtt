@@ -56,6 +56,8 @@ export interface ResolvedEquipmentLine {
   quantityRoll?: string;
   /** Fixed shots on an ammo item (overrides compendium default). */
   shots?: number;
+  /** Create a miscellany item on the actor when no compendium match exists (e.g. personal trinket). */
+  narrativeMisc?: boolean;
 }
 
 const PACK_GROUPS = equipmentPacksData as Record<string, EquipmentPackGroup>;

@@ -172,28 +172,16 @@ export function validateSkillsStep(
   return null;
 }
 
-export function isStepComplete(state: WizardState, step: WizardStepId): boolean {
-  const idx = stepIndex(step);
-  const currentIdx = stepIndex(state.step);
-  if (idx > currentIdx) return false;
-
-  switch (step) {
-    case "origin":
-      return state.originId !== null;
-    case "special":
-      return validateWizardStep(state, "special", {}) === null;
-    case "skills":
-      if (idx < currentIdx) return true;
-      return false;
-    case "perk":
-      if (idx < currentIdx) return true;
-      return false;
-    case "equipment":
-      if (idx < currentIdx) return true;
-      return false;
-    default:
-      return idx < currentIdx;
+/** Whether a step passes validation (independent of wizard navigation order). */
+export function isStepComplete(
+  state: WizardState,
+  step: WizardStepId,
+  context: ValidateWizardContext = {},
+): boolean {
+  if (step === "review") {
+    return validateAllWizardSteps(state, context) === null;
   }
+  return validateWizardStep(state, step, context) === null;
 }
 
 /** Validate every step (for Finish on Review). */
@@ -299,7 +287,7 @@ export function validateWizardStep(
       if (!pack) return "Invalid equipment pack.";
       const choiceErr = validateEquipmentChoices(pack, state.equipmentChoices);
       if (choiceErr) return choiceErr;
-      if (pack.hasTrinket && state.trinketRoll === null) {
+      if (pack.hasTrinket && state.trinketRoll == null) {
         return "Roll or enter a d20 for your personal trinket.";
       }
       return null;

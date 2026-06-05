@@ -4,6 +4,7 @@ import DenizenImportMenuApp from "./DenizenImportMenuApp.js";
 export const SCAVENGING_SETTINGS = {
   preferFoundryTables: "preferFoundryTables",
   searchRollWhisper: "searchRollWhisper",
+  advanceWorldClockOnSearch: "advanceWorldClockOnSearch",
   autoAllocateDegreeReduction: "autoAllocateDegreeReduction",
   /** World id of the shared Overseer Scavenger journal. */
   scavengerJournalId: "scavengerJournalId",
@@ -26,6 +27,15 @@ export function registerScavengingSettings(): void {
   settings.register(MODULE_ID, SCAVENGING_SETTINGS.searchRollWhisper, {
     name: "WASTELANDER.Scavenging.Settings.SearchRollWhisper",
     hint: "WASTELANDER.Scavenging.Settings.SearchRollWhisperHint",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: true,
+  });
+
+  settings.register(MODULE_ID, SCAVENGING_SETTINGS.advanceWorldClockOnSearch, {
+    name: "WASTELANDER.Scavenging.Settings.AdvanceWorldClockOnSearch",
+    hint: "WASTELANDER.Scavenging.Settings.AdvanceWorldClockOnSearchHint",
     scope: "world",
     config: true,
     type: Boolean,

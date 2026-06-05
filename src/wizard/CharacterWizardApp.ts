@@ -426,17 +426,18 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
       ? validateAllWizardSteps(this.state, validationContext)
       : null;
 
-    const steps = WIZARD_STEPS.map((id, index) => {
-      const completed = isStepComplete(this.state, id);
+    const steps = WIZARD_STEPS.map((id) => {
+      const completed = isStepComplete(this.state, id, validationContext);
       const active = this.state.step === id;
-      const clickable = index <= currentIdx || completed;
       return {
         id,
-        number: index + 1,
+        number: stepIndex(id) + 1,
         label: t(`WASTELANDER.Wizard.Steps.${id}`),
         active,
         completed,
-        clickable,
+        incomplete: !completed,
+        peek: !completed && !active,
+        peekTitle: t("WASTELANDER.Wizard.StepPeekTitle"),
       };
     });
 
@@ -890,12 +891,14 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
 
     if (this.state.step === "equipment") {
       root.querySelectorAll<HTMLInputElement>("input.wastelander-trinket-input").forEach((input) => {
-        input.onchange = () => {
+        const sync = () => {
           const raw = Number(input.value);
           if (!Number.isFinite(raw)) return;
           this.state.trinketRoll = Math.max(1, Math.min(20, Math.trunc(raw)));
           void this.render({ force: true });
         };
+        input.oninput = sync;
+        input.onchange = sync;
       });
     }
   }
@@ -941,15 +944,6 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
 
   #goToStep(step: WizardStepId): void {
     if (!WIZARD_STEPS.includes(step)) return;
-    const targetIdx = stepIndex(step);
-    const currentIdx = stepIndex(this.state.step);
-    if (targetIdx > currentIdx) {
-      const err = validateCurrentStep(this.state, this.#validationContext());
-      if (err) {
-        ui.notifications.warn(err);
-        return;
-      }
-    }
     this.state.step = step;
     void this.render({ force: true });
   }
@@ -990,17 +984,6 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
     // `event.currentTarget` is the application frame, not the button.
     const step = target.dataset.step as WizardStepId | undefined;
     if (!step) return;
-
-    const targetIdx = stepIndex(step);
-    const currentIdx = stepIndex(this.state.step);
-    if (targetIdx > currentIdx) {
-      const err = validateCurrentStep(this.state, this.#validationContext());
-      if (err) {
-        ui.notifications.warn(err);
-        return;
-      }
-    }
-
     this.#goToStep(step);
   }
 
@@ -1285,10 +1268,22 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
     void this.#finishWizard();
   }
 
+  #syncTrinketRollFromDom(): void {
+    const input = this.#rootElement()?.querySelector<HTMLInputElement>(
+      "input.wastelander-trinket-input",
+    );
+    if (!input?.value.trim()) return;
+    const raw = Number(input.value);
+    if (!Number.isFinite(raw)) return;
+    this.state.trinketRoll = Math.max(1, Math.min(20, Math.trunc(raw)));
+  }
+
   async #finishWizard(): Promise<void> {
     if (!this.#skillsCache.length) {
       this.#skillsCache = await listSkillsFromCompendium();
     }
+
+    this.#syncTrinketRollFromDom();
 
     const context = this.#validationContext();
     const err = validateAllWizardSteps(this.state, context);

@@ -36,13 +36,23 @@ const EQUIPMENT_NAME_ALIASES: Record<string, string> = {
   "hunting rifle": "Hunting Rifle",
   "bolt-action pipe gun": "Pipe Bolt-Action",
   "heavy bolt-action pipe rifle": "Pipe Bolt-Action",
-  "pipe gun": "Pipe Gun",
-  "pipe rifle": "Pipe Rifle",
+  "pipe gun": "Pipe Revolver",
+  "pipe rifle": "Pipe Revolver",
   ".38 round": ".38 Round",
   ".38 ammunition": ".38 Round",
   "10mm ammunition": "10mm Round",
   ".308 ammunition": ".308 Round",
   "flamer fuel": "Flamer Fuel",
+  "raider armor torso": "Sturdy Raider Chest Piece",
+  "raider armor chest piece": "Sturdy Raider Chest Piece",
+  "raider armor for one leg": "Sturdy Raider Left Leg",
+  "raider armor for one arm": "Sturdy Raider Left Arm",
+  "sturdy raider leg": "Sturdy Raider Left Leg",
+  "sturdy raider arm": "Sturdy Raider Left Arm",
+  "baseball bat": "Baseball Bat",
+  "lead pipe": "Lead Pipe",
+  "pool cue": "Pool Cue",
+  "tire iron": "Tire Iron",
 };
 
 export interface CompendiumItemIndexEntry {
@@ -122,6 +132,10 @@ function pickPreferredMatch(
   }
   const armor = matches.find((m) => m.type === "robot_armor");
   if (armor && matches.length > 1) return armor;
+  if (/baseball\s+bat/i.test(lower) && !/aluminum/i.test(lower)) {
+    const plainBat = matches.find((m) => m.name.toLowerCase() === "baseball bat");
+    if (plainBat) return plainBat;
+  }
   return matches[0]!;
 }
 

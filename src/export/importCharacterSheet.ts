@@ -1,6 +1,7 @@
 import { t, registerTranslations } from "../integrations/i18n.js";
 import { resolveActor } from "../integrations/falloutActor.js";
 import { applyPdfSnapshotToActor } from "./applyPdfSnapshotToActor.js";
+import { applyRobotPdfSnapshotToActor } from "./applyRobotPdfSnapshotToActor.js";
 import {
   countSnapshotFields,
   parseCharacterSheetPdf,
@@ -49,11 +50,6 @@ function confirmPdfImport(actorName: string): Promise<boolean> {
 export async function importActorCharacterSheet(actor: Actor): Promise<void> {
   registerTranslations();
 
-  if (actor.type === "robot") {
-    ui.notifications.warn(t("ActorSheet.Import.RobotNotSupported"));
-    return;
-  }
-
   let file: File;
   try {
     file = await promptPdfUpload();
@@ -78,7 +74,11 @@ export async function importActorCharacterSheet(actor: Actor): Promise<void> {
       ui.notifications.error(t("ActorSheet.Import.NoFormFields"));
       return;
     }
-    const result = await applyPdfSnapshotToActor(resolveActor(actor), snapshot);
+    const resolved = resolveActor(actor);
+    const result =
+      actor.type === "robot"
+        ? await applyRobotPdfSnapshotToActor(resolved, snapshot)
+        : await applyPdfSnapshotToActor(resolved, snapshot);
 
     const summary =
       result.applied.length > 0

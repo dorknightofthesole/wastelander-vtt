@@ -43,6 +43,7 @@ import {
 import { rollAssistPerSurvival, rollPerSurvivalSearch } from "./searchSkillRoll.js";
 import { postLuckLootFindChat, presentScavengerRoll } from "./scavengerRollChat.js";
 import { formatLootCategoryLabel } from "./lootGrid.js";
+import { applySearchTimeToWorldClock } from "./searchWorldClock.js";
 import { t } from "../integrations/i18n.js";
 
 export type PlayerSearchSocketAction =
@@ -206,16 +207,25 @@ async function executePlayerSearchActionInner(
     if ("error" in loaded) return { ok: false, error: loaded.error };
     const { state, location } = loaded;
 
+    const previousSearch = normalizePlayerSearch(state.playerSearch);
     let playerSearch: ScavengerPlayerSearchState | undefined;
     if (data.outcome === "reset") {
       playerSearch = undefined;
     } else if (data.outcome === "success") {
-      playerSearch = initPlayerSearchOnSuccess(location);
+      playerSearch = await applySearchTimeToWorldClock(
+        location,
+        initPlayerSearchOnSuccess(location),
+        { alreadyAdvanced: previousSearch?.searchTimeAdvanced },
+      );
     } else {
-      playerSearch = {
-        ...emptyPlayerSearchState(),
-        searchSuccess: false,
-      };
+      playerSearch = await applySearchTimeToWorldClock(
+        location,
+        {
+          ...emptyPlayerSearchState(),
+          searchSuccess: false,
+        },
+        { alreadyAdvanced: previousSearch?.searchTimeAdvanced },
+      );
     }
 
     const next = await persistPlayerSearch(state, playerSearch);
@@ -356,6 +366,8 @@ async function executePlayerSearchActionInner(
         updatedAt: Date.now(),
       };
     }
+
+    playerSearch = await applySearchTimeToWorldClock(location, playerSearch);
 
     const next = await persistPlayerSearch(state, playerSearch);
     return { ok: true, state: next };

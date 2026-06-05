@@ -2,18 +2,17 @@
   <nav class="wastelander-sidebar" aria-label="Creation steps">
     <ol class="wastelander-step-list">
       {{#each steps}}
-      <li class="wastelander-step-item {{#if active}}active{{/if}} {{#if completed}}completed{{/if}}">
-        {{#if clickable}}
-        <button type="button" class="wastelander-step-button" data-action="goStep" data-step="{{id}}">
+      <li class="wastelander-step-item {{#if active}}active{{/if}} {{#if completed}}completed{{/if}} {{#if incomplete}}is-incomplete{{/if}} {{#if peek}}is-peek{{/if}}">
+        <button
+          type="button"
+          class="wastelander-step-button"
+          data-action="goStep"
+          data-step="{{id}}"
+          {{#if peek}}title="{{peekTitle}}"{{/if}}
+        >
           <span class="wastelander-step-index">{{number}}</span>
           <span class="wastelander-step-label">{{{label}}}</span>
         </button>
-        {{else}}
-        <span class="wastelander-step-button disabled">
-          <span class="wastelander-step-index">{{number}}</span>
-          <span class="wastelander-step-label">{{{label}}}</span>
-        </span>
-        {{/if}}
       </li>
       {{/each}}
     </ol>

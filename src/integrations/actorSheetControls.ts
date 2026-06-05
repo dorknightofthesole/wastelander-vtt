@@ -1,5 +1,4 @@
 import { MODULE_PATH } from "../constants.js";
-import { isWizardCreationComplete } from "./actorFlags.js";
 import {
   exportActorCharacterSheet,
   notifyPdfTemplateMissing,
@@ -27,6 +26,11 @@ function actorFromSheetApp(app: {
 function shouldShowForActor(actor: Actor | undefined): actor is Actor {
   if (!actor || !isFalloutWizardActor(actor)) return false;
   return actor.isOwner;
+}
+
+/** Parse PDF uploads a filled sheet; does not require the module export template. */
+function isParsePdfEnabled(_actor: Actor): boolean {
+  return true;
 }
 
 function openBuildWizard(actor: Actor): void {
@@ -83,10 +87,11 @@ async function openPortalMenu(anchor: HTMLElement, actor: Actor): Promise<void> 
   const exportDisabledClass = exportAvailable
     ? ""
     : " wastelander-sheet-dropdown-item--disabled";
-  const parseDisabled = actor.type === "robot" ? " disabled" : "";
-  const parseDisabledClass =
-    actor.type === "robot" ? " wastelander-sheet-dropdown-item--disabled" : "";
-
+  const parseEnabled = isParsePdfEnabled(actor);
+  const parseDisabledAttr = parseEnabled ? "" : " disabled";
+  const parseDisabledClass = parseEnabled
+    ? ""
+    : " wastelander-sheet-dropdown-item--disabled";
   const menu = document.createElement("nav");
   menu.id = PORTAL_ID;
   menu.className = "wastelander-sheet-dropdown-portal";
@@ -100,7 +105,7 @@ async function openPortalMenu(anchor: HTMLElement, actor: Actor): Promise<void> 
       <i class="fas fa-file-pdf" aria-hidden="true"></i>
       <span>${exportLabel}</span>
     </button>
-    <button type="button" class="wastelander-sheet-dropdown-item${parseDisabledClass}" data-action="parse-pdf" role="menuitem"${parseDisabled}>
+    <button type="button" class="wastelander-sheet-dropdown-item${parseDisabledClass}" data-action="parse-pdf" role="menuitem"${parseDisabledAttr}>
       <i class="fas fa-file-upload" aria-hidden="true"></i>
       <span>${parseLabel}</span>
     </button>
@@ -138,8 +143,10 @@ async function openPortalMenu(anchor: HTMLElement, actor: Actor): Promise<void> 
       return;
     }
     if (action === "parse-pdf") {
-      if (actor.type === "robot") {
-        ui.notifications.warn(t("ActorSheet.Import.RobotNotSupported"));
+      if (
+        target.hasAttribute("disabled") ||
+        target.classList.contains("wastelander-sheet-dropdown-item--disabled")
+      ) {
         return;
       }
       void runParse(actor);

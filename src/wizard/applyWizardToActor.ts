@@ -26,6 +26,10 @@ import {
   rollFalloutAmmoQuantity,
 } from "./ammoQuantity.js";
 import {
+  buildPersonalTrinketItem,
+  getCustomStartingGear,
+} from "./customStartingGear.js";
+import {
   getEquipmentPack,
   getTagSkillLootApplyEntries,
   grantToLine,
@@ -177,6 +181,40 @@ async function addShotsToOwnedAmmo(
   await Item.implementation.updateDocuments(updates, { parent, ...SILENT });
 }
 
+async function addEmbeddedGearItem(
+  actorId: string,
+  data: {
+    name: string;
+    type: string;
+    img: string;
+    system: Record<string, unknown>;
+    flags?: Record<string, Record<string, unknown>>;
+  },
+): Promise<void> {
+  const parent = getWorldActor(actorId);
+  const created = await Item.implementation.createDocuments([data], {
+    parent,
+    ...SILENT,
+  });
+  if (!created.length) {
+    throw new Error(`Failed to create gear item "${data.name}".`);
+  }
+}
+
+async function addPersonalTrinketToActor(
+  actorId: string,
+  d20: number,
+): Promise<void> {
+  const parent = getWorldActor(actorId);
+  const existing = parent.items.find(
+    (item) => item.getFlag(MODULE_ID, "personalTrinket") === true,
+  );
+  if (existing) return;
+
+  const text = rollTrinket(d20);
+  await addEmbeddedGearItem(actorId, buildPersonalTrinketItem(text));
+}
+
 async function addEquipmentLineToActor(
   actorId: string,
   line: string | ResolvedEquipmentLine,
@@ -187,6 +225,11 @@ async function addEquipmentLineToActor(
     typeof line === "string" ? { text: line } : line;
   let caps = parseCapsFromText(resolved.text);
   const enriched = enrichEquipmentLine(resolved, index);
+  if (!enriched.compendiumUuid && !/^\d+\s*caps?$/i.test(resolved.text.trim())) {
+    console.warn(
+      `[Wastelander] No compendium match for starting gear: "${resolved.text}"`,
+    );
+  }
   if (enriched.compendiumUuid) {
     const source = await getCompendiumItem(enriched.compendiumUuid);
     const systemOverrides = await ammoSystemOverrides(
@@ -201,6 +244,14 @@ async function addEquipmentLineToActor(
     });
     return caps;
   }
+
+  const customName = resolved.compendiumName ?? resolved.text.trim();
+  const customGear = getCustomStartingGear(customName);
+  if (customGear) {
+    await addEmbeddedGearItem(actorId, customGear);
+    return caps;
+  }
+
   const diceMatch = resolved.text.match(/(\d+d\d+)/i);
   if (diceMatch && /caps/i.test(resolved.text)) {
     caps += await evaluateFalloutRoll(diceMatch[1]!, {
@@ -405,11 +456,11 @@ export async function applyWizardToActor(
             ? ROBOT_ARM_WEAPON_AMMO_SHOTS
             : undefined,
       });
-      if (pack.hasTrinket && state.trinketRoll !== null) {
-        lines.push({ text: rollTrinket(state.trinketRoll) });
-      }
       for (const line of lines) {
         bonusCaps += await addEquipmentLineToActor(actorId, line, index);
+      }
+      if (pack.hasTrinket && state.trinketRoll != null) {
+        await addPersonalTrinketToActor(actorId, state.trinketRoll);
       }
     }
 

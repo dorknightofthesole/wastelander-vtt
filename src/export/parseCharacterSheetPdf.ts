@@ -83,3 +83,6 @@ export function snapshotHasFormValues(snapshot: ActorPdfSnapshot): boolean {
 export function countSnapshotFields(snapshot: ActorPdfSnapshot): number {
   return Object.keys(snapshot.text).length + Object.keys(snapshot.checks).length;
 }
+
+/** Robot v002 sheets use the same AcroForm field names as the human sheet. */
+export { parseCharacterSheetPdf as parseRobotCharacterSheetPdf };
