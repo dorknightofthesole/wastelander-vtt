@@ -105,7 +105,7 @@ Player actions are validated on the GM client over Foundry’s socket so players
 
 ## Denizen import
 
-Wastelander does **not** redistribute rulebook NPC actors. It provides an import workflow so you can bring your own Foundry actor exports into the world and use them with scavenging.
+Wastelander does **not** redistribute rulebook NPC actors. It provides an import workflow so you can bring your own Foundry actor exports into the world.
 
 ### Provide actor JSON
 
