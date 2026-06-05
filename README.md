@@ -4,6 +4,14 @@ A Foundry VTT module for **[Fallout: The Roleplaying Game](https://github.com/Mu
 
 **Requires:** [Fallout 2d20 system](https://github.com/Muttley/foundryvtt-fallout) · Foundry VTT v13+
 
+---
+
+This community contributed and maintained module for playing Fallout: The Roleplaying Game with the Foundry VTT virtual tabletop software.
+
+All copyright assets included in the module are owned by Modiphius Entertainment. The module developers hold no claims to these underlying copyrighted assets.
+
+---
+
 ## Installation
 
 1. Install the module in Foundry (manifest URL in `module.json`).
