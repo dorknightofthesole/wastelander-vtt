@@ -1,0 +1,12 @@
+<div class="fallout-chat-message wastelander-roll-chat wastelander-luck-loot-chat">
+  <div class="content">
+    <h2>{{label}}</h2>
+    <p class="wastelander-luck-loot-message">{{message}}</p>
+    {{#if hasCategory}}
+      <p><strong>{{strings.category}}:</strong> {{categoryLabel}}</p>
+    {{/if}}
+    {{#if hasRollSum}}
+      <p><strong>{{strings.rollSum}}:</strong> {{rollSum}}</p>
+    {{/if}}
+  </div>
+</div>

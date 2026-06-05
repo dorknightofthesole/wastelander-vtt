@@ -1,0 +1,19 @@
+{
+  "tables": {
+    "ammunition": { "names": ["Ammunition"] },
+    "armor": { "names": ["Armor"] },
+    "clothing": { "names": ["Clothing"] },
+    "food": { "names": ["Food"] },
+    "beverages": { "names": ["Beverages"] },
+    "chems": { "names": ["Chems"] },
+    "oddities": { "names": ["Oddities and Valuables"] },
+    "weaponsRanged": { "names": ["Weapons (Ranged)"] },
+    "weaponsMelee": { "names": ["Weapons (Melee)"] },
+    "weaponsThrown": {
+      "names": ["Weapons (Thrown/Explosives)", "Weapons (Thrown)"]
+    },
+    "otherFoundItems": {
+      "names": ["Other Found Items", "'Other' Found Items"]
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "Athletics": "Lifting, pushing, pulling, jumping, running, and swimming",
+  "Barter": "Buying and selling",
+  "Big Guns": "Using heavy weapons such as miniguns, Fat Mans, gatling lasers, and gauss weapons",
+  "Energy Weapons": "Using energy weapons such as laser guns, plasma guns, and gauss weapons",
+  "Explosives": "Blowing things up, or stopping them from doing that",
+  "Lockpick": "Opening locks without the key",
+  "Medicine": "Healing people and stabilizing the dying",
+  "Melee Weapons": "Fighting people with bats, clubs, knives, boards, wrenches, and sledges",
+  "Pilot": "Flying and driving",
+  "Repair": "Fixing stuff, crafting things, and building machines",
+  "Science": "Hacking, programming, and brewing chems",
+  "Small Guns": "Shooting people with pistols, rifles, and shotguns",
+  "Sneak": "Moving quietly and staying hidden",
+  "Speech": "Making friends, influencing people, and lying to them if you have to",
+  "Survival": "Foraging, hunting, cooking, and enduring the wastes",
+  "Throwing": "Launching weapons from your hands, like spears or knives",
+  "Unarmed": "Fighting without a weapon by making unarmed attacks"
+}

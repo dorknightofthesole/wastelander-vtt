@@ -1,0 +1,2914 @@
+/* Wastelander wizard — Pip-Boy phosphor palette (mock reference) */
+
+.wastelander-wizard {
+  --wstl-bg: #080a05;
+  --wstl-bg-panel: #0b0d07;
+  --wstl-accent-rgb: 212, 224, 74;
+  --wstl-amber: #d4e04a;
+  --wstl-amber-dim: #a4b44a;
+  --wstl-amber-muted: #5c6238;
+  --wstl-amber-bright: #e8f060;
+  --wstl-amber-glow: rgba(212, 224, 74, 0.42);
+  --wstl-text: #d4e04a;
+  /* Slightly lighter than primary — met / selectable perks */
+  --wstl-text-readable: #eaf062;
+  /* Slightly darker than primary — only tier below main body text */
+  --wstl-text-muted: #c0ce46;
+  --wstl-text-dim: var(--wstl-text-muted);
+  --wstl-text-faint: var(--wstl-text-muted);
+  --wstl-border: #8fa04e;
+  --wstl-btn-text: #0a0c02;
+  --wstl-danger: #e86b4a;
+  --wstl-radioactive: #d9ff47;
+  --wstl-radioactive-glow: rgba(217, 255, 71, 0.55);
+  --wstl-special-initial: lightyellow;
+  --wstl-origin-icon-tint: rgba(217, 255, 71, 0.38);
+  --wstl-origin-icon-tint-selected: rgba(212, 224, 74, 0.48);
+  --wstl-scanline: rgba(0, 0, 0, 0.34);
+  --wstl-font: "Roboto Mono", "Consolas", "Courier New", monospace;
+  --wstl-btn-font-size: 13px;
+  --wstl-btn-size: 2rem;
+  --wstl-btn-padding-inline: 0.75rem;
+  /* Tag ★ and perk × glyphs inside square toggle buttons */
+  --wstl-toggle-mark-size: 1.25rem;
+}
+
+.wastelander-wizard .window-content {
+  position: relative;
+  padding: 0;
+  background: var(--wstl-bg);
+  overflow: hidden;
+  box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.55);
+}
+
+.wastelander-wizard .window-content::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    var(--wstl-scanline) 2px,
+    var(--wstl-scanline) 4px
+  );
+  opacity: 0.38;
+}
+
+.wastelander-wizard .window-header {
+  background: var(--wstl-bg);
+  border-bottom: 1px solid var(--wstl-amber-muted);
+  color: var(--wstl-text);
+  font-family: var(--wstl-font);
+}
+
+.wastelander-wizard-layout {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-height: 720px;
+  font-family: var(--wstl-font);
+  font-size: 16px;
+  color: var(--wstl-text);
+  background: var(--wstl-bg);
+}
+
+.wastelander-wizard-layout button {
+  box-sizing: border-box;
+  font-family: var(--wstl-font);
+}
+
+/* Shared control buttons (footer, steppers, toggles, actions) */
+.wastelander-special-step,
+.wastelander-skill-step,
+.wastelander-skill-tag,
+.wastelander-perk-check,
+.wastelander-special-reset,
+.wastelander-skills-reset,
+.wastelander-survivor-mode-btn,
+.wastelander-equipment-roll-trinket,
+.wastelander-equipment-choice-btn,
+.wastelander-compendium-open,
+.wastelander-footer button {
+  margin: 0;
+  font-size: var(--wstl-btn-font-size);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  appearance: none;
+  cursor: pointer;
+}
+
+.wastelander-special-step,
+.wastelander-skill-step,
+.wastelander-skill-tag,
+.wastelander-perk-check,
+.wastelander-compendium-open {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--wstl-btn-size);
+  height: var(--wstl-btn-size);
+  min-width: var(--wstl-btn-size);
+  min-height: var(--wstl-btn-size);
+  padding: 0;
+}
+
+.wastelander-toggle-mark {
+  font-size: var(--wstl-toggle-mark-size);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.wastelander-special-reset,
+.wastelander-skills-reset,
+.wastelander-survivor-mode-btn,
+.wastelander-equipment-roll-trinket,
+.wastelander-equipment-choice-btn,
+.wastelander-btn-back,
+.wastelander-btn-next {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--wstl-btn-size);
+  height: var(--wstl-btn-size);
+  padding: 0 var(--wstl-btn-padding-inline);
+}
+
+/* ---- Sidebar ---- */
+
+.wastelander-sidebar {
+  position: relative;
+  flex: 0 0 190px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  border-right: 1px solid var(--wstl-amber-muted);
+  background: var(--wstl-bg-panel);
+  padding: 0.4rem 0 2.75rem;
+}
+
+.wastelander-step-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 0.25rem 0 0.35rem;
+  flex: 1;
+  width: 100%;
+  text-align: left;
+}
+
+.wastelander-step-item {
+  margin: 0 0 0.35rem;
+}
+
+.wastelander-step-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.3rem;
+  width: 100%;
+  margin: 0;
+  padding: 0.35rem 0.2rem 0.35rem 0.2rem;
+  border: 3px double transparent;
+  border-right: none;
+  box-sizing: border-box;
+  background: transparent;
+  color: var(--wstl-text-muted);
+  font-size: var(--wstl-btn-font-size);
+  font-weight: 700;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition:
+    color 0.12s,
+    border-color 0.12s,
+    background 0.12s;
+}
+
+.wastelander-step-button:hover:not(.disabled) {
+  color: var(--wstl-text);
+  background: rgba(var(--wstl-accent-rgb), 0.04);
+}
+
+.wastelander-step-item.active .wastelander-step-button {
+  color: var(--wstl-text);
+  border: 3px double var(--wstl-amber);
+  border-right: none;
+  background: rgba(var(--wstl-accent-rgb), 0.08);
+  text-shadow: 0 0 8px var(--wstl-amber-glow);
+  box-shadow: inset 0 0 18px rgba(var(--wstl-accent-rgb), 0.06);
+}
+
+.wastelander-step-item.active .wastelander-step-button::after {
+  content: "";
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  width: 0;
+  height: 0;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-left: 8px solid var(--wstl-amber);
+  transform: translateY(-50%);
+  z-index: 2;
+}
+
+.wastelander-step-item.completed .wastelander-step-index {
+  box-shadow: inset 0 0 0 1px var(--wstl-amber-dim);
+}
+
+.wastelander-step-item.is-incomplete:not(.active) .wastelander-step-button {
+  opacity: 0.88;
+}
+
+.wastelander-step-item.is-peek:not(.active) .wastelander-step-label {
+  font-style: italic;
+}
+
+.wastelander-step-item.is-peek:not(.active) .wastelander-step-index {
+  border: 1px dashed var(--color-border-light-tertiary, #666);
+  border-radius: 50%;
+  line-height: 1.35rem;
+}
+
+.wastelander-step-index {
+  flex: 0 0 1.2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 1.2rem;
+  border: 1px solid var(--wstl-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.wastelander-step-item.active .wastelander-step-index {
+  border-color: var(--wstl-text);
+  color: var(--wstl-text);
+}
+
+.wastelander-step-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wastelander-step-button.disabled {
+  cursor: default;
+  color: var(--wstl-text-muted);
+  opacity: 0.65;
+}
+
+.wastelander-sidebar-watermark {
+  position: absolute;
+  left: 50%;
+  bottom: 0.5rem;
+  transform: translateX(-50%);
+  pointer-events: none;
+  opacity: 0.12;
+  color: var(--wstl-text);
+  font-size: 6.25rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 4px var(--wstl-amber-glow));
+}
+
+/* ---- Main panel ---- */
+
+.wastelander-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--wstl-bg);
+}
+
+.wastelander-step-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  align-items: start;
+  gap: 0.35rem 1rem;
+  padding: 0.85rem 1.1rem 0.65rem;
+  border-bottom: 1px solid var(--wstl-amber-muted);
+}
+
+.wastelander-step-header h2 {
+  grid-column: 1;
+  grid-row: 1;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--wstl-text);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px var(--wstl-amber-glow);
+}
+
+.wastelander-actor-chip {
+  grid-column: 2;
+  grid-row: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0.45rem;
+  border: 1px solid var(--wstl-amber-muted);
+  color: var(--wstl-text-muted);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  justify-self: end;
+}
+
+.wastelander-actor-chip .fa-pen {
+  font-size: 11px;
+  opacity: 0.85;
+}
+
+.wastelander-validation {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  margin: 0;
+  color: lightyellow;
+  font-size: 14px;
+  font-weight: 600;
+  min-height: 1.25rem; /* reserve space so layout doesn't jump */
+  display: flex;
+  align-items: center;
+  text-shadow:
+    0 0 8px var(--wstl-radioactive-glow),
+    0 0 16px rgba(217, 255, 71, 0.25);
+}
+
+.wastelander-validation.is-empty {
+  visibility: hidden; /* keeps height, hides text */
+}
+
+.wastelander-step-content {
+  flex: 1;
+  overflow: auto;
+  overflow-anchor: none;
+  padding: 0.85rem 1rem 0.5rem;
+}
+
+.wastelander-step-content.is-perks-step {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ---- Origin step ---- */
+
+.wastelander-origin-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  height: 100%;
+}
+
+.wastelander-origin-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem;
+  max-width: 52rem;
+}
+
+.wastelander-origin-card {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  min-height: 3.35rem;
+  margin: 0;
+  padding: 0.35rem 0.5rem 0.35rem 0.4rem;
+  text-align: left;
+  background: rgba(0, 0, 0, 0.35);
+  border: 2px double var(--wstl-amber-muted);
+  color: var(--wstl-text);
+  font: inherit;
+  line-height: 1.35;
+  cursor: pointer;
+  appearance: none;
+  position: relative;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s,
+    background 0.15s;
+}
+
+.wastelander-origin-art {
+  position: relative;
+  flex: 0 0 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  width: 3rem;
+  min-height: 2.75rem;
+  padding: 0.15rem;
+  border: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(var(--wstl-accent-rgb), 0.04) 0%,
+    rgba(0, 0, 0, 0.15) 100%
+  );
+}
+
+/* Phosphor tint on top of icon — preserves grayscale shading (no brightness(0)) */
+.wastelander-origin-art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: var(--wstl-origin-icon-tint);
+  mix-blend-mode: color;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.wastelander-origin-art .wastelander-origin-icon {
+  position: relative;
+  z-index: 1;
+  height: 2.35rem;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  opacity: 0.9;
+  filter: sepia(0.42) saturate(2.4) hue-rotate(18deg) brightness(1.08)
+    drop-shadow(0 0 6px rgba(217, 255, 71, 0.38));
+}
+
+.wastelander-origin-card:hover:not(.is-disabled) {
+  border-color: rgba(var(--wstl-accent-rgb), 0.45);
+  background: rgba(var(--wstl-accent-rgb), 0.03);
+}
+
+.wastelander-origin-card.selected {
+  border: 2px double var(--wstl-amber);
+  background: rgba(var(--wstl-accent-rgb), 0.06);
+  box-shadow:
+    0 0 0 1px rgba(var(--wstl-accent-rgb), 0.2),
+    0 0 14px var(--wstl-amber-glow),
+    inset 0 0 20px rgba(var(--wstl-accent-rgb), 0.04);
+}
+
+.wastelander-origin-card.selected .wastelander-origin-art::after {
+  background: var(--wstl-origin-icon-tint-selected);
+  opacity: 0.62;
+}
+
+.wastelander-origin-card.selected .wastelander-origin-art .wastelander-origin-icon {
+  opacity: 0.95;
+  filter: sepia(0.5) saturate(2.8) hue-rotate(18deg) brightness(1.1)
+    drop-shadow(0 0 9px rgba(217, 255, 71, 0.48));
+}
+
+.wastelander-origin-card.is-disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+  border-style: dashed;
+}
+
+.wastelander-origin-card.is-disabled:hover {
+  background: rgba(0, 0, 0, 0.28);
+  border-color: rgba(var(--wstl-accent-rgb), 0.22);
+}
+
+.wastelander-origin-card .wastelander-origin-title {
+  position: static;
+  float: none;
+  transform: none;
+}
+
+.wastelander-origin-badge {
+  position: absolute;
+  top: 0.1rem;
+  right: 0.1rem;
+  padding: 0.1rem 0.35rem;
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.25);
+  color: var(--wstl-text-muted);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.wastelander-origin-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  padding: 0 0.25rem 0 0;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.32;
+  color: var(--wstl-text);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  align-self: center;
+}
+
+.wastelander-origin-card:is(:hover, :focus-visible) .wastelander-origin-title {
+  color: var(--wstl-text);
+}
+
+/* ---- Detail panel (below cards) ---- */
+
+.wastelander-detail-panel {
+  flex: 1;
+  min-height: 8rem;
+}
+
+/* ---- SPECIAL step ---- */
+
+.wastelander-special-layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 0.9rem;
+  align-items: start;
+}
+
+.wastelander-special-instructions {
+  margin: 0 0 0.5rem;
+  color: var(--wstl-text);
+  line-height: 1.4;
+}
+
+.wastelander-special-points {
+  margin: 0 0 0.65rem;
+  color: lightyellow;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.wastelander-special-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.wastelander-special-row {
+  display: grid;
+  grid-template-columns: 1fr 132px;
+  gap: 0.6rem;
+  padding: 0.45rem 0.5rem;
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.18);
+  background: rgba(var(--wstl-accent-rgb), 0.02);
+}
+
+.wastelander-special-row.is-active {
+  border-color: rgba(var(--wstl-accent-rgb), 0.45);
+  background: rgba(var(--wstl-accent-rgb), 0.05);
+}
+
+.wastelander-special-meta {
+  display: block;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.wastelander-special-name {
+  color: var(--wstl-text);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.15rem;
+}
+
+.wastelander-special-initial {
+  font-size: 23px;
+  line-height: 1;
+  margin-right: 1px;
+  color: var(--wstl-special-initial);
+}
+
+.wastelander-special-rest {
+  font-size: 15px;
+}
+
+.wastelander-special-blurb {
+  color: var(--wstl-text-muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.wastelander-special-controls {
+  display: grid;
+  grid-template-columns: var(--wstl-btn-size) 1fr var(--wstl-btn-size);
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.wastelander-special-step {
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.35);
+  background: transparent;
+  color: var(--wstl-text);
+}
+
+.wastelander-special-step:hover:not(:disabled) {
+  border-color: var(--wstl-amber-dim);
+  background: rgba(var(--wstl-accent-rgb), 0.03);
+}
+
+.wastelander-special-input {
+  height: var(--wstl-btn-size);
+  width: 100%;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.35);
+  color: var(--wstl-text);
+  font-family: var(--wstl-font);
+  font-size: var(--wstl-btn-font-size);
+  font-weight: 700;
+}
+
+.wastelander-special-right {
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.18);
+  background: rgba(var(--wstl-accent-rgb), 0.02);
+  padding: 0.6rem 0.6rem 0.5rem;
+  max-height: 520px;
+  overflow: auto;
+}
+
+.wastelander-special-side-section {
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(var(--wstl-accent-rgb), 0.14);
+}
+
+.wastelander-special-side-section:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.wastelander-special-side-title {
+  margin: 0 0 0.45rem;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--wstl-text-readable);
+}
+
+.wastelander-special-skill-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wastelander-special-skill-item {
+  padding: 0.22rem 0.15rem;
+  color: var(--wstl-text);
+  font-size: 13px;
+  line-height: 1.35;
+  border-bottom: 1px solid rgba(var(--wstl-accent-rgb), 0.08);
+}
+
+.wastelander-special-skill-item:last-child {
+  border-bottom: 0;
+}
+
+.wastelander-special-side-empty {
+  margin: 0;
+  padding: 0.2rem 0.1rem;
+  color: var(--wstl-text-muted);
+  font-size: 12px;
+  font-style: italic;
+  line-height: 1.35;
+}
+
+.wastelander-perk-req {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.28rem 0.25rem;
+  border-bottom: 1px solid rgba(var(--wstl-accent-rgb), 0.12);
+  color: var(--wstl-text);
+}
+
+.wastelander-perk-req.is-met {
+  color: var(--wstl-text-readable);
+}
+
+.wastelander-perk-req.is-unmet {
+  color: var(--wstl-text-muted);
+  opacity: 0.72;
+}
+
+.wastelander-perk-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wastelander-perk-need {
+  flex: 0 0 auto;
+  color: var(--wstl-text);
+  font-weight: 800;
+}
+
+.wastelander-special-actions {
+  padding-top: 0.75rem;
+}
+
+.wastelander-special-reset {
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.35);
+  background: transparent;
+  color: var(--wstl-text-muted);
+  text-transform: uppercase;
+}
+
+.wastelander-special-reset:hover {
+  border-color: var(--wstl-text-muted);
+  background: rgba(var(--wstl-accent-rgb), 0.03);
+  color: var(--wstl-text);
+}
+
+/* ---- Skills step ---- */
+
+.wastelander-skills-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 520px;
+}
+
+.wastelander-skills-summary {
+  flex: 0 0 auto;
+}
+
+.wastelander-skills-instructions {
+  margin: 0 0 0.45rem;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--wstl-text);
+}
+
+.wastelander-skills-counters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 0.35rem;
+}
+
+.wastelander-skills-counter {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: lightyellow;
+}
+
+.wastelander-skills-rules {
+  margin: 0.25rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--wstl-text);
+}
+
+.wastelander-skills-table {
+  flex: 1 1 auto;
+  overflow: auto;
+  overflow-anchor: none;
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.18);
+  background: rgba(var(--wstl-accent-rgb), 0.02);
+}
+
+.wastelander-skills-header,
+.wastelander-skill-row {
+  display: grid;
+  grid-template-columns: var(--wstl-btn-size) minmax(6.5rem, auto) 1fr 3rem 7.5rem;
+  gap: 0.35rem 0.5rem;
+  align-items: start;
+  padding: 0.35rem 0.5rem;
+  border-bottom: 1px solid rgba(var(--wstl-accent-rgb), 0.12);
+}
+
+.wastelander-skills-header {
+  align-items: center;
+}
+
+.wastelander-skills-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--wstl-bg-panel);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--wstl-text);
+}
+
+.wastelander-skill-row.is-tagged {
+  background: rgba(var(--wstl-accent-rgb), 0.04);
+}
+
+.wastelander-skills-col-name {
+  color: var(--wstl-text);
+  font-size: 13px;
+  line-height: 1.3;
+  padding-top: 0.1rem;
+}
+
+.wastelander-skill-row.is-tagged .wastelander-skills-col-name {
+  color: var(--wstl-text);
+  font-weight: 600;
+}
+
+.wastelander-skills-col-summary {
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--wstl-text-muted);
+  padding-top: 0.15rem;
+}
+
+.wastelander-skills-col-attr {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--wstl-text);
+  text-align: center;
+  padding-top: 0.2rem;
+}
+
+.wastelander-skills-col-rank {
+  display: grid;
+  grid-template-columns: var(--wstl-btn-size) 1fr var(--wstl-btn-size);
+  gap: 0.25rem;
+  align-items: center;
+  padding-top: 0.05rem;
+}
+
+.wastelander-skill-tag {
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.35);
+  background: transparent;
+  color: var(--wstl-text-muted);
+}
+
+.wastelander-skill-tag.is-on {
+  color: var(--wstl-text);
+  border-color: var(--wstl-amber-dim);
+  background: rgba(var(--wstl-accent-rgb), 0.08);
+}
+
+.wastelander-skill-tag.is-forced {
+  cursor: default;
+  opacity: 0.85;
+}
+
+.wastelander-skill-tag:disabled:not(.is-forced) {
+  color: var(--wstl-text-muted);
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.wastelander-skill-step {
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.35);
+  background: transparent;
+  color: var(--wstl-text);
+}
+
+.wastelander-skill-step:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.wastelander-skill-input {
+  height: var(--wstl-btn-size);
+  width: 100%;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.35);
+  color: var(--wstl-text);
+  font-family: var(--wstl-font);
+  font-size: var(--wstl-btn-font-size);
+  font-weight: 700;
+}
+
+.wastelander-skills-empty {
+  margin: 0;
+  padding: 1rem;
+  color: var(--wstl-text-muted);
+  font-style: italic;
+  text-align: center;
+}
+
+.wastelander-skills-actions {
+  flex: 0 0 auto;
+  padding-top: 0.25rem;
+}
+
+.wastelander-skills-reset {
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.35);
+  background: transparent;
+  color: var(--wstl-text-muted);
+  text-transform: uppercase;
+}
+
+.wastelander-skills-reset:hover {
+  border-color: var(--wstl-amber-dim);
+  background: rgba(var(--wstl-accent-rgb), 0.03);
+  color: var(--wstl-text);
+}
+
+/* ---- Survivor origin mode ---- */
+
+.wastelander-survivor-mode-row td {
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid rgba(var(--wstl-accent-rgb), 0.2);
+}
+
+.wastelander-survivor-mode {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.wastelander-survivor-mode-btn {
+  flex: 1 1 auto;
+  min-width: 8rem;
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.35);
+  background: transparent;
+  color: var(--wstl-text);
+  text-transform: uppercase;
+}
+
+.wastelander-survivor-mode-btn.is-active {
+  border-color: var(--wstl-amber);
+  background: rgba(var(--wstl-accent-rgb), 0.08);
+  color: var(--wstl-text);
+  font-weight: 700;
+}
+
+/* ---- Perks step ---- */
+
+.wastelander-perks-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.wastelander-perks-summary {
+  flex: 0 0 auto;
+}
+
+.wastelander-perks-instructions {
+  margin: 0 0 0.45rem;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--wstl-text);
+}
+
+.wastelander-perks-counter {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: lightyellow;
+}
+
+.wastelander-perks-rules {
+  margin: 0.35rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--wstl-text-muted);
+}
+
+.wastelander-perks-columns {
+  display: grid;
+  grid-template-columns: minmax(11rem, 34%) 1fr;
+  gap: 0.65rem;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.wastelander-perk-list {
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overflow-anchor: none;
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.18);
+  background: rgba(var(--wstl-accent-rgb), 0.02);
+}
+
+.wastelander-perk-row {
+  display: grid;
+  grid-template-columns: var(--wstl-btn-size) 1fr;
+  gap: 8px;
+  align-items: center;
+  border-bottom: 1px solid rgba(var(--wstl-accent-rgb), 0.12);
+}
+
+.wastelander-perk-row.is-focused {
+  background: rgba(var(--wstl-accent-rgb), 0.06);
+}
+
+.wastelander-perk-row.is-met .wastelander-perk-row-label {
+  color: var(--wstl-text-readable);
+}
+
+.wastelander-perk-row.is-met .wastelander-perk-check:not(:disabled) {
+  color: var(--wstl-text-readable);
+  border-color: rgba(var(--wstl-accent-rgb), 0.45);
+}
+
+.wastelander-perk-row.is-unmet .wastelander-perk-row-label {
+  color: var(--wstl-text-muted);
+  opacity: 0.82;
+}
+
+.wastelander-perk-row.is-chosen .wastelander-perk-row-label {
+  color: var(--wstl-text-readable);
+  font-weight: 700;
+}
+
+.wastelander-perk-check {
+  margin: 0.2rem 0 0.2rem 0.35rem;
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.35);
+  background: transparent;
+  color: var(--wstl-text-muted);
+}
+
+.wastelander-perk-check.is-on {
+  color: var(--wstl-text);
+  border-color: var(--wstl-amber-dim);
+  background: rgba(var(--wstl-accent-rgb), 0.12);
+}
+
+.wastelander-perk-check:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.wastelander-perk-row-label {
+  display: block;
+  width: 100%;
+  padding: 0.4rem 0.45rem 0.4rem 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: var(--wstl-text);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.3;
+  text-align: left;
+  cursor: pointer;
+}
+
+.wastelander-perk-row.is-met .wastelander-perk-row-label:hover {
+  color: var(--wstl-amber-bright);
+}
+
+.wastelander-perk-row.is-unmet .wastelander-perk-row-label:hover {
+  color: var(--wstl-text-muted);
+}
+
+.wastelander-perk-row.is-focused.is-met .wastelander-perk-row-label,
+.wastelander-perk-row.is-focused.is-chosen .wastelander-perk-row-label {
+  color: var(--wstl-amber-bright);
+}
+
+.wastelander-perk-detail {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.18);
+  background: rgba(var(--wstl-accent-rgb), 0.02);
+  padding: 0.65rem 0.75rem;
+}
+
+.wastelander-perk-detail-body,
+.wastelander-perk-detail-statblock {
+  min-height: 0;
+  overflow-y: auto;
+  overflow-anchor: none;
+}
+
+.wastelander-perk-detail-title {
+  margin: 0 0 0.5rem;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wstl-text);
+}
+
+.wastelander-perk-detail-req {
+  margin: 0 0 0.55rem;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--wstl-text);
+}
+
+.wastelander-perk-detail-req-label {
+  display: block;
+  margin-bottom: 0.15rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--wstl-text);
+  font-size: 11px;
+}
+
+.wastelander-perk-detail-unmet {
+  margin: 0 0 0.55rem;
+  padding-left: 1rem;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #e8a060;
+}
+
+.wastelander-perk-detail-unmet-heading {
+  list-style: none;
+  margin-left: -1rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.wastelander-perk-detail-body {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--wstl-text);
+}
+
+.wastelander-perk-detail-body :is(p, li) {
+  margin: 0.35rem 0;
+}
+
+.wastelander-perk-detail-statblock {
+  margin-top: 0.85rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid rgba(var(--wstl-accent-rgb), 0.2);
+}
+
+.wastelander-companion-statblock-title {
+  margin: 0 0 0.2rem;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wstl-text);
+}
+
+.wastelander-companion-statblock-subtitle {
+  margin: 0 0 0.5rem;
+  font-size: 12px;
+  color: var(--wstl-text-muted);
+  font-style: italic;
+}
+
+.wastelander-companion-table {
+  width: 100%;
+  margin: 0 0 0.45rem;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.wastelander-companion-table th {
+  padding: 0.2rem 0.35rem;
+  border-bottom: 1px solid rgba(var(--wstl-accent-rgb), 0.25);
+  color: var(--wstl-text);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.wastelander-companion-table td {
+  padding: 0.25rem 0.35rem;
+  border-bottom: 1px solid rgba(var(--wstl-accent-rgb), 0.1);
+  color: var(--wstl-text);
+  text-align: center;
+}
+
+.wastelander-companion-section {
+  margin: 0.5rem 0 0.25rem;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--wstl-text);
+}
+
+.wastelander-companion-list {
+  margin: 0 0 0.35rem;
+  padding-left: 1rem;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--wstl-text);
+}
+
+.wastelander-companion-list li {
+  margin: 0.2rem 0;
+}
+
+.wastelander-perk-detail-empty {
+  margin: 0;
+  padding: 1.5rem 0.5rem;
+  color: var(--wstl-text-muted);
+  font-style: italic;
+  text-align: center;
+}
+
+.wastelander-perks-empty {
+  margin: 0;
+  padding: 1rem;
+  color: var(--wstl-text-muted);
+  font-style: italic;
+  text-align: center;
+}
+
+/* ---- Equipment step ---- */
+
+.wastelander-equipment-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  min-height: 0;
+  flex: 1;
+}
+
+.wastelander-equipment-instructions,
+.wastelander-equipment-group-desc,
+.wastelander-equipment-resolved-origin {
+  margin: 0 0 0.35rem;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--wstl-text);
+}
+
+.wastelander-equipment-resolved-origin strong {
+  color: var(--wstl-text-readable);
+  font-weight: 700;
+}
+
+.wastelander-equipment-columns {
+  display: grid;
+  grid-template-columns: minmax(10rem, 32%) 1fr;
+  gap: 0.65rem;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 460px;
+}
+
+.wastelander-equipment-packs {
+  overflow: auto;
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.18);
+  background: rgba(var(--wstl-accent-rgb), 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.35rem;
+}
+
+.wastelander-equipment-pack-card {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.55rem;
+  margin: 0;
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.25);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.wastelander-equipment-pack-card:hover {
+  border-color: var(--wstl-amber-dim);
+  background: rgba(var(--wstl-accent-rgb), 0.04);
+}
+
+.wastelander-equipment-pack-card.selected {
+  border-color: var(--wstl-amber);
+  background: rgba(var(--wstl-accent-rgb), 0.08);
+}
+
+.wastelander-equipment-pack-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--wstl-text);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.3;
+}
+
+.wastelander-equipment-detail-tagline {
+  margin: -0.15rem 0 0.75rem;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--wstl-text-muted);
+  font-style: italic;
+}
+
+.wastelander-equipment-detail {
+  overflow: auto;
+  min-height: 0;
+}
+
+.wastelander-equipment-section-title {
+  margin: 0.65rem 0 0.35rem;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--wstl-text);
+}
+
+.wastelander-equipment-compendium-hint {
+  margin: 0 0 0.35rem;
+  font-size: 11px;
+  color: var(--wstl-text-muted);
+  font-style: italic;
+}
+
+.wastelander-equipment-item-list,
+.wastelander-equipment-tag-loot {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--wstl-text);
+}
+
+.wastelander-equipment-item-plain {
+  color: var(--wstl-text);
+}
+
+.wastelander-equipment-item-link {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--wstl-text);
+  font: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  text-align: left;
+  text-decoration: underline dotted rgba(var(--wstl-accent-rgb), 0.45);
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.wastelander-equipment-item-link:hover {
+  color: var(--wstl-text);
+}
+
+.wastelander-tag-glossary {
+  color: var(--wstl-text-readable);
+  font-weight: 600;
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: var(--wstl-amber-bright);
+  text-decoration-thickness: 2.5px;
+  text-underline-offset: 3px;
+  cursor: help;
+}
+
+.wastelander-tag-glossary:hover {
+  color: var(--wstl-amber-bright);
+  text-decoration-color: rgba(var(--wstl-accent-rgb), 0.95);
+}
+
+/* Tag glossary tooltips render in Foundry's global #tooltip element. */
+#tooltip.wastelander-tag-glossary-tooltip {
+  max-width: 22rem;
+}
+
+#tooltip.wastelander-tag-glossary-tooltip .wastelander-tag-glossary-tip {
+  margin: 0 0 0.65em;
+  text-indent: 1.25em;
+}
+
+#tooltip.wastelander-tag-glossary-tooltip .wastelander-tag-glossary-tip:last-child {
+  margin-bottom: 0;
+}
+
+.wastelander-pip-boy-glossary {
+  color: var(--wstl-text-readable);
+  font-weight: 600;
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: var(--wstl-amber-bright);
+  text-decoration-thickness: 2.5px;
+  text-underline-offset: 3px;
+  cursor: help;
+}
+
+.wastelander-pip-boy-glossary:hover {
+  color: var(--wstl-amber-bright);
+  text-decoration-color: rgba(var(--wstl-accent-rgb), 0.95);
+}
+
+#tooltip.wastelander-pip-boy-glossary-tooltip {
+  max-width: 26rem;
+}
+
+#tooltip.wastelander-pip-boy-glossary-tooltip .wastelander-pip-boy-glossary-tip {
+  margin: 0 0 0.45em;
+  text-indent: 0;
+}
+
+#tooltip.wastelander-pip-boy-glossary-tooltip .wastelander-pip-boy-glossary-tip:last-child {
+  margin-bottom: 0;
+}
+
+#tooltip.wastelander-pip-boy-glossary-tooltip .wastelander-pip-boy-glossary-list {
+  margin: 0.35em 0 0.65em;
+  padding-left: 1.15em;
+}
+
+#tooltip.wastelander-pip-boy-glossary-tooltip .wastelander-pip-boy-glossary-list + .wastelander-pip-boy-glossary-tip,
+#tooltip.wastelander-pip-boy-glossary-tooltip p.wastelander-pip-boy-glossary-tip {
+  margin: 0 0 0.65em;
+  text-indent: 1.25em;
+}
+
+#tooltip.wastelander-pip-boy-glossary-tooltip p.wastelander-pip-boy-glossary-tip:last-child {
+  margin-bottom: 0;
+}
+
+.wastelander-equipment-choice-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.wastelander-compendium-open {
+  flex: 0 0 auto;
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.3);
+  background: transparent;
+  color: var(--wstl-text-muted);
+}
+
+.wastelander-compendium-open:hover {
+  border-color: var(--wstl-amber);
+  color: var(--wstl-text);
+  background: rgba(var(--wstl-accent-rgb), 0.08);
+}
+
+.wastelander-equipment-choice {
+  margin-top: 0.55rem;
+}
+
+.wastelander-equipment-choice-prompt {
+  margin: 0 0 0.3rem;
+  font-size: 12px;
+  color: var(--wstl-text);
+}
+
+.wastelander-equipment-choice-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.wastelander-equipment-choice-btn {
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.35);
+  background: transparent;
+  color: var(--wstl-text);
+}
+
+.wastelander-equipment-choice-btn.is-selected {
+  border-color: var(--wstl-amber);
+  color: var(--wstl-text);
+  background: rgba(var(--wstl-accent-rgb), 0.08);
+}
+
+.wastelander-equipment-trinket {
+  margin-top: 0.55rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid rgba(var(--wstl-accent-rgb), 0.15);
+}
+
+.wastelander-equipment-trinket-desc {
+  margin: 0 0 0.45rem;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--wstl-text-muted);
+}
+
+.wastelander-equipment-trinket-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.35rem;
+}
+
+.wastelander-equipment-roll-trinket {
+  gap: 0.35rem;
+  border: 1px solid var(--wstl-amber-dim);
+  background: rgba(var(--wstl-accent-rgb), 0.08);
+  color: var(--wstl-text);
+  text-transform: uppercase;
+}
+
+.wastelander-equipment-roll-trinket:hover {
+  background: rgba(var(--wstl-accent-rgb), 0.14);
+  border-color: var(--wstl-amber);
+}
+
+.wastelander-equipment-trinket-override {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 12px;
+  color: var(--wstl-text-muted);
+}
+
+.wastelander-equipment-trinket-roll {
+  margin: 0.25rem 0 0.15rem;
+  font-size: 12px;
+  color: var(--wstl-text);
+}
+
+.wastelander-equipment-trinket-roll strong {
+  color: var(--wstl-text);
+  font-size: 14px;
+}
+
+.wastelander-trinket-input {
+  width: 3rem;
+  height: 28px;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.35);
+  color: var(--wstl-text);
+  font: inherit;
+}
+
+.wastelander-equipment-trinket-result {
+  margin: 0;
+  padding: 0.35rem 0.45rem;
+  font-size: 13px;
+  color: var(--wstl-text);
+  background: rgba(var(--wstl-accent-rgb), 0.06);
+  border-left: 2px solid var(--wstl-amber-dim);
+}
+
+/* ---- Review step ---- */
+
+.wastelander-review-layout {
+  overflow: auto;
+  max-height: 480px;
+  padding: 0.25rem 0.15rem;
+}
+
+.wastelander-review-section {
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid rgba(var(--wstl-accent-rgb), 0.12);
+}
+
+.wastelander-review-heading {
+  margin: 0 0 0.35rem;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--wstl-text);
+}
+
+.wastelander-review-section p,
+.wastelander-review-list {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--wstl-text);
+}
+
+.wastelander-review-list {
+  padding-left: 1.1rem;
+}
+
+.wastelander-review-list .wastelander-equipment-item-link {
+  font-size: 13px;
+}
+
+.wastelander-review-special {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.65rem;
+}
+
+.wastelander-review-attr {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--wstl-text);
+  letter-spacing: 0.06em;
+}
+
+.wastelander-review-derived {
+  margin: 0;
+}
+
+.wastelander-review-derived-row {
+  display: grid;
+  grid-template-columns: 9rem 1fr;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+  font-size: 13px;
+}
+
+.wastelander-review-derived-row dt {
+  margin: 0;
+  color: var(--wstl-text-muted);
+}
+
+.wastelander-review-derived-row dd {
+  margin: 0;
+  color: var(--wstl-text);
+}
+
+.wastelander-review-pack-name {
+  font-weight: 600;
+  color: var(--wstl-text-muted);
+}
+
+.wastelander-review-finish-note {
+  margin: 0.5rem 0 0;
+  font-size: 12px;
+  font-style: italic;
+  color: var(--wstl-text-muted);
+  text-align: center;
+}
+
+@media (max-width: 720px) {
+  .wastelander-equipment-columns {
+    grid-template-columns: 1fr;
+    max-height: none;
+  }
+
+  .wastelander-equipment-packs {
+    max-height: 180px;
+  }
+
+  .wastelander-perks-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .wastelander-perk-list {
+    max-height: 200px;
+  }
+}
+
+.wastelander-detail-empty,
+.wastelander-placeholder {
+  margin: 0;
+  padding: 1.5rem 1rem;
+  border: 1px dashed var(--wstl-amber-muted);
+  color: var(--wstl-text-muted);
+  font-style: italic;
+  text-align: center;
+}
+
+.wastelander-detail-frame {
+  position: relative;
+  border: 1px solid var(--wstl-amber-muted);
+  padding: 0.85rem 0.9rem 0.9rem;
+  background: var(--wstl-bg-panel);
+}
+
+.wastelander-detail-title {
+  margin: 0 0 0.55rem;
+  padding: 0 0 0.45rem;
+  border-bottom: 1px solid var(--wstl-amber-muted);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--wstl-text);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-shadow: 0 0 8px var(--wstl-amber-glow);
+}
+
+.wastelander-detail-flavor {
+  margin: 0 0 0.75rem;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--wstl-text);
+  white-space: normal;
+  overflow: visible;
+}
+
+.wastelander-detail-flavor-highlight {
+  margin: 0 0 0.75rem;
+  font-size: 13px;
+  line-height: 1.5;
+  color: lightyellow;
+  white-space: normal;
+  overflow: visible;
+}
+
+.wastelander-trait-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.wastelander-trait-table thead th {
+  padding: 0.35rem 0.5rem;
+  border-bottom: 1px solid var(--wstl-amber-muted);
+  color: var(--wstl-text);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.wastelander-trait-table tbody td {
+  padding: 0.5rem;
+  border-bottom: 1px solid rgba(var(--wstl-accent-rgb), 0.15);
+  color: var(--wstl-text);
+  vertical-align: top;
+  text-align: left;
+}
+
+.wastelander-trait-table tbody td:not(.wastelander-trait-name-cell) {
+  white-space: pre-line;
+  line-height: 1.45;
+}
+
+.wastelander-trait-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.wastelander-trait-name-cell {
+  color: var(--wstl-text);
+  font-weight: 600;
+  text-align: left;
+}
+
+.wastelander-trait-table--no-penalty .wastelander-trait-name-cell {
+  width: 28%;
+}
+
+.wastelander-trait-icon {
+  flex: 0 0 1.1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--wstl-text);
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.wastelander-trait-pick {
+  border: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.4rem;
+  width: 100%;
+  min-height: 1.6rem;
+  padding: 0.25rem 0.4rem;
+  margin: 0;
+  background: transparent;
+  color: var(--wstl-text);
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.wastelander-trait-pick:hover:not(:disabled) {
+  background: rgba(var(--wstl-accent-rgb), 0.03);
+}
+
+.wastelander-trait-pick.is-selected {
+  background: rgba(var(--wstl-accent-rgb), 0.06);
+}
+
+.wastelander-trait-pick:disabled {
+  color: var(--wstl-text-muted);
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.wastelander-trait-check {
+  flex: 0 0 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 1.25rem;
+  border: 1px solid rgba(var(--wstl-accent-rgb), 0.35);
+  color: var(--wstl-text);
+  font-size: 15px;
+  line-height: 1;
+}
+
+.wastelander-trait-label {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.wastelander-trait-html {
+  margin-top: 0.65rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--wstl-amber-muted);
+  font-size: 12px;
+  color: var(--wstl-text);
+}
+
+.wastelander-trait-html :is(p, li) {
+  margin: 0.25rem 0;
+}
+
+/* ---- Footer ---- */
+
+.wastelander-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem 0.85rem;
+  border-top: 1px solid var(--wstl-amber-muted);
+  background: var(--wstl-bg);
+}
+
+.wastelander-footer-spacer {
+  flex: 1;
+}
+
+.wastelander-footer button {
+  text-transform: uppercase;
+}
+
+.wastelander-btn-back {
+  background: transparent;
+  border: 1px solid var(--wstl-amber-muted);
+  color: var(--wstl-text-muted);
+}
+
+.wastelander-btn-back:hover:not(:disabled) {
+  color: var(--wstl-text);
+  border-color: var(--wstl-text-muted);
+}
+
+.wastelander-btn-next {
+  gap: 0.35rem;
+  padding-inline: 1rem;
+  background: var(--wstl-amber);
+  border: 1px solid var(--wstl-amber-bright);
+  color: var(--wstl-btn-text);
+  clip-path: polygon(
+    0 0,
+    calc(100% - 14px) 0,
+    100% 14px,
+    100% 100%,
+    0 100%
+  );
+  box-shadow:
+    0 0 12px var(--wstl-amber-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.wastelander-btn-next:hover:not(:disabled) {
+  background: var(--wstl-amber-bright);
+  border-color: var(--wstl-amber-bright);
+}
+
+.wastelander-btn-next-glyph {
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: 1;
+}
+
+.wastelander-footer button:disabled {
+  color: var(--wstl-text-muted);
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* ---- Actor sheet header menu ---- */
+
+.window-app .window-header .wastelander-sheet-menu-wrap,
+.sheet-header .wastelander-sheet-menu-wrap {
+  position: relative;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  padding: 0;
+  margin: 0;
+}
+
+.window-app .window-header .wastelander-sheet-menu-trigger,
+.sheet-header .wastelander-sheet-menu-trigger {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  line-height: 1;
+  text-decoration: none;
+  color: inherit;
+}
+
+.window-app .window-header .wastelander-sheet-menu-trigger .wastelander-launch-icon,
+.sheet-header .wastelander-sheet-menu-trigger .wastelander-launch-icon {
+  display: block;
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex: 0 0 auto;
+  filter: sepia(0.42) saturate(2.4) hue-rotate(18deg) brightness(1.08);
+}
+
+.window-app .window-header .wastelander-sheet-menu-label,
+.sheet-header .wastelander-sheet-menu-label {
+  display: inline;
+  white-space: nowrap;
+}
+
+.wastelander-sheet-dropdown-portal,
+.wastelander-sheet-dropdown {
+  display: flex;
+  flex-direction: column;
+  min-width: 11rem;
+  margin: 0;
+  padding: 0.25rem 0;
+  list-style: none;
+  background: var(--color-cool-5, #1a1a1a);
+  border: 1px solid var(--color-border-light-tertiary, #444);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+}
+
+.wastelander-sheet-menu-wrap.is-open .wastelander-sheet-dropdown {
+  display: flex;
+}
+
+.wastelander-sheet-dropdown-portal .wastelander-sheet-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.4rem 0.75rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text-light-highlight, #eee);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.wastelander-sheet-dropdown-item:hover,
+.wastelander-sheet-dropdown-item:focus-visible {
+  background: var(--color-cool-4, #2a2a2a);
+  outline: none;
+}
+
+.wastelander-sheet-dropdown-portal .wastelander-sheet-dropdown-item i {
+  flex: 0 0 1rem;
+  width: 1rem;
+  text-align: left;
+  opacity: 0.85;
+}
+
+.wastelander-sheet-dropdown-item--disabled,
+.wastelander-sheet-dropdown-item:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  color: var(--color-text-light-primary, #aaa);
+}
+
+.wastelander-sheet-dropdown-item--disabled:hover,
+.wastelander-sheet-dropdown-item:disabled:hover {
+  background: transparent;
+}
+
+/* ---- Responsive ---- */
+
+@media (max-width: 900px) {
+  .wastelander-origin-cards {
+    grid-template-columns: 1fr;
+    max-width: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .wastelander-wizard-layout {
+    flex-direction: column;
+  }
+
+  .wastelander-sidebar {
+    flex: 0 0 auto;
+    border-right: none;
+    border-bottom: 1px solid var(--wstl-amber-muted);
+    padding-bottom: 2.5rem;
+  }
+
+  .wastelander-step-item.active .wastelander-step-button::after {
+    display: none;
+  }
+
+  .wastelander-origin-cards {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+
+  .wastelander-origin-card {
+    min-height: 3rem;
+    padding: 0.3rem 0.45rem 0.3rem 0.35rem;
+  }
+}
+
+/* Character creation roll chat cards — dice faces use Fallout system CSS */
+.wastelander-roll-chat .wastelander-roll-dice {
+  clear: both;
+  margin: 0.25rem 0 0.35rem;
+}
+
+.wastelander-roll-chat .dices-result {
+  clear: both;
+}
+
+.wastelander-roll-chat .wastelander-roll-modifier {
+  display: inline-flex;
+  align-items: center;
+  font-weight: 700;
+  line-height: 32px;
+  margin: 2px 4px 2px 0;
+}
+
+.wastelander-roll-chat .wastelander-roll-total {
+  margin-top: 0.35rem;
+  margin-bottom: 0;
+}
+
+/* Scavenger location generator (Overseer UI) */
+.wastelander-scavenger-app .window-header {
+  color: lightyellow;
+}
+
+.wastelander-scavenger-app .wastelander-scavenger-layout,
+.wastelander-scavenger-app .wastelander-scavenger-actions,
+.wastelander-scavenger-app .wastelander-scavenger-layout :where(
+  h1,
+  h2,
+  h3,
+  p,
+  label,
+  span,
+  output,
+  li,
+  button,
+  a,
+  em,
+  strong
+) {
+  color: lightyellow;
+}
+
+.wastelander-scavenger-app .wastelander-scavenger-field input,
+.wastelander-scavenger-app .wastelander-scavenger-field select {
+  color: lightyellow;
+}
+
+.wastelander-scavenger-app .window-content {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.wastelander-scavenger-app [data-application-part="body"] {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.wastelander-scavenger-layout {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  font-family: var(--wstl-font);
+  font-size: 0.9rem;
+  color: lightyellow;
+}
+
+.wastelander-scavenger-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overflow-anchor: none;
+  padding: 1rem 1.25rem 0.75rem;
+}
+
+.wastelander-scavenger-header h1 {
+  margin: 0 0 0.35rem;
+  font-size: 1.15rem;
+}
+
+.wastelander-scavenger-hint {
+  margin: 0 0 1rem;
+  opacity: 0.85;
+}
+
+.wastelander-scavenger-section {
+  margin-bottom: 1.25rem;
+}
+
+.wastelander-scavenger-section h2 {
+  font-size: 0.95rem;
+  margin: 0 0 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.wastelander-scavenger-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem 1rem;
+}
+
+.wastelander-scavenger-field label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.8rem;
+}
+
+.wastelander-scavenger-field input,
+.wastelander-scavenger-field select {
+  width: 100%;
+}
+
+.wastelander-scavenger-party-list {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+}
+
+.wastelander-scavenger-party-list li {
+  margin-bottom: 0.35rem;
+}
+
+.wastelander-scavenger-party-user {
+  font-weight: 600;
+  margin-right: 0.35rem;
+}
+
+.wastelander-scavenger-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.wastelander-scavenger-preview {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--wstl-amber-muted, #6b5a2a);
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+}
+
+.wastelander-scavenger-scene-scope {
+  margin: 0.65rem 0 0.65rem 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.wastelander-scavenger-tabs {
+  display: flex;
+  gap: 0;
+  margin: 0 1.25rem 1rem;
+  border-bottom: 1px solid var(--wstl-amber-muted, #6b5a2a);
+}
+
+.wastelander-scavenger-tab {
+  flex: 1 1 auto;
+  padding: 0.55rem 1rem;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  background: transparent;
+  color: lightyellow;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.9rem;
+  opacity: 0.75;
+}
+
+.wastelander-scavenger-tab:hover {
+  opacity: 1;
+}
+
+.wastelander-scavenger-tab.is-active {
+  opacity: 1;
+  border-bottom-color: var(--wstl-amber-bright, #e8c170);
+  font-weight: 600;
+}
+
+.wastelander-scavenger-tab-panel {
+  padding: 0 0.25rem;
+}
+
+.wastelander-scavenger-location-info {
+  margin: 0.5rem 0 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--wstl-amber-muted, #5c6238);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.wastelander-scavenger-location-info .wastelander-scavenger-location-meta {
+  margin: 0;
+}
+
+.wastelander-scavenger-location-meta {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem 1rem;
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+}
+
+.wastelander-scavenger-location-meta dt {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
+  margin: 0 0 0.15rem;
+}
+
+.wastelander-scavenger-location-meta dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.wastelander-scavenger-wip-badge {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.1rem 0.35rem;
+  margin-left: 0.35rem;
+  vertical-align: middle;
+  border: 1px solid var(--wstl-amber-muted, #6b5a2a);
+  border-radius: 2px;
+  opacity: 0.8;
+}
+
+.wastelander-scavenger-actions {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.25rem 1rem;
+  border-top: 1px solid var(--wstl-amber-muted, #6b5a2a);
+  background: var(--wstl-bg-panel, #0b0d07);
+}
+
+.wastelander-scavenger-actions-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+/* Create tab: grow the left button group so Generate stays on the far right */
+.wastelander-scavenger-actions.is-create-tab .wastelander-scavenger-actions-group {
+  flex: 1 1 auto;
+}
+
+.wastelander-scavenger-actions-generate {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.wastelander-scavenger-app .wastelander-btn-primary,
+.wastelander-scavenger-app .wastelander-btn-secondary {
+  padding: 0.4rem 0.85rem;
+  border-radius: 3px;
+  cursor: pointer;
+  color: lightyellow;
+}
+
+.wastelander-scavenger-app .wastelander-btn-primary {
+  background: var(--wstl-amber-muted, #8b6914);
+  border: 1px solid var(--wstl-amber-bright, #e8c170);
+}
+
+.wastelander-scavenger-app .wastelander-btn-secondary {
+  background: transparent;
+  border: 1px solid var(--wstl-amber-muted, #6b5a2a);
+}
+
+.wastelander-scavenger-app .wastelander-btn-secondary:disabled,
+.wastelander-scavenger-app .wastelander-btn-secondary.is-disabled,
+.wastelander-scavenger-search .wastelander-btn-secondary:disabled,
+.wastelander-scavenger-search .wastelander-btn-secondary.is-disabled,
+.wastelander-scavenger-app .wastelander-btn-secondary[aria-disabled="true"],
+.wastelander-scavenger-search .wastelander-btn-secondary[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+  color: rgba(255, 255, 220, 0.5);
+  border-color: rgba(107, 90, 42, 0.45);
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.wastelander-scavenger-app .wastelander-btn-primary:disabled,
+.wastelander-scavenger-app .wastelander-btn-primary.is-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.wastelander-scavenger-offline {
+  font-size: 0.8em;
+  opacity: 0.75;
+  font-weight: normal;
+}
+
+.wastelander-scavenger-panel {
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--wstl-amber-muted, #5c6238);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.wastelander-scavenger-panel > h2 {
+  margin: 0 0 0.65rem;
+  padding-bottom: 0.45rem;
+  border-bottom: 1px solid var(--wstl-amber-muted, #5c6238);
+}
+
+.wastelander-scavenger-panel > .wastelander-scavenger-hint:last-child,
+.wastelander-scavenger-panel > p:last-child,
+.wastelander-scavenger-panel > ul:last-child {
+  margin-bottom: 0;
+}
+
+.wastelander-scavenger-generated-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem 1rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  border: 1px solid var(--wstl-amber-muted, #5c6238);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.wastelander-scavenger-stat-label {
+  display: block;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.2rem;
+}
+
+.wastelander-scavenger-stat-value {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.wastelander-scavenger-stat-sub {
+  font-size: 0.85em;
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+.wastelander-scavenger-other-found-title {
+  font-size: 0.85rem;
+  margin: 0.75rem 0 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.wastelander-scavenger-other-found {
+  list-style: none;
+  margin: 0 0 0.5rem;
+  padding: 0;
+  font-size: 0.9rem;
+}
+
+.wastelander-scavenger-other-found li {
+  margin-bottom: 0.25rem;
+}
+
+.wastelander-scavenger-reduction-formula {
+  margin: 0.75rem 0 0.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.wastelander-scavenger-reduction-hint {
+  margin: 0 0 0.5rem;
+}
+
+.wastelander-scavenger-inhabitant-type {
+  margin-top: 0.5rem;
+}
+
+.wastelander-scavenger-problem-box {
+  margin: 0.65rem 0 0;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--wstl-amber-muted, #5c6238);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.wastelander-scavenger-problem-box legend {
+  font-size: 0.85rem;
+  padding: 0 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.wastelander-scavenger-problem-box label {
+  display: block;
+  margin: 0.25rem 0;
+}
+
+.wastelander-scavenger-problem-box .wastelander-scavenger-field {
+  margin: 0 0 0.5rem;
+}
+
+.wastelander-scavenger-problem-box-summary {
+  margin: 0.5rem 0 0;
+  padding-top: 0.45rem;
+  border-top: 1px solid var(--wstl-amber-muted, #5c6238);
+}
+
+.wastelander-scavenger-problem-box-summary:last-child {
+  margin-bottom: 0;
+}
+
+.wastelander-scavenger-inhabitant-summary {
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--wstl-amber-muted, #5c6238);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.wastelander-scavenger-inhabitant-row {
+  text-align: left;
+}
+
+.wastelander-inhabitant-drag {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.35rem;
+  cursor: grab;
+}
+
+.wastelander-inhabitant-drag:active {
+  cursor: grabbing;
+}
+
+.wastelander-scavenger-inhabitant-meta {
+  font-size: 0.95em;
+  opacity: 0.9;
+}
+
+.wastelander-scavenger-inhabitant-roster {
+  margin: 0.35rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.wastelander-scavenger-loot-grid {
+  margin-top: 0.5rem;
+  border: 1px solid var(--wstl-amber-muted, #5c6238);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.wastelander-scavenger-loot-grid-header,
+.wastelander-scavenger-loot-grid-row {
+  display: grid;
+  grid-template-columns: 1fr 3.5rem 3.5rem;
+  gap: 0.5rem 0.75rem;
+  align-items: center;
+  padding: 0.45rem 0.75rem;
+}
+
+.wastelander-scavenger-loot-grid-header {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid var(--wstl-amber-muted, #5c6238);
+}
+
+.wastelander-scavenger-loot-grid-row:nth-child(even) {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.wastelander-scavenger-loot-min,
+.wastelander-scavenger-loot-max {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.wastelander-scavenger-table-link {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  font: inherit;
+}
+
+.wastelander-scavenger-table-meta {
+  font-size: 0.85em;
+  opacity: 0.8;
+}
+
+.wastelander-scavenger-roll-results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.wastelander-scavenger-roll-entry {
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--wstl-amber-muted, #6b5a2a);
+}
+
+.wastelander-scavenger-roll-entry:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.wastelander-scavenger-roll-entry-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.wastelander-scavenger-luck-ladder {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.95em;
+  text-align: left;
+}
+
+.wastelander-scavenger-luck-ladder-row {
+  padding: 0.15rem 0;
+  opacity: 0.75;
+  text-align: left;
+}
+
+.wastelander-scavenger-luck-ladder-row.is-current {
+  opacity: 1;
+  font-weight: 600;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 0.35rem;
+}
+
+.wastelander-scavenger-luck-ladder-row.is-unaffordable {
+  opacity: 0.45;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 0.35rem;
+}
+
+.wastelander-scavenger-luck-jump {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 0.35rem;
+  width: 100%;
+  margin: 0;
+  padding: 0.2rem 0;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.wastelander-scavenger-luck-jump:hover:not(:disabled) {
+  border-color: var(--wstl-amber-muted, #6b5a2a);
+  background: rgba(232, 197, 71, 0.08);
+}
+
+.wastelander-scavenger-luck-jump:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.wastelander-scavenger-luck-cost {
+  font-size: 0.85em;
+  color: var(--wstl-amber-bright, #e8c547);
+  flex: 0 0 auto;
+}
+
+.wastelander-scavenger-luck-roll {
+  flex: 0 0 auto;
+}
+
+.wastelander-scavenger-luck-item {
+  flex: 1 1 auto;
+  text-align: left;
+}
+
+.wastelander-scavenger-loot-unlocked {
+  margin: 0.35rem 0 0;
+  padding: 0;
+  text-align: left;
+}
+
+.wastelander-scavenger-loot-unlocked-label {
+  display: block;
+  font-size: 0.85em;
+  opacity: 0.85;
+  margin-bottom: 0.2rem;
+}
+
+.wastelander-scavenger-luck-preview .wastelander-loot-item {
+  cursor: default;
+  color: inherit;
+  text-decoration: none;
+}
+
+.wastelander-loot-item {
+  display: inline;
+  cursor: grab;
+  color: var(--wstl-amber-bright, #e8c547);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+}
+
+.wastelander-loot-item:active {
+  cursor: grabbing;
+}
+
+.wastelander-scavenger-hazard-damage {
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--wstl-amber-muted, #6b5a2a);
+}
+
+.wastelander-scavenger-subheading {
+  font-size: 0.95em;
+  margin: 0.5rem 0 0.35rem;
+  color: var(--wstl-text-readable, #eaf062);
+}
+
+.wastelander-scavenger-hazard-damage-formula {
+  margin-bottom: 0.35rem;
+}
+
+.wastelander-scavenger-hazard-damage-time {
+  opacity: 0.85;
+}
+
+.wastelander-scavenger-hazard-damage-party {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.wastelander-scavenger-hazard-damage-party li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin-bottom: 0.45rem;
+}
+
+.wastelander-scavenger-hazard-damage-name {
+  font-weight: 600;
+}
+
+.wastelander-scavenger-hazard-damage-user {
+  opacity: 0.8;
+  font-size: 0.9em;
+}
+
+.wastelander-scavenger-hazard-damage-btn {
+  margin-left: auto;
+}
+
+/* Fallout system combat die icon (via TextEditor enrichers: `1 CD`, `@fos[CD]`) */
+.wastelander-scavenger-journal-muted {
+  opacity: 0.85;
+  font-size: 0.9em;
+}
+
+/* Scavenger journal pages — layout matches Current tab; body copy readable on Foundry paper */
+.journal-sheet .journal-entry-content .wastelander-scavenger-journal,
+.wastelander-scavenger-journal {
+  color: #000;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  padding: 0.5rem 0.25rem 1rem;
+}
+
+.wastelander-scavenger-journal :is(h1, h2, h3, h4, h5, h6) {
+  color: #4a3f14;
+}
+
+.wastelander-scavenger-journal :is(p, li, dd, dt, td, th, span, strong, label, output) {
+  color: #000;
+}
+
+.wastelander-scavenger-journal .wastelander-scavenger-hint,
+.wastelander-scavenger-journal .wastelander-scavenger-journal-muted,
+.wastelander-scavenger-journal .wastelander-scavenger-stat-label,
+.wastelander-scavenger-journal .wastelander-scavenger-stat-value,
+.wastelander-scavenger-journal .wastelander-scavenger-stat-sub,
+.wastelander-scavenger-journal .wastelander-scavenger-warning,
+.wastelander-scavenger-journal .wastelander-scavenger-ok,
+.wastelander-scavenger-journal .wastelander-scavenger-inhabitant-meta,
+.wastelander-scavenger-journal .wastelander-scavenger-hazard-damage-name,
+.wastelander-scavenger-journal .wastelander-scavenger-hazard-damage-user,
+.wastelander-scavenger-journal .wastelander-scavenger-hazard-damage-time,
+.wastelander-scavenger-journal .wastelander-scavenger-luck-roll,
+.wastelander-scavenger-journal .wastelander-scavenger-luck-item,
+.wastelander-scavenger-journal .wastelander-scavenger-loot-unlocked-label {
+  color: #000;
+}
+
+.wastelander-scavenger-journal .entity-link {
+  color: #000;
+  text-decoration: underline;
+}
+
+.wastelander-scavenger-journal .wastelander-scavenger-panel,
+.wastelander-scavenger-journal .wastelander-scavenger-generated-stats,
+.wastelander-scavenger-journal .wastelander-scavenger-preview {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.wastelander-scavenger-journal-header {
+  margin-bottom: 1rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--wstl-amber-muted, #6b5a2a);
+}
+
+.wastelander-scavenger-journal-header h1 {
+  margin: 0 0 0.35rem;
+  font-size: 1.15rem;
+}
+
+.wastelander-scavenger-journal .wastelander-scavenger-loot-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+}
+
+.wastelander-scavenger-journal .wastelander-scavenger-loot-table th,
+.wastelander-scavenger-journal .wastelander-scavenger-loot-table td {
+  border: 1px solid var(--wstl-amber-muted, #6b5a2a);
+  padding: 0.35rem 0.5rem;
+  text-align: left;
+  color: #000;
+}
+
+.wastelander-scavenger-journal .wastelander-scavenger-loot-table th {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.9;
+}
+
+.wastelander-scavenger-journal .wastelander-scavenger-preview {
+  margin-bottom: 1.25rem;
+}
+
+.wastelander-scavenger-journal .wastelander-scavenger-preview h2 {
+  font-size: 0.95rem;
+  margin: 0 0 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.wastelander-scavenger-journal .wastelander-scavenger-journal-check {
+  margin: 0.5rem 0 0;
+}
+
+.wastelander-scavenger-journal .wastelander-scavenger-journal-roll-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem 1rem;
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.wastelander-scavenger-journal .wastelander-scavenger-journal-roll-meta dt {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
+  margin: 0 0 0.1rem;
+}
+
+.wastelander-scavenger-journal .wastelander-scavenger-journal-roll-meta dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.wastelander-scavenger-journal .wastelander-scavenger-journal-luck-ladder {
+  margin: 0.35rem 0 0.5rem;
+  padding-left: 1rem;
+}
+
+.wastelander-scavenger-search .wastelander-scavenger-team-table select {
+  min-width: 6.5rem;
+  font-size: 0.9rem;
+}
+
+.wastelander-scavenger-journal-roll-title {
+  font-size: 0.9rem;
+  margin: 0.65rem 0 0.35rem;
+  font-weight: 600;
+}
+
+.wastelander-scavenger-app .wastelander-fallout-enrich i.fo-pip-boy {
+  display: inline;
+  vertical-align: middle;
+  margin: 0 0.05em;
+}
+
+.wastelander-denizen-import-app {
+  color: lightyellow;
+}
+
+.wastelander-denizen-import-app .wastelander-denizen-import-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.wastelander-denizen-import-app .wastelander-denizen-import {
+  flex: 1 1 auto;
+  padding: 0.75rem 1rem;
+}
+
+.wastelander-denizen-import-app .wastelander-denizen-import-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--wstl-amber-muted, #6b5a2a);
+  background: var(--wstl-bg-panel, #0b0d07);
+}
+
+.wastelander-denizen-import-app .wastelander-btn-primary {
+  padding: 0.4rem 0.85rem;
+  border-radius: 3px;
+  cursor: pointer;
+  color: lightyellow;
+  background: var(--wstl-amber-muted, #8b6914);
+  border: 1px solid var(--wstl-amber-bright, #e8c170);
+}
+
+.wastelander-denizen-import-app .wastelander-btn-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

@@ -1,0 +1,9 @@
+{
+  "degrees": {
+    "untouched": { "label": "Untouched", "searchDifficulty": 0, "minimumsReducedTiny": 2 },
+    "partly": { "label": "Partly Searched", "searchDifficulty": 1, "minimumsReducedTiny": 3 },
+    "mostly": { "label": "Mostly Searched", "searchDifficulty": 2, "minimumsReducedTiny": 4 },
+    "heavily": { "label": "Heavily Searched", "searchDifficulty": 3, "minimumsReducedTiny": 5 }
+  },
+  "scaleMultipliers": { "tiny": 1, "small": 2, "average": 3, "large": 4 }
+}

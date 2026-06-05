@@ -1,0 +1,199 @@
+{
+  "id": "ammunition",
+  "formula": "2d20",
+  "entries": [
+    {
+      "roll": 2,
+      "label": "2mm EC",
+      "quantityFormula": "6+3dc"
+    },
+    {
+      "roll": 3,
+      "label": "2mm EC",
+      "quantityFormula": "6+3dc"
+    },
+    {
+      "roll": 4,
+      "label": "2mm EC",
+      "quantityFormula": "6+3dc"
+    },
+    {
+      "roll": 5,
+      "label": "Plasma Cartridge",
+      "quantityFormula": "10+5dc"
+    },
+    {
+      "roll": 6,
+      "label": "Missile",
+      "quantityFormula": "2+1dc"
+    },
+    {
+      "roll": 7,
+      "label": "Fusion Core"
+    },
+    {
+      "roll": 8,
+      "label": "5mm",
+      "quantityFormula": "12+6dcx10"
+    },
+    {
+      "roll": 9,
+      "label": "5mm",
+      "quantityFormula": "12+6dcx10"
+    },
+    {
+      "roll": 10,
+      "label": ".50 ammo",
+      "quantityFormula": "4+2dc"
+    },
+    {
+      "roll": 11,
+      "label": ".50 ammo",
+      "quantityFormula": "4+2dc"
+    },
+    {
+      "roll": 12,
+      "label": "Syringer Ammo",
+      "quantityFormula": "4+2dc"
+    },
+    {
+      "roll": 13,
+      "label": "Syringer Ammo",
+      "quantityFormula": "4+2dc"
+    },
+    {
+      "roll": 14,
+      "label": "Gamma Round",
+      "quantityFormula": "4+2dc"
+    },
+    {
+      "roll": 15,
+      "label": "Flamer Fuel",
+      "quantityFormula": "12+6dc"
+    },
+    {
+      "roll": 16,
+      "label": "Flamer Fuel",
+      "quantityFormula": "12+6dc"
+    },
+    {
+      "roll": 17,
+      "label": ".45 Rounds",
+      "quantityFormula": "9+4dc"
+    },
+    {
+      "roll": 18,
+      "label": ".45 Rounds",
+      "quantityFormula": "9+4dc"
+    },
+    {
+      "roll": 19,
+      "label": "10mm",
+      "quantityFormula": "8+4dc"
+    },
+    {
+      "roll": 20,
+      "label": "10mm",
+      "quantityFormula": "8+4dc"
+    },
+    {
+      "roll": 21,
+      "label": ".38 Ammo",
+      "quantityFormula": "10+5dc"
+    },
+    {
+      "roll": 22,
+      "label": ".38 Ammo",
+      "quantityFormula": "10+5dc"
+    },
+    {
+      "roll": 23,
+      "label": "Flare",
+      "quantityFormula": "2+1dc"
+    },
+    {
+      "roll": 24,
+      "label": ".308 ammo",
+      "quantityFormula": "6+3dc"
+    },
+    {
+      "roll": 25,
+      "label": "Shotgun Shells",
+      "quantityFormula": "6+3dc"
+    },
+    {
+      "roll": 26,
+      "label": "Shotgun Shells",
+      "quantityFormula": "6+3dc"
+    },
+    {
+      "roll": 27,
+      "label": "Fusion Cell",
+      "quantityFormula": "14+7dc"
+    },
+    {
+      "roll": 28,
+      "label": "Fusion Cell",
+      "quantityFormula": "14+7dc"
+    },
+    {
+      "roll": 29,
+      "label": "Railway Spike",
+      "quantityFormula": "6+3dc"
+    },
+    {
+      "roll": 30,
+      "label": "Railway Spike",
+      "quantityFormula": "6+3dc"
+    },
+    {
+      "roll": 31,
+      "label": ".44 Magnum",
+      "quantityFormula": "4+2dc"
+    },
+    {
+      "roll": 32,
+      "label": ".44 Magnum",
+      "quantityFormula": "4+2dc"
+    },
+    {
+      "roll": 33,
+      "label": "5.56mm",
+      "quantityFormula": "8+4dc"
+    },
+    {
+      "roll": 34,
+      "label": "5.56mm",
+      "quantityFormula": "8+4dc"
+    },
+    {
+      "roll": 35,
+      "label": "Missile",
+      "quantityFormula": "2+1dc"
+    },
+    {
+      "roll": 36,
+      "label": "Fusion Core"
+    },
+    {
+      "roll": 37,
+      "label": "Plasma Cartridge",
+      "quantityFormula": "10+5dc"
+    },
+    {
+      "roll": 38,
+      "label": "Mini-Nuke",
+      "quantityFormula": "1+1dc"
+    },
+    {
+      "roll": 39,
+      "label": "Mini-Nuke",
+      "quantityFormula": "1+1dc"
+    },
+    {
+      "roll": 40,
+      "label": "Mini-Nuke",
+      "quantityFormula": "1+1dc"
+    }
+  ]
+}

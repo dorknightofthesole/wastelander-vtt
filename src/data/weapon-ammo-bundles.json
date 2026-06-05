@@ -1,0 +1,37 @@
+{
+  "Pipe gun with 10 +5 CD rounds of .38 ammunition": {
+    "weapon": "Pipe Revolver",
+    "ammo": ".38 Round",
+    "quantityRoll": "10+5dc"
+  },
+  "Pipe gun with 6 +3 CD rounds of .38 ammunition": {
+    "weapon": "Pipe Revolver",
+    "ammo": ".38 Round",
+    "quantityRoll": "6+3dc"
+  },
+  "Pipe gun with 8 +4 CD rounds of .38 ammunition": {
+    "weapon": "Pipe Revolver",
+    "ammo": ".38 Round",
+    "quantityRoll": "8+4dc"
+  },
+  "Pipe rifle with 6 +3 CD rounds of .38 ammunition": {
+    "weapon": "Pipe Revolver",
+    "ammo": ".38 Round",
+    "quantityRoll": "6+3dc"
+  },
+  "Heavy bolt-action pipe rifle with 8 +4 CD rounds of .308 ammunition": {
+    "weapon": "Pipe Bolt-Action",
+    "ammo": ".308 Round",
+    "quantityRoll": "8+4dc"
+  },
+  "10mm pistol with 6 +3 CD rounds of 10mm ammunition": {
+    "weapon": "10mm Pistol",
+    "ammo": "10mm Round",
+    "quantityRoll": "6+3dc"
+  },
+  "10mm pistol with 8 +4 CD rounds of 10mm ammunition": {
+    "weapon": "10mm Pistol",
+    "ammo": "10mm Round",
+    "quantityRoll": "8+4dc"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "Athletics": "Casual clothing, 1 Buffout",
+  "Barter": "2d20 additional caps",
+  "Big Guns": {
+    "display": "4 +2 CD shots of flamer fuel",
+    "grant": { "name": "Flamer Fuel", "quantityRoll": "4+2dc" }
+  },
+  "Energy Weapons": {
+    "display": "Fusion cell containing 6 +3 CD shots",
+    "grant": { "name": "Fusion Cell", "quantityRoll": "6+3dc" }
+  },
+  "Explosives": "2 Molotov cocktails or 2 baseball grenades",
+  "Lockpick": "4 +2 CD bobby pins",
+  "Medicine": "1 first aid kit, 1 Stimpak",
+  "Melee Weapons": "Machete or baseball bat",
+  "Pilot": "Broken car parts (equivalent to 5 common scrap)",
+  "Repair": "Multi-Tool",
+  "Science": "Lab coat, 1 dose of Mentats",
+  "Small Guns": {
+    "display": "6 +3 CD additional shots of ammunition you already possess",
+    "addToOwnedAmmo": "6+3dc"
+  },
+  "Sneak": "One dose of Calmex",
+  "Speech": "Formal hat, formal clothing",
+  "Survival": "2 purified water, 1 iguana on a stick",
+  "Throwing": "4 +2 CD throwing knives or 2 +1 CD tomahawks",
+  "Unarmed": "Knuckles"
+}

@@ -1,0 +1,43 @@
+[
+  {
+    "id": "educated",
+    "label": "Educated",
+    "icon": "fa-solid fa-book",
+    "traitCompendiumUuid": "",
+    "benefit": "You have one additional tag skill.",
+    "penalty": "When you fail a skill test using a skill other than a tag skill, the GM gains 1 AP."
+  },
+  {
+    "id": "fast-shot",
+    "label": "Fast Shot",
+    "icon": "fa-solid fa-crosshairs",
+    "traitCompendiumUuid": "",
+    "benefit": "If you take a second major action in combat and use it to make a ranged attack, the additional major action only costs 1 AP (rather than 2).",
+    "penalty": "You cannot benefit from the Aim minor action."
+  },
+  {
+    "id": "gifted",
+    "label": "Gifted",
+    "icon": "fa-solid fa-brain",
+    "traitCompendiumUuid": "",
+    "benefit": "Choose two S.P.E.C.I.A.L. attributes and increase them by +1 each.",
+    "penalty": "Your maximum number of Luck points is one fewer than your Luck attribute."
+  },
+  {
+    "id": "heavy-handed",
+    "label": "Heavy Handed",
+    "icon": "fa-solid fa-hand-fist",
+    "traitCompendiumUuid": "",
+    "benefit": "Your Melee Damage bonus increases by +1 DC.",
+    "penalty": "Your melee and unarmed attacks suffer a complication on a 19 or 20 (rather than only a 20)."
+  },
+  {
+    "id": "small-frame",
+    "label": "Small Frame",
+    "icon": "fa-solid fa-person-walking",
+    "traitCompendiumUuid": "",
+    "benefit": "You may re-roll 1d20 on all AGI tests which rely on balance or contortion.",
+    "penalty": "Your carry weight is 150 + (5 × STR) lbs. rather than 150 + (10 × STR) lbs."
+  }
+]
+

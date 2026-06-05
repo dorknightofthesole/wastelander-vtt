@@ -1,0 +1,162 @@
+{
+  "id": "food",
+  "formula": "2d20",
+  "entries": [
+    {
+      "roll": 2,
+      "label": "Tarberry"
+    },
+    {
+      "roll": 3,
+      "label": "Perfectly Preserved Pie"
+    },
+    {
+      "roll": 4,
+      "label": "Melon (non-irradiated)"
+    },
+    {
+      "roll": 5,
+      "label": "Carrot (non-irradiated)"
+    },
+    {
+      "roll": 6,
+      "label": "Institute Food Packet"
+    },
+    {
+      "roll": 7,
+      "label": "Sugar Bombs (preserved)"
+    },
+    {
+      "roll": 8,
+      "label": "Mutfruit (non-irradiated)"
+    },
+    {
+      "roll": 9,
+      "label": "Fancy Lads Snack Cakes (preserved)"
+    },
+    {
+      "roll": 10,
+      "label": "Sweet Roll"
+    },
+    {
+      "roll": 11,
+      "label": "Razorgrain"
+    },
+    {
+      "roll": 12,
+      "label": "Iguana Bits"
+    },
+    {
+      "roll": 13,
+      "label": "Cram"
+    },
+    {
+      "roll": 14,
+      "label": "Carrot"
+    },
+    {
+      "roll": 15,
+      "label": "BlamCo Brand Mac and Cheese"
+    },
+    {
+      "roll": 16,
+      "label": "Sugar Bombs"
+    },
+    {
+      "roll": 17,
+      "label": "Potted Meat"
+    },
+    {
+      "roll": 18,
+      "label": "Pork 'n' Beans"
+    },
+    {
+      "roll": 19,
+      "label": "InstaMash"
+    },
+    {
+      "roll": 20,
+      "label": "Dandy Boy Apples"
+    },
+    {
+      "roll": 21,
+      "label": "Canned Dog Food"
+    },
+    {
+      "roll": 22,
+      "label": "Fancy Lads Snack Cakes"
+    },
+    {
+      "roll": 23,
+      "label": "Gum Drops"
+    },
+    {
+      "roll": 24,
+      "label": "Mutfruit"
+    },
+    {
+      "roll": 25,
+      "label": "Potato Crisps"
+    },
+    {
+      "roll": 26,
+      "label": "Salisbury Steak"
+    },
+    {
+      "roll": 27,
+      "label": "Yum-Yum Deviled Eggs"
+    },
+    {
+      "roll": 28,
+      "label": "Brain Fungus"
+    },
+    {
+      "roll": 29,
+      "label": "Corn"
+    },
+    {
+      "roll": 30,
+      "label": "Gourd"
+    },
+    {
+      "roll": 31,
+      "label": "Melon"
+    },
+    {
+      "roll": 32,
+      "label": "Silt Bean"
+    },
+    {
+      "roll": 33,
+      "label": "Tato"
+    },
+    {
+      "roll": 34,
+      "label": "InstaMash (preserved)"
+    },
+    {
+      "roll": 35,
+      "label": "Salisbury Steak (preserved)"
+    },
+    {
+      "roll": 36,
+      "label": "Food Paste"
+    },
+    {
+      "roll": 37,
+      "label": "Noodle Cup"
+    },
+    {
+      "roll": 38,
+      "label": "Corn (non-irradiated)"
+    },
+    {
+      "roll": 39,
+      "label": "BlamCo Brand Mac and Cheese (preserved)"
+    },
+    {
+      "roll": 40,
+      "label": "Tarberry"
+    }
+  ]
+}

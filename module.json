@@ -1,0 +1,37 @@
+{
+  "id": "wastelander",
+  "title": "Wastelander",
+  "description": "Fallout 2d20 toolkit — character creation wizard and more.",
+  "version": "0.1.0",
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13"
+  },
+  "authors": [
+    {
+      "name": "dorknightofthesole"
+    }
+  ],
+  "relationships": {
+    "systems": [
+      {
+        "id": "fallout",
+        "type": "system",
+        "compatibility": {
+          "minimum": "11.16.6"
+        }
+      }
+    ]
+  },
+  "esmodules": ["dist/wastelander.mjs"],
+  "styles": ["styles/wastelander-wizard.css"],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
+  "url": "https://github.com/dorknightofthesole/wastelander-vtt",
+  "manifest": "https://github.com/dorknightofthesole/wastelander-vtt/releases/latest/download/module.json"
+}

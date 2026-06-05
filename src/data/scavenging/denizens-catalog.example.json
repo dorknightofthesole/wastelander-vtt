@@ -1,0 +1,33 @@
+{
+  "generatedAt": "example",
+  "source": "Placeholder for CI — run npm run build:denizens locally for a full catalog.",
+  "denizens": [
+    {
+      "id": "example-raider",
+      "name": "Example Raider",
+      "level": 2,
+      "foundryActorType": "npc",
+      "inhabitantType": "raiders",
+      "falloutCategory": "normal",
+      "npcSize": null
+    },
+    {
+      "id": "example-mole-rat",
+      "name": "Example Mole Rat",
+      "level": 2,
+      "foundryActorType": "creature",
+      "inhabitantType": "animals",
+      "falloutCategory": "normal",
+      "npcSize": null
+    },
+    {
+      "id": "example-radroach",
+      "name": "Example Radroach",
+      "level": 1,
+      "foundryActorType": "creature",
+      "inhabitantType": "animals",
+      "falloutCategory": "normal",
+      "npcSize": "little"
+    }
+  ]
+}

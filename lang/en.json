@@ -1,0 +1,460 @@
+{
+  "WASTELANDER": {
+    "ModuleTitle": "Wastelander",
+    "ActorSheet": {
+      "Menu": {
+        "Build": "Build Character",
+        "BuildComplete": "Character creation is already complete.",
+        "ExportPdf": "Export to PDF",
+        "ParsePdf": "Parse PDF"
+      },
+      "Export": {
+        "InProgress": "Generating character sheet PDF…",
+        "Success": "Character sheet PDF downloaded.",
+        "Error": "PDF export failed: {error}",
+        "TemplateMissing": "Please add the form-fillable character sheet PDF to your module folder: {path}/ (file: {filename}). Wastelander does not distribute this PDF; use your licensed Fallout 2d20 materials."
+      },
+      "Import": {
+        "ConfirmTitle": "Parse PDF into character",
+        "ConfirmBody": "This will overwrite data on <strong>{name}</strong> with values read from the uploaded form-fillable PDF. Continue?",
+        "InProgress": "Reading character sheet PDF…",
+        "Success": "Character sheet updated from PDF: {summary}",
+        "NothingApplied": "no fields applied",
+        "Error": "PDF import failed: {error}",
+        "InvalidFile": "Please choose a PDF file.",
+        "NoFormFields": "No form fields could be read from that PDF. Use a fillable Fallout 2d20 character sheet (human or robot).",
+        "MoreWarnings": "{count} more warnings were logged to the console."
+      }
+    },
+    "Wizard": {
+      "Title": "Character Creation",
+      "WindowTitle": "Wastelander – Character Creation",
+      "Launch": "Create Character",
+      "Back": "Back",
+      "Next": "Next",
+      "Finish": "Finish",
+      "FinishSuccess": "Character creation applied to the sheet.",
+      "Steps": {
+        "origin": "Origin",
+        "special": "S.P.E.C.I.A.L.",
+        "skills": "Skills",
+        "perk": "Perk",
+        "equipment": "Equipment",
+        "review": "Review"
+      },
+      "StepPeekTitle": "Preview this step. You can return anytime; Finish requires every step to be complete.",
+      "StepHeading": {
+        "origin": "Step 1: Choose Your Origin",
+        "special": "Step 2: S.P.E.C.I.A.L.",
+        "skills": "Step 3: Skills & Tags",
+        "perk": "Step 4: Choose Your First Perk",
+        "equipment": "Step 5: Choose Equipment",
+        "review": "Review & Finish"
+      },
+      "Placeholder": "This step is coming soon.",
+      "Glossary": {
+        "TagSkill": "A few of your skills are Tag skills, marking them as your areas of expertise. Tag skills represent a focused training in those skills, a special affinity or talent with that discipline.\n\nTag skills increase your chances of a critical success. When you use a tagged skill, each d20 that rolls equal or under the skill rank is a critical success, scoring two successes instead of 1.",
+        "PipBoy": "Not all Pip-Boys contain the same functions, but the common functions are:\n\n- A personal status indicator allows the wearer to see a report on their current health and wellbeing and any medical problems currently afflicting them.\n- The device maintains an ongoing log of the wearer's activities, journey, and condition, and place for personal recordings to be made in either text or audio forms.\n- An inbuilt holotape reader allows the device to accept compact holotapes, able to read and playback audio, video, data, and even games.\n- It also functions as a compass, a radio, and a Geiger counter, and can generate light from its screen equivalent to a flashlight.\n\nIn addition, all Pip-Boy units aid their wearer during combat thanks to the Vault-Tec Assisted Targeting System, or V.A.T.S. A character equipped with a Pip-Boy may use V.A.T.S. when they make an attack, ignoring the normal difficulty increase for targeting a specific location on the enemy."
+      },
+      "OriginDetail": "Origin details",
+      "NewWastelander": "{name}",
+      "Trait": "Trait",
+      "OriginRules": "Origin rules",
+      "Benefit": "Benefit",
+      "Penalty": "Penalty",
+      "SelectOrigin": "Select an origin to see details.",
+      "SelectOriginHint": "Select an origin above. Full description, benefits, and penalties appear here.",
+      "Skills": {
+        "Instructions": "Choose your tag skills (★). Each tag skill starts at rank 2. Tag skills result in a critical success if you roll under the skill value. Spend skill points (9 + INT) to raise skills; max rank {max} at creation.",
+        "ResetFromSpecial": "S.P.E.C.I.A.L. changed — skill tags and ranks were reset.",
+        "TagColumn": "Tag",
+        "RankColumn": "Rank"
+      },
+      "Perks": {
+        "Instructions": "Click a perk to read it. Use the checkbox to select starting perk(s). Requirements you do not meet block selection only.",
+        "SelectHint": "Select a perk from the list to view its description.",
+        "Requirements": "Requirements",
+        "NotMet": "You do not meet:",
+        "CompanionStatBlock": "Companion profile"
+      },
+      "Origin": {
+        "SurvivorTwoTraits": "Two traits",
+        "SurvivorTraitPerk": "One trait + extra perk",
+        "DisabledRobotOnly": {
+          "Short": "Robot sheet",
+          "Hint": "Mister Handy requires a robot actor sheet. Create or open a robot actor to select this origin."
+        },
+        "DisabledHumanOnRobot": {
+          "Short": "Human only",
+          "Hint": "This origin is not available on robot actor sheets. Use a human character sheet, or choose Mister Handy."
+        }
+      },
+      "Equipment": {
+        "Instructions": "Choose a starting equipment pack for your origin. Resolve any choices, then continue. Tag skill gear is listed automatically.",
+        "PackItems": "Pack contents",
+        "TagLoot": "Tag skill items (from Step 3)",
+        "Trinket": "Personal trinket",
+        "TrinketDesc": "Roll on the Random Trinkets table (Core Rulebook p. 80), or enter a d20 result manually.",
+        "RollTrinket": "Roll d20 on trinket table",
+        "TrinketRollLabel": "Rolled:",
+        "TrinketOverride": "Or set d20:",
+        "CompendiumHint": "Click underlined items to open them from the compendium. Hover for details.",
+        "SelectPack": "Select an equipment pack to see contents and choices."
+      },
+      "RollChat": {
+        "Character": "Character",
+        "Item": "Item",
+        "Detail": "Result",
+        "Formula": "Formula",
+        "Total": "Total",
+        "Cd": "CD",
+        "Effects": "Effects",
+        "StartingAmmo": "Starting ammunition",
+        "StartingCaps": "Starting caps",
+        "Caps": "Caps",
+        "PersonalTrinket": "Personal trinket",
+        "TagSkillLoot": "Tag skill loot — {skill}",
+        "TagSkillAmmoDetail": "Bonus ammunition ({formula})"
+      },
+      "Review": {
+        "Derived": "Derived statistics",
+        "Immunities": "Immunities",
+        "ImmunitiesNone": "None",
+        "Origin": "Origin",
+        "Special": "S.P.E.C.I.A.L.",
+        "Tags": "Tag skills",
+        "Perks": "Starting perk(s)",
+        "Equipment": "Equipment pack",
+        "TagLoot": "Tag skill items"
+      },
+      "Special": {
+        "Instructions": "All S.P.E.C.I.A.L. attributes start at 5. Spend 5 points to increase them (each +1 costs 1 point). You may reduce an attribute to 4 to regain 1 point. Min 4, max 10.",
+        "PointsRemaining": "Points remaining: {remaining} / {total}",
+        "PerksRequiring": "Perks gated by selected attribute",
+        "SkillsFor": "Skills — {attribute}",
+        "PerksUnlocked": "Unlocked perks",
+        "PerksLocked": "Requires higher {attribute}",
+        "NoSkillsForAttribute": "No skills use this attribute as default.",
+        "NoPerksUnlocked": "None unlocked at this value yet.",
+        "NoPerksLocked": "No perks require a higher value.",
+        "Reset": "Reset",
+        "Blurb": {
+          "str": "Physical prowess; melee damage; how much you can carry.",
+          "per": "Awareness and initiative; used for energy weapon attacks.",
+          "end": "Toughness and resilience; affects HP and Big Guns.",
+          "cha": "Persuasion, bartering, and influence.",
+          "int": "Knowledge and problem-solving; affects skill points.",
+          "agi": "Nimbleness and precision; used for Small Guns.",
+          "luc": "Fortune and twists of fate; luck points and rerolls."
+        }
+      }
+    },
+    "Denizens": {
+      "Import": {
+        "MenuName": "Import denizen actors",
+        "MenuLabel": "Import denizens",
+        "MenuHint": "Opens the import window. Nothing is created until you click Import to world.",
+        "MenuTitle": "Import denizen actors",
+        "Intro": "Review the details below, then click Import to world to create actors under Denizens of the Wasteland.",
+        "OpenMenu": "Import denizens…",
+        "ConfirmTitle": "Import denizens?",
+        "ConfirmBody": "Create up to {count} actors in the sidebar (skips names that already exist).",
+        "Cancel": "Cancel",
+        "InProgress": "Importing denizens…",
+        "BundledCount": "{count} denizen JSON files are bundled in this build.",
+        "Hint": "Creates actors under “Denizens of the Wasteland” with rulebook subfolders (Animals and Insects, Raiders, Robots, etc.). Skips names that already exist in the world.",
+        "ReloadHint": "After importing, reload Foundry (F5 or close and reopen the world) if new actors do not appear in the Actors sidebar right away.",
+        "FolderFailed": "Could not create actor folders in the sidebar.",
+        "Run": "Import to world",
+        "RebuildHint": "Add Foundry actor exports to src/data/denizens/, then run npm run build and reload the module.",
+        "NoBundledFiles": "No denizen JSON is bundled in this build.",
+        "RequiresFallout": "The Fallout 2d20 system must be active.",
+        "GmOnly": "Only the GM can import denizens.",
+        "Done": "Denizen import finished: {created} created, {skipped} skipped (already in world), {failed} failed.",
+        "Failed": "Denizen import failed."
+      }
+    },
+    "Scavenging": {
+      "Title": "Scavenger Location Generator",
+      "WindowTitle": "Wastelander – Scavenger Location",
+      "WindowTitleScene": "Wastelander – Scavenger Location ({scene})",
+      "SceneScope": "Saved for scene: {scene}",
+      "Tooltip": "Generate scavenger location",
+      "Hint": "Creates a location using the GM Screen booklet rules (category, scale, degree, level). A Scavenger journal page for this scene updates automatically for Overseers.",
+      "Tabs": {
+        "Current": "Current scavenge location",
+        "Create": "Create"
+      },
+      "Current": {
+        "Empty": "No location generated yet. Use the Create tab to configure party and options, then generate.",
+        "GoCreate": "Go to Create",
+        "Inhabitants": "Inhabitants",
+        "Hazards": "Hazards",
+        "Obstacles": "Obstacles",
+        "None": "None",
+        "Wip": "WIP",
+        "ObstacleOvercome": "Obstacle overcome"
+      },
+      "HazardDamage": {
+        "PartyTitle": "Apply hazard damage (search time)",
+        "FormulaPer10Min": "{count} CD for this search (1 CD per 10 min × {searchMinutes} min search)",
+        "FormulaPerMin": "{count} CD for this search (1 CD per min × {searchMinutes} min search)",
+        "SearchTime": "{minutes} min ({scaleLabel})",
+        "Apply": "Apply hazard damage",
+        "PartyEmpty": "No player characters with linked tokens on this scene. Select party on Create or add linked tokens.",
+        "PartyFromLocation": "Party (from location)",
+        "RollName": "Hazard — {location} ({actor})",
+        "RollDetail": "{count} CD from {minutes} min spent searching",
+        "NotOngoing": "Hazard damage rolls apply only to ongoing hazards.",
+        "ActorMissing": "That actor could not be found.",
+        "RollFailed": "Combat dice roll failed.",
+        "Applied": "Applied {damage} damage to {actor} ({before} → {after} HP).",
+        "NoDamage": "Hazard roll dealt no damage.",
+        "HealthNotApplied": "Could not update HP on {actor} (missing health data)."
+      },
+      "Party": {
+        "Title": "Party on scene",
+        "Empty": "No player-owned characters with linked tokens on this scene. Assign a character in User Configuration (or give a player OWNER on the actor), and use linked tokens.",
+        "Refresh": "Refresh from scene"
+      },
+      "Fields": {
+        "Name": "Location name",
+        "Concept": "Concept (optional)",
+        "Scale": "Scale",
+        "Category": "Category",
+        "Degree": "Degree of search",
+        "Level": "Location level"
+      },
+      "Generated": {
+        "NotYet": "—",
+        "SearchDifficulty": "Search difficulty",
+        "TimeTaken": "Time taken",
+        "Minutes": "min"
+      },
+      "Problems": {
+        "Title": "Problems",
+        "Obstacle": "Obstacle",
+        "Hazard": "Hazard",
+        "Inhabitants": "Inhabitants",
+        "ObstacleTypeLabel": "Obstacle type",
+        "HazardKindLabel": "Hazard type",
+        "ObstacleTypes": {
+          "mechanical": "Mechanical lock",
+          "electronic": "Electronic lock",
+          "collapsed": "Collapsed structure",
+          "trap": "Trap (disarm as obstacle)"
+        },
+        "ObstacleSkills": {
+          "mechanical": "PER + Lockpick",
+          "electronic": "INT + Science",
+          "collapsed": "PER + Survival or STR/AGI + Athletics",
+          "trap": "AGI + Small Guns, Survival, or Explosives"
+        },
+        "HazardKinds": {
+          "ongoing": "Ongoing",
+          "occasional": "Occasional"
+        },
+        "HazardSummaryOngoingPer10Min": "1 CD per 10 minutes within the location",
+        "HazardSummaryOngoingPerMin": "1 CD per minute within the location (level 11+)",
+        "HazardSummaryOccasional": "Overseer to add situational traps",
+        "ObstacleOvercome": "overcome",
+        "ObstacleNotOvercome": "not yet overcome — search blocked",
+        "GeneratedSummary": "After generate: {summary}",
+        "ConfigureOnCreate": "Set type/kind above, then generate to roll location level and apply booklet difficulties."
+      },
+      "Inhabitants": {
+        "TypeLabel": "Inhabitant type",
+        "TinyNoInhabitants": "Tiny locations cannot have inhabitants (Core rulebook).",
+        "CountSummary": "{count} inhabitants present.",
+        "CountSummaryAdjusted": "{count} inhabitants present (rolled {baseCount} on scale dice, then Big/Little adjustment).",
+        "CountSummaryAtLevel": "{count} inhabitants present at {levelOrdinal} level, or normally within 2 levels.",
+        "CountSummaryAdjustedAtLevel": "{count} inhabitants present at {levelOrdinal} level, or normally within 2 levels (rolled {baseCount} on scale dice, then Big/Little adjustment).",
+        "OverseerOverrideNote": "Choose inhabitants yourself (drag denizens from the compendium onto the scene). No automatic roster is generated for this type.",
+        "ActorOpenFailed": "Could not open that actor.",
+        "DragHint": "Click to open actor; drag onto the scene to place a token.",
+        "RosterEmpty": "No matching denizens in catalog for this type and location level.",
+        "LevelShort": "Lv",
+        "Types": {
+          "animals": "Animals",
+          "feralGhouls": "Feral ghouls",
+          "raiders": "Raiders",
+          "superMutants": "Super mutants",
+          "robots": "Robots",
+          "overseerOverride": "Overseer override"
+        },
+        "Size": {
+          "big": "Big",
+          "little": "Little"
+        }
+      },
+      "Tables": {
+        "Title": "Scavenging Roll Tables",
+        "SidebarHint": "Foundry sidebar → Roll Tables. Names must match the GM Screen booklet (e.g. Food, Oddities and Valuables, Weapons (Ranged)).",
+        "GenerateForRanges": "Generate the location to see min/max rolls per table.",
+        "OtherFoundTitle": "Other found (d20)",
+        "ReductionFormula": "{tinyReduced} ({degree}, tiny) × {scaleMult} ({scale}) = {total} item minimums to reduce",
+        "ReductionHint": "Each point lowers one listed category’s minimum by 1 (or its maximum if minimum is already 0, to a minimum of 1).",
+        "ColumnTable": "Loot table",
+        "ColumnMin": "Min",
+        "ColumnMax": "Max",
+        "AllInstalled": "All required Roll Tables are present.",
+        "Missing": "One or more required Roll Tables were not found (check exact names).",
+        "NotInstalled": "not found",
+        "Results": "results",
+        "OpenFailed": "Could not open that Roll Table."
+      },
+      "RollChat": {
+        "LocationLevel": "Location level",
+        "LevelFinal": "Location level {level}",
+        "LevelWithEffects": "+{effects} from Effects (problems) → location level {level}",
+        "InhabitantCount": "Inhabitant count",
+        "InhabitantCountDetail": "Rolled {dieFace} on {formula} → {count} inhabitants"
+      },
+      "Actions": {
+        "Generate": "Generate location"
+      },
+      "Journal": {
+        "Title": "Scavenger",
+        "Updated": "Last updated {time}",
+        "SceneLabel": "Scene: {scene}",
+        "Yes": "Yes",
+        "No": "No",
+        "LootRollsUsed": "Rolls used",
+        "UnnamedScene": "Scene",
+        "PartyTitle": "Party on scene",
+        "LocationTitle": "Scavenger location",
+        "PlayerTitle": "Player scavenge",
+        "NoLocation": "No location generated yet for this scene.",
+        "NoPlayerSearch": "No player scavenge activity yet.",
+        "SearchStatus": "Search",
+        "SearchPending": "Not started",
+        "SearchSuccess": "Succeeded",
+        "SearchFail": "Failed",
+        "SearchRoll": "PER + Survival",
+        "SearchRollPlayer": "Player",
+        "SearchRollOutcome": "Outcome",
+        "SearchRollDice": "Dice",
+        "SearchRollWhen": "When",
+        "LootRollBase": "natural {base}",
+        "AssistRollsTitle": "Assist rolls",
+        "PrimaryRollTitle": "Primary roll",
+        "AssistHelps": "Assist succeeded (+1 if primary passes)",
+        "AssistNoHelp": "Assist did not succeed",
+        "AssistBonusLine": "+{count} assist success(es) applied to primary",
+        "NoLootRollsYet": "No loot rolls yet.",
+        "LootProgressTitle": "Loot progress",
+        "LootProgress": "min remaining {rem}, rolls used {used}",
+        "LootResults": "Loot rolls",
+        "LootSourceMin": "minimum roll",
+        "LootSourceAp": "AP roll",
+        "LootLuck": "luck shift {shift} ({spent} spent)",
+        "PartySelected": "in party",
+        "PartyNotSelected": "not selected"
+      },
+      "Notify": {
+        "Generated": "Location generated (level {level}).",
+        "GenerateError": "Could not generate location: {error}",
+        "JournalSyncError": "Scavenger journal could not update: {error}"
+      },
+      "WorldClock": {
+        "DurationMinutes": "{minutes} minutes",
+        "DurationHours": "{hours} hours",
+        "DurationHoursMinutes": "{hours} hours {minutes} minutes",
+        "Advanced": "World clock advanced {duration} while searching {location}.",
+        "Failed": "Could not advance the world clock: {error}",
+        "ChatBody": "The party spent <strong>{duration}</strong> searching <strong>{location}</strong>.",
+        "ChatClock": "World time is now {clock}."
+      },
+      "Settings": {
+        "PreferFoundryTables": "Prefer Foundry RollTables",
+        "PreferFoundryTablesHint": "When enabled, simulate search draws from your world Roll Tables (GM Screen booklet names).",
+        "SearchRollWhisper": "Whisper simulate-search loot to GM",
+        "SearchRollWhisperHint": "Loot roll chat cards are only visible to the GM.",
+        "AdvanceWorldClockOnSearch": "Advance world clock after search",
+        "AdvanceWorldClockOnSearchHint": "When a search attempt completes, advance Simple Calendar by the location's Time Taken (requires the Simple Calendar module).",
+        "AutoDegreeReduction": "Auto-allocate degree reductions",
+        "AutoDegreeReductionHint": "Randomly apply minimum reductions when generating a location."
+      },
+      "PlayerSearch": {
+        "Title": "Scavenge location",
+        "WindowTitle": "Wastelander – Scavenge",
+        "WindowTitleScene": "Wastelander – Scavenge ({scene})",
+        "Tooltip": "Scavenge this location (players)",
+        "NoLocation": "No scavenger location on this scene yet. Ask the Overseer to generate one.",
+        "PartyAp": "Party AP",
+        "PartyApUnavailable": "— (Fallout AP tracker unavailable)",
+        "SearchSection": "Search the location",
+        "SearchHint": "Roll PER + Survival vs the location search difficulty. If you succeed, loot tables are revealed.",
+        "SearchTeamHint": "Choose one primary searcher and optional assistants. Assistants roll first (1d20); the primary rolls 2d20 after all assistants have scavengeed. Bonus successes above the search difficulty become party AP when the primary succeeds.",
+        "RollSearch": "Roll PER + Survival",
+        "Scavenge": "Scavenge",
+        "ScavengeAssistHint": "Roll 1d20 assist (PER + Survival)",
+        "ScavengePrimaryHint": "Roll 2d20 primary search",
+        "PrimaryWaitingAssists": "Waiting for all assistants to scavenge first",
+        "TeamColumnUser": "Player",
+        "TeamColumnCharacter": "Character",
+        "TeamColumnPerSurvival": "PER + Survival",
+        "TeamColumnRole": "Role",
+        "PerSurvivalShort": "PER {per} + Surv {survival} (TN {tn})",
+        "TeamRole": {
+          "none": "None",
+          "assist": "Assist",
+          "primary": "Primary"
+        },
+        "TeamRoleNone": "Set role to Assist or Primary to scavenge",
+        "AssistsPending": "The primary searcher must wait until every assistant has scavengeed ({count} remaining).",
+        "AssistAlreadyRolled": "This assistant has already rolled.",
+        "PrimaryAlreadyRolled": "The primary search roll is already complete.",
+        "NotPrimarySearcher": "Only the primary searcher can roll the final search test.",
+        "NotYourCharacter": "Only that player's character can use this button.",
+        "TeamLocked": "Team roles cannot change after the first search roll.",
+        "BonusApGranted": "+{amount} party AP from bonus successes.",
+        "BonusApFailed": "Could not add bonus party AP.",
+        "ActingCharacter": "Character",
+        "Luck": "Luck",
+        "NoCharacter": "Select a character with a linked token on this scene (players: assign your character in User Configuration).",
+        "NoActiveScene": "No active scene — open the scavenger scene first.",
+        "ObstacleBlocked": "The obstacle must be overcome before searching (Overseer marks this on the Current tab).",
+        "SearchFailed": "Search failed — no loot found.",
+        "SearchSucceeded": "Search succeeded.",
+        "LootSection": "Loot tables",
+        "LootHint": "Roll each category at its minimum, then spend party AP for extra rolls (up to max). Adjust results with luck (±{luckMax} per point spent).",
+        "RemainingMin": "Min left",
+        "RollMin": "Roll",
+        "SpendAp": "Spend 1 AP",
+        "ResultsSection": "Roll results",
+        "RollSum": "sum",
+        "LuckShift": "luck shift",
+        "LuckSpend": "[{cost} Luck]",
+        "UnlockedLoot": "Your loot",
+        "LootItemHint": "Click to preview; drag onto a character sheet to add.",
+        "LootRollChat": "Scavenge: {category}",
+        "LuckFindChatTitle": "Luck — better loot",
+        "LuckFindChat": "{actor} used {luck} Luck Points to find {item}.",
+        "ActionDone": "Scavenge updated.",
+        "GmMarkSuccess": "Mark search succeeded",
+        "GmMarkFail": "Mark search failed",
+        "GmReset": "Reset player scavenge",
+        "GmResetSearch": "Reset player search",
+        "GmResetHint": "Clears persisted player search and loot rolls for this scene (players must search again).",
+        "GmResetSearchDone": "Player search progress cleared for this scene.",
+        "GmOutcomeSet": "Player scavenge state set ({outcome}).",
+        "GmOnlyMutation": "Only the GM can update scavenge state.",
+        "GmOffline": "No GM is connected to process this action.",
+        "SocketUnavailable": "Socket API unavailable.",
+        "AlreadySucceeded": "Search already succeeded for this location.",
+        "ActorNotFound": "Character not found.",
+        "NeedSearchSuccess": "Succeed on the search test before rolling loot.",
+        "UnknownCategory": "Unknown loot category.",
+        "CannotRollMin": "No minimum rolls remaining for this category.",
+        "CannotSpendAp": "Cannot spend AP on this category right now.",
+        "NoPartyAp": "Not enough party AP.",
+        "EntryNotFound": "Roll entry not found.",
+        "NotYourRoll": "You can only adjust luck on your own rolls.",
+        "LuckShiftLimit": "Luck shift cannot exceed ±{max} for this location.",
+        "NoLuck": "No luck points remaining.",
+        "NoLuckForJump": "Need {cost} Luck to choose that result (you have {have})."
+      }
+    }
+  }
+}
