@@ -25,6 +25,14 @@ npm run dev        # watch mode
 
 Open from any player **character** or **robot** actor sheet (Wastelander menu → **Build character**).
 
+![Choose your origin — Survivor traits and tag-skill glossary](assets/readme/character-creation-origin.png)
+
+*Step 1: pick an origin, survivor trait mode, and trait details with Pip-Boy tooltips.*
+
+![S.P.E.C.I.A.L. allocation with perk peek-ahead by attribute](assets/readme/character-creation-special.png)
+
+*Step 2: spend attribute points; the side panel lists unlocked perks and what higher stats would unlock.*
+
 - **Step-by-step creation** — Origin, S.P.E.C.I.A.L., skills (including tag skills), perks, equipment, and review.
 - **Core origins** — Survivor, Vault Dweller, Ghoul, Brotherhood of Steel, Super Mutant, and Mister Handy (robot sheet).
 - **Rulebook-accurate options** — Starting equipment packs, tag-skill loot, personal trinkets, survivor traits, perk eligibility, and derived stats applied to the actor on finish.
@@ -48,6 +56,14 @@ Two scene tools (token controls):
 
 ### Overseer — location generator
 
+![Scavenger Location Generator — party, category, scale, degree, and problems](assets/readme/scavenger-location-create.png)
+
+*Create tab: pick party members on scene, set category/scale/degree, and toggle obstacle, hazard, or inhabitants.*
+
+![Generated location — inhabitants, roll-table checks, and loot min/max grid](assets/readme/scavenger-location-loot.png)
+
+*After generation: inhabitant roster, GM Screen roll-table status, d20 “Other Found” results, and the loot table grid with min/max counts.*
+
 - **Scene-specific locations** — Each scene stores its own scavenger location, party selection, and player progress.
 - **Booklet-driven generation** — Category, scale, degree of search, problems (obstacle / hazard / inhabitants), and location level (party levels + degree + problem effects).
 - **Time taken** — Search duration by scale (1 min → 2 hours); shown on the location and used for hazards and world-clock advancement.
@@ -57,7 +73,15 @@ Two scene tools (token controls):
 - **Simulate search** — GM can test loot draws against Foundry RollTables (GM Screen booklet names).
 - **Automated journal** — A shared Overseer journal page per scene updates with location details, problems, inhabitants, and player scavenge progress.
 
+![Scavenger journal — location overview, inhabitants, and linked sub-pages](assets/readme/scavenger-location-journal.png)
+
+*Per-scene journal: location stats, inhabitant links, and pages for hazards, obstacles, player scavenge, and loot results.*
+
 ### Players — scavenge automation
+
+![Player scavenge window — primary searcher, assistants, and party AP](assets/readme/scavenge-player-search.png)
+
+*Players assign primary vs assist roles, roll in order (assists first), and earn party AP from bonus successes.*
 
 - **Search team** — One primary searcher (PER + Survival) plus optional assistants; assists roll first, then the primary.
 - **Bonus party AP** — Extra successes above search difficulty become party AP (Fallout system AP tracker).
