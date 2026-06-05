@@ -1,6 +1,6 @@
 # Wastelander
 
-A Foundry VTT module for **[Fallout: The Roleplaying Game](https://github.com/Muttley/foundryvtt-fallout)** (2d20). Wastelander adds a guided character builder, a full scavenging toolkit, and a bundled denizen library — all aligned with the Core Rulebook and GM Screen booklet.
+A Foundry VTT module for **[Fallout: The Roleplaying Game](https://github.com/Muttley/foundryvtt-fallout)** (2d20). Wastelander adds a guided character builder, a full scavenging toolkit, and denizen import tooling — all aligned with the Core Rulebook and GM Screen booklet.
 
 **Requires:** [Fallout 2d20 system](https://github.com/Muttley/foundryvtt-fallout) · Foundry VTT v13+
 
@@ -75,10 +75,10 @@ Two scene tools (token controls):
 - **Scene-specific locations** — Each scene stores its own scavenger location, party selection, and player progress.
 - **Booklet-driven generation** — Category, scale, degree of search, problems (obstacle / hazard / inhabitants), and location level (party levels + degree + problem effects).
 - **Time taken** — Search duration by scale (1 min → 2 hours); shown on the location and used for hazards and world-clock advancement.
-- **Inhabitants** — Random counts and roster suggestions from the bundled denizen catalog (import actors first — see **Denizen library**); drag onto the scene or override manually.
+- **Inhabitants** — Random counts and roster suggestions from the denizen catalog (import actors first — see **Denizen import**); drag onto the scene or override manually.
 - **Obstacles** — Block the scavenge roll until overcome (mechanical / electronic / collapsed / trap types with skill hints).
 - **Hazards** — Ongoing hazard damage tied to search time; Overseer can apply CD rolls to party members from the Current tab.
-- **Simulate search** — GM can test loot draws against Foundry RollTables (GM Screen booklet names).
+- **GM search override** — On the Current tab, mark player search as **succeeded** or **failed**, or **reset player search** to clear progress without regenerating the location.
 - **Automated journal** — A shared Overseer journal page per scene updates with location details, problems, inhabitants, and player scavenge progress.
 
 ![Scavenger journal — location overview, inhabitants, and linked sub-pages](assets/readme/scavenger-location-journal.png)
@@ -103,46 +103,50 @@ Player actions are validated on the GM client over Foundry’s socket so players
 
 ---
 
-## Denizen library
+## Denizen import
 
-Wastelander ships **60+ ready-to-run NPC actors** from the rulebook (Deathclaw, Raider, Assaultron, Super Mutant Brute, Eyebot, and many more). One import populates your world’s Actors sidebar with combat-ready denizens — and powers inhabitant suggestions when you generate scavenger locations.
+Wastelander does **not** redistribute rulebook NPC actors. It provides an import workflow so you can bring your own Foundry actor exports into the world and use them with scavenging.
+
+### Provide actor JSON
+
+Export actors from your Fallout world (or build them yourself), then add the JSON files before building the module:
+
+1. Place Foundry actor exports in `src/data/denizens/` (gitignored — not committed to the repo).
+2. Rebuild the catalog and module bundle:
+
+```bash
+npm run build:denizens   # writes src/data/scavenging/denizens-catalog.json
+npm run build
+```
+
+3. Reload the module in Foundry. The import menu shows how many JSON files were bundled in that build.
+
+If no JSON is present at build time, import is unavailable until you add exports and rebuild.
 
 ### Import to world
 
-**Configure Settings → Module Settings → Wastelander → Import denizens**
+**Configure Settings → Module Settings → Wastelander → Import denizens** (or **Import denizens…** on the Actors sidebar)
 
 - **GM only** — creates actors in the sidebar (does not auto-place tokens).
 - **Idempotent** — skips any name that already exists in the world.
-- **Full stat blocks** — skills, gear, special abilities, and robot modules are embedded on each actor.
+- **Your stat blocks** — imports whatever skills, gear, and abilities are in your exports.
 - **Robot-aware** — robot exports are normalized (body type, favorited weapons, post-import repair pass).
 
 After import, reload Foundry if new actors do not appear in the sidebar immediately.
 
 ### Rulebook folder layout
 
-Actors are filed under **Denizens of the Wasteland**, matching the Core Rulebook organization:
-
-| Folder | Examples |
-|--------|----------|
-| Animals and Insects | Deathclaw, Mirelurk, Radscorpion, Yao Guai |
-| Mutated Humanoids | Feral Ghoul, Glowing One |
-| Robots | Assaultron, Eyebot, Mister Handy, Sentry Bot |
-| Super Mutants | Super Mutant, Brute, Behemoth |
-| Synths | Synth, Courser, Strider |
-| Turrets | Laser Turret, Machine Gun Turret |
-| Brotherhood of Steel | Knight, Paladin, Scribe |
-| Raiders | Raider, Veteran, Boss |
-| Wastelanders | Vault Dweller, Mercenary, Institute Scientist |
+Imported actors are filed under **Denizens of the Wasteland**, matching the Core Rulebook organization (Animals and Insects, Raiders, Robots, Super Mutants, Synths, Turrets, Brotherhood of Steel, Wastelanders, and Mutated Humanoids).
 
 ### Tied to scavenging
 
-The same denizen data feeds the **Scavenger Location** generator:
+The denizen **catalog** (slim metadata in `denizens-catalog.json`, built from your exports) feeds the **Scavenger Location** generator:
 
 - **Inhabitant catalog** — level, type, and size metadata for roster matching.
 - **Random inhabitant counts** — rolled when you generate a location (by scale and inhabitant type).
-- **Roster suggestions** — denizens near the location level appear on the Current tab; click to open the actor or **drag onto the scene** to place tokens.
+- **Roster suggestions** — denizens near the location level appear on the Current tab; click to open the imported actor or **drag onto the scene** to place tokens.
 
-Run import once per world (or after adding new bundled denizens in a module update), then scavenging inhabitant workflows work out of the box.
+Run import once per world after bundling your JSON, then scavenging inhabitant workflows can link roster entries to world actors.
 
 ---
 
@@ -159,15 +163,6 @@ They appear automatically when the module is enabled. Scavenging looks up roll t
 
 To refresh pack data from your Foundry world after editing compendiums, see [packs/README.md](packs/README.md).
 
-### Development
-
-Denizen JSON lives in `src/data/denizens/`. Rebuild the scavenging catalog after adding or editing exports:
-
-```bash
-npm run build:denizens
-npm run build
-```
-
 ---
 
 ## Optional integrations
@@ -183,8 +178,8 @@ npm run build
 
 ## Module settings (scavenging)
 
-- **Prefer Foundry RollTables** — Draw simulate-search / loot from world tables when names match the booklet.
-- **Whisper simulate-search loot to GM** — Loot preview rolls visible only to the GM.
+- **Prefer Foundry RollTables** — Player AP loot rolls use world Roll Tables when names match the GM Screen booklet (falls back to bundled tables).
+- **Whisper loot rolls to GM** — Loot roll chat cards visible only to the GM.
 - **Advance world clock after search** — Simple Calendar integration (default on).
 - **Auto-allocate degree reductions** — Randomly apply minimum reductions when generating a location.
 
@@ -192,4 +187,4 @@ npm run build
 
 ## License
 
-See [LICENSE](LICENSE). Fallout RPG rules content and official PDF character sheets are © Modiphius Entertainment; this module does not redistribute them. Bundled denizen data is derived from exports compatible with the Fallout system.
+See [LICENSE](LICENSE). Fallout RPG rules content and official PDF character sheets are © Modiphius Entertainment; this module does not redistribute them. Denizen actor JSON is supplied by the module user at build time; the module does not ship rulebook NPC stat blocks.
