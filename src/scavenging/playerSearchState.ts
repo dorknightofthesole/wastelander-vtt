@@ -23,6 +23,8 @@ export type PlayerLootRollEntry = {
   createdAt: number;
 };
 
+export type SearchTeamRole = "primary" | "assist" | "none";
+
 export type PlayerSearchRollLog = {
   actorId: string;
   userId: string;
@@ -34,11 +36,30 @@ export type PlayerSearchRollLog = {
   success: boolean;
   detail: string;
   at: number;
+  /** Primary roll only — assist successes counted when primary passed. */
+  assistBonusSuccesses?: number;
+  totalSuccesses?: number;
+  bonusApGranted?: number;
+};
+
+export type AssistSearchRollLog = {
+  actorId: string;
+  userId: string;
+  userName: string;
+  targetNumber: number;
+  face: number;
+  successes: number;
+  /** At least one success on the assist d20. */
+  contributesSuccess: boolean;
+  detail: string;
+  at: number;
 };
 
 export type ScavengerPlayerSearchState = {
-  version: 1;
+  version: 2;
   searchSuccess: boolean | null;
+  teamRoles: Record<string, SearchTeamRole>;
+  assistRolls: Record<string, AssistSearchRollLog>;
   searchRollLog?: PlayerSearchRollLog;
   remainingMin: Partial<Record<LootCategoryKey, number>>;
   rollsUsed: Partial<Record<LootCategoryKey, number>>;
@@ -48,8 +69,10 @@ export type ScavengerPlayerSearchState = {
 
 export function emptyPlayerSearchState(): ScavengerPlayerSearchState {
   return {
-    version: 1,
+    version: 2,
     searchSuccess: null,
+    teamRoles: {},
+    assistRolls: {},
     remainingMin: {},
     rollsUsed: {},
     entries: [],
@@ -70,8 +93,10 @@ export function initPlayerSearchOnSuccess(
   }
 
   return {
-    version: 1,
+    version: 2,
     searchSuccess: true,
+    teamRoles: {},
+    assistRolls: {},
     remainingMin,
     rollsUsed,
     entries: [],
@@ -91,9 +116,20 @@ export function normalizePlayerSearch(
         ? false
         : null;
 
+  const teamRoles =
+    data.teamRoles && typeof data.teamRoles === "object"
+      ? { ...(data.teamRoles as Record<string, SearchTeamRole>) }
+      : {};
+  const assistRolls =
+    data.assistRolls && typeof data.assistRolls === "object"
+      ? { ...(data.assistRolls as Record<string, AssistSearchRollLog>) }
+      : {};
+
   return {
-    version: 1,
+    version: 2,
     searchSuccess,
+    teamRoles,
+    assistRolls,
     searchRollLog:
       data.searchRollLog && typeof data.searchRollLog === "object"
         ? (data.searchRollLog as PlayerSearchRollLog)

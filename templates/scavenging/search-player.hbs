@@ -15,11 +15,13 @@
       {{#if locationConcept}}
         <p class="wastelander-scavenger-hint">{{locationConcept}}</p>
       {{/if}}
-      <dl class="wastelander-scavenger-location-meta">
-        <div><dt>{{localize "WASTELANDER.Scavenging.Fields.Level"}}</dt><dd>{{level}}</dd></div>
-        <div><dt>{{localize "WASTELANDER.Scavenging.Generated.SearchDifficulty"}}</dt><dd>{{searchDifficulty}}</dd></div>
-        <div><dt>{{localize "WASTELANDER.Scavenging.PlayerSearch.PartyAp"}}</dt><dd>{{partyAp}}</dd></div>
-      </dl>
+      <div class="wastelander-scavenger-location-info">
+        <dl class="wastelander-scavenger-location-meta">
+          <div><dt>{{localize "WASTELANDER.Scavenging.Fields.Level"}}</dt><dd>{{level}}</dd></div>
+          <div><dt>{{localize "WASTELANDER.Scavenging.Generated.SearchDifficulty"}}</dt><dd>{{searchDifficulty}}</dd></div>
+          <div><dt>{{localize "WASTELANDER.Scavenging.PlayerSearch.PartyAp"}}</dt><dd>{{partyAp}}</dd></div>
+        </dl>
+      </div>
     </section>
 
     {{#if obstacleBlocked}}
@@ -28,22 +30,66 @@
       {{#if searchPending}}
         <section class="wastelander-scavenger-section">
           <h2>{{localize "WASTELANDER.Scavenging.PlayerSearch.SearchSection"}}</h2>
-          <p class="wastelander-scavenger-hint">{{localize "WASTELANDER.Scavenging.PlayerSearch.SearchHint"}}</p>
-          {{#if actingActors.length}}
-            <label class="wastelander-scavenger-field">
-              <span>{{localize "WASTELANDER.Scavenging.PlayerSearch.ActingCharacter"}}</span>
-              <select data-action="selectActor" {{#if busy}}disabled{{/if}}>
-                {{#each actingActors}}
-                  <option value="{{actorId}}" data-actor-id="{{actorId}}" {{#if selected}}selected{{/if}}>{{name}} ({{localize "WASTELANDER.Scavenging.PlayerSearch.Luck"}} {{luckPoints}})</option>
+          <p class="wastelander-scavenger-hint">{{localize "WASTELANDER.Scavenging.PlayerSearch.SearchTeamHint"}}</p>
+          {{#if teamRows.length}}
+            <table class="wastelander-scavenger-loot-table wastelander-scavenger-team-table">
+              <thead>
+                <tr>
+                  <th>{{localize "WASTELANDER.Scavenging.PlayerSearch.TeamColumnUser"}}</th>
+                  <th>{{localize "WASTELANDER.Scavenging.PlayerSearch.TeamColumnCharacter"}}</th>
+                  <th>{{localize "WASTELANDER.Scavenging.PlayerSearch.TeamColumnPerSurvival"}}</th>
+                  <th>{{localize "WASTELANDER.Scavenging.PlayerSearch.TeamColumnRole"}}</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {{#each teamRows}}
+                  <tr>
+                    <td>{{userName}}{{#unless userActive}} <em class="wastelander-scavenger-offline">(offline)</em>{{/unless}}</td>
+                    <td>{{actorName}}</td>
+                    <td>{{perSurvivalLabel}}</td>
+                    <td>
+                      <select
+                        data-action="setTeamRole"
+                        data-actor-id="{{actorId}}"
+                        {{#unless ../canEditTeam}}disabled{{/unless}}
+                        {{#if ../busy}}disabled{{/if}}
+                      >
+                        {{#each roleOptions}}
+                          <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+                        {{/each}}
+                      </select>
+                    </td>
+                    <td class="wastelander-scavenger-loot-actions">
+                      {{#if assistRollDetail}}
+                        <span class="wastelander-scavenger-hint">{{assistRollDetail}}</span>
+                      {{else if primaryRollDetail}}
+                        <span class="wastelander-scavenger-hint">{{primaryRollDetail}}</span>
+                      {{else}}
+                        <button
+                          type="button"
+                          class="wastelander-btn-secondary{{#if scavengeDisabled}} is-disabled{{/if}}"
+                          data-action="rollTeamSearch"
+                          data-actor-id="{{actorId}}"
+                          {{#if scavengeDisabled}}disabled="disabled"{{/if}}
+                          {{#if ../busy}}disabled="disabled"{{/if}}
+                          title="{{scavengeTitle}}"
+                          {{#if scavengeDisabled}}aria-disabled="true"{{/if}}
+                        >
+                          {{localize "WASTELANDER.Scavenging.PlayerSearch.Scavenge"}}
+                        </button>
+                      {{/if}}
+                    </td>
+                  </tr>
                 {{/each}}
-              </select>
-            </label>
+              </tbody>
+            </table>
+            {{#if assistsPendingHint}}
+              <p class="wastelander-scavenger-hint">{{assistsPendingHint}}</p>
+            {{/if}}
           {{else}}
             <p class="wastelander-scavenger-warning">{{localize "WASTELANDER.Scavenging.PlayerSearch.NoCharacter"}}</p>
           {{/if}}
-          <button type="button" class="wastelander-btn-primary" data-action="rollSearch" {{#unless canSearch}}disabled{{/unless}} {{#if busy}}disabled{{/if}}>
-            {{localize "WASTELANDER.Scavenging.PlayerSearch.RollSearch"}}
-          </button>
         </section>
       {{/if}}
 
@@ -54,6 +100,14 @@
         {{/if}}
       {{/if}}
 
+      {{#if searchResolved}}
+        {{#if searchLog}}
+          <p class="wastelander-scavenger-hint">{{searchLog}}</p>
+        {{/if}}
+        {{#if bonusApMessage}}
+          <p class="wastelander-scavenger-ok">{{bonusApMessage}}</p>
+        {{/if}}
+      {{/if}}
     {{/if}}
 
     {{#if showLootTables}}

@@ -97,12 +97,6 @@ export interface ScavengerLocationRollLog {
   detail?: string;
 }
 
-export interface ScavengerLocationLootResult {
-  category: LootCategoryKey;
-  label: string;
-  quantityFormula?: string;
-}
-
 export interface ScavengerLocation {
   id: string;
   name: string;
@@ -123,8 +117,6 @@ export interface ScavengerLocation {
   journalId?: string;
   journalPageId?: string;
   rollLog: ScavengerLocationRollLog[];
-  searchSimulated?: boolean;
-  lootResults?: ScavengerLocationLootResult[];
   createdAt: number;
   /** Non-fatal issues from generation (e.g. empty inhabitant pool). */
   warnings?: string[];

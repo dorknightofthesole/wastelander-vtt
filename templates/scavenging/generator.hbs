@@ -52,7 +52,7 @@
         </div>
       </section>
 
-      <section class="wastelander-scavenger-section">
+      <section class="wastelander-scavenger-section wastelander-scavenger-panel">
         <h2>{{localize "WASTELANDER.Scavenging.Current.Inhabitants"}}</h2>
         {{#if current.inhabitants}}
           {{#if current.inhabitants.countSummary}}
@@ -87,11 +87,40 @@
         {{/if}}
       </section>
 
-      <section class="wastelander-scavenger-section">
+      <section class="wastelander-scavenger-section wastelander-scavenger-panel">
         <h2>{{localize "WASTELANDER.Scavenging.Current.Hazards"}}</h2>
         {{#if current.hazard.present}}
           <p class="wastelander-scavenger-inhabitant-count">{{current.hazard.kindLabel}}</p>
-          <p class="wastelander-scavenger-hint">{{current.hazard.summary}}</p>
+          <p class="wastelander-scavenger-hint">{{{current.hazard.summary}}}</p>
+          {{#if current.hazard.damageUi.show}}
+            <div class="wastelander-scavenger-hazard-damage">
+              <p class="wastelander-scavenger-hint wastelander-scavenger-hazard-damage-formula">
+                {{{current.hazard.damageUi.formulaHintHtml}}}
+                <span class="wastelander-scavenger-hazard-damage-time">({{current.hazard.damageUi.searchTimeLabel}})</span>
+              </p>
+              <h3 class="wastelander-scavenger-subheading">{{localize "WASTELANDER.Scavenging.HazardDamage.PartyTitle"}}</h3>
+              {{#if current.hazard.damageUi.partyEmpty}}
+                <p class="wastelander-scavenger-hint">{{localize "WASTELANDER.Scavenging.HazardDamage.PartyEmpty"}}</p>
+              {{else}}
+                <ul class="wastelander-scavenger-hazard-damage-party">
+                  {{#each current.hazard.damageUi.players}}
+                    <li>
+                      <span class="wastelander-scavenger-hazard-damage-name">{{actorName}}</span>
+                      <span class="wastelander-scavenger-hazard-damage-user">{{userName}}</span>
+                      <button
+                        type="button"
+                        class="wastelander-btn-secondary wastelander-scavenger-hazard-damage-btn"
+                        data-action="applyHazardDamage"
+                        data-actor-id="{{actorId}}"
+                      >
+                        {{localize "WASTELANDER.Scavenging.HazardDamage.Apply"}}
+                      </button>
+                    </li>
+                  {{/each}}
+                </ul>
+              {{/if}}
+            </div>
+          {{/if}}
         {{else}}
           <p class="wastelander-scavenger-hint">{{localize "WASTELANDER.Scavenging.Current.None"}}</p>
         {{/if}}
@@ -143,17 +172,6 @@
           {{/each}}
         </div>
       </section>
-
-      {{#if location.simulateLoot}}
-        <section class="wastelander-scavenger-preview">
-          <h2>{{localize "WASTELANDER.Scavenging.Preview.Loot"}}</h2>
-          <ul>
-            {{#each location.simulateLoot}}
-              <li>{{category}}: {{label}}</li>
-            {{/each}}
-          </ul>
-        </section>
-      {{/if}}
     {{/if}}
   </div>
   {{/if}}
@@ -243,17 +261,25 @@
       </label>
     </div>
     {{#if problemsUi.showObstacleFields}}
-      <div class="wastelander-scavenger-field">
-        <label for="loc-obstacle-type">{{localize "WASTELANDER.Scavenging.Problems.ObstacleTypeLabel"}}</label>
-        <select id="loc-obstacle-type" data-action="updateField" data-field="obstacleType">
-          {{#each problemsUi.obstacleTypeOptions}}
-            <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
-          {{/each}}
-        </select>
-      </div>
+      <fieldset class="wastelander-scavenger-problem-box wastelander-scavenger-obstacle-box">
+        <legend>{{localize "WASTELANDER.Scavenging.Problems.Obstacle"}}</legend>
+        <div class="wastelander-scavenger-field">
+          <label for="loc-obstacle-type">{{localize "WASTELANDER.Scavenging.Problems.ObstacleTypeLabel"}}</label>
+          <select id="loc-obstacle-type" data-action="updateField" data-field="obstacleType">
+            {{#each problemsUi.obstacleTypeOptions}}
+              <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+            {{/each}}
+          </select>
+        </div>
+        {{#if problemsUi.obstacleSummary}}
+          <p class="wastelander-scavenger-hint wastelander-scavenger-problem-box-summary">{{problemsUi.obstacleSummary}}</p>
+        {{else}}
+          <p class="wastelander-scavenger-hint wastelander-scavenger-problem-box-summary">{{problemsUi.configureHint}}</p>
+        {{/if}}
+      </fieldset>
     {{/if}}
     {{#if problemsUi.showHazardFields}}
-      <fieldset class="wastelander-scavenger-hazard-kind">
+      <fieldset class="wastelander-scavenger-problem-box wastelander-scavenger-hazard-box">
         <legend>{{localize "WASTELANDER.Scavenging.Problems.HazardKindLabel"}}</legend>
         <label>
           <input type="radio" name="hazardKind" value="ongoing" data-action="updateField" data-field="hazardKind" {{#if problemsUi.hazardKindOngoing}}checked{{/if}} />
@@ -263,22 +289,10 @@
           <input type="radio" name="hazardKind" value="occasional" data-action="updateField" data-field="hazardKind" {{#if problemsUi.hazardKindOccasional}}checked{{/if}} />
           {{localize "WASTELANDER.Scavenging.Problems.HazardKinds.occasional"}}
         </label>
+        {{#if problemsUi.hazardSummary}}
+          <p class="wastelander-scavenger-hint wastelander-scavenger-problem-box-summary">{{{problemsUi.hazardSummary}}}</p>
+        {{/if}}
       </fieldset>
-    {{/if}}
-    {{#if problemsUi.hasGenerated}}
-      {{#if problemsUi.obstacleSummary}}
-        <p class="wastelander-scavenger-hint">{{problemsUi.obstacleSummary}}</p>
-      {{/if}}
-      {{#if problemsUi.hazardSummary}}
-        <p class="wastelander-scavenger-hint">{{problemsUi.hazardSummary}}</p>
-      {{/if}}
-    {{else}}
-      {{#if problemsUi.showObstacleFields}}
-        <p class="wastelander-scavenger-hint">{{problemsUi.configureHint}}</p>
-      {{/if}}
-      {{#if problemsUi.showHazardFields}}
-        <p class="wastelander-scavenger-hint">{{problemsUi.configureHint}}</p>
-      {{/if}}
     {{/if}}
     {{#unless inhabitantsUi.allowed}}
       <p class="wastelander-scavenger-hint">{{localize "WASTELANDER.Scavenging.Inhabitants.TinyNoInhabitants"}}</p>
@@ -383,7 +397,6 @@
           <button type="button" data-action="markSearchFail" class="wastelander-btn-secondary">{{localize "WASTELANDER.Scavenging.PlayerSearch.GmMarkFail"}}</button>
         {{/if}}
       {{/if}}
-      <button type="button" data-action="saveJournal" class="wastelander-btn-primary" {{#unless location}}disabled{{/unless}}>{{localize "WASTELANDER.Scavenging.Actions.SaveJournal"}}</button>
     </div>
     {{#if tabCreate}}
       <button type="button" data-action="generate" class="wastelander-btn-primary wastelander-scavenger-actions-generate" {{#if generating}}disabled{{/if}}>{{localize "WASTELANDER.Scavenging.Actions.Generate"}}</button>

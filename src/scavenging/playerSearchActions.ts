@@ -1,5 +1,5 @@
 import { MODULE_ID } from "../constants.js";
-import { getPartyAp, spendPartyAp } from "../integrations/falloutApTracker.js";
+import { addPartyAp, getPartyAp, spendPartyAp } from "../integrations/falloutApTracker.js";
 import { resolveActor, updateWorldActor } from "../integrations/falloutActor.js";
 import type { FalloutActorSystemSlice } from "../export/actorDerivedStats.js";
 import type { LootCategoryKey, ScavengerLocation } from "./ScavengerLocation.js";
@@ -14,6 +14,7 @@ import {
 import {
   canRollMin,
   canSpendApOnCategory,
+  emptyPlayerSearchState,
   getItemRange,
   initPlayerSearchOnSuccess,
   newRollEntryId,
@@ -22,14 +23,26 @@ import {
   rollsUsedFor,
   type PlayerLootRollEntry,
   type ScavengerPlayerSearchState,
+  type SearchTeamRole,
 } from "./playerSearchState.js";
+import { getPartyActorsOnScene } from "./partyContext.js";
+import {
+  applySearchTeamRole,
+  countAssistBonusSuccesses,
+  ensureSearchTeam,
+  getSearchTeamRole,
+  primaryCanScavengeSearch,
+  recordAssistRoll,
+  searchTeamLocked,
+} from "./searchTeam.js";
 import {
   loadScavengerSceneState,
   savePlayerSearchForScene,
   type ScavengerScenePersistedState,
 } from "./scenePersist.js";
-import { rollPerSurvivalSearch } from "./searchSkillRoll.js";
-import { presentScavengerRoll } from "./scavengerRollChat.js";
+import { rollAssistPerSurvival, rollPerSurvivalSearch } from "./searchSkillRoll.js";
+import { postLuckLootFindChat, presentScavengerRoll } from "./scavengerRollChat.js";
+import { formatLootCategoryLabel } from "./lootGrid.js";
 import { t } from "../integrations/i18n.js";
 
 export type PlayerSearchSocketAction =
@@ -37,6 +50,12 @@ export type PlayerSearchSocketAction =
       action: "searchRoll";
       sceneId: string;
       actorId: string;
+    }
+  | {
+      action: "setSearchTeamRole";
+      sceneId: string;
+      actorId: string;
+      role: SearchTeamRole;
     }
   | {
       action: "lootRollMin";
@@ -90,10 +109,36 @@ function requireSceneState(
   return { state, location: state.location };
 }
 
+function partyActorIdsForScene(sceneId: string): string[] {
+  return getPartyActorsOnScene(sceneId).map((r) => r.actorId);
+}
+
+function assertActorOwnedByUser(
+  actorId: string,
+  userId: string,
+  sceneId: string,
+): boolean {
+  if ((game.users?.get(userId) as { isGM?: boolean } | undefined)?.isGM) {
+    return true;
+  }
+  const row = getPartyActorsOnScene(sceneId).find((r) => r.actorId === actorId);
+  return row?.userId === userId;
+}
+
+function preparePlayerSearch(
+  state: ScavengerScenePersistedState,
+): ScavengerPlayerSearchState {
+  const base =
+    normalizePlayerSearch(state.playerSearch) ?? emptyPlayerSearchState();
+  return ensureSearchTeam(base, partyActorIdsForScene(state.sceneId));
+}
+
 function getOrInitPlayerSearch(
   state: ScavengerScenePersistedState,
 ): ScavengerPlayerSearchState | undefined {
-  return normalizePlayerSearch(state.playerSearch) ?? undefined;
+  const raw = normalizePlayerSearch(state.playerSearch);
+  if (!raw && state.playerSearch === undefined) return undefined;
+  return preparePlayerSearch(state);
 }
 
 async function persistPlayerSearch(
@@ -168,12 +213,8 @@ async function executePlayerSearchActionInner(
       playerSearch = initPlayerSearchOnSuccess(location);
     } else {
       playerSearch = {
-        version: 1,
+        ...emptyPlayerSearchState(),
         searchSuccess: false,
-        remainingMin: {},
-        rollsUsed: {},
-        entries: [],
-        updatedAt: Date.now(),
       };
     }
 
@@ -189,22 +230,92 @@ async function executePlayerSearchActionInner(
     return { ok: false, error: t("WASTELANDER.Scavenging.PlayerSearch.ObstacleBlocked") };
   }
 
+  let playerSearch = preparePlayerSearch(state);
+
+  if (data.action === "setSearchTeamRole") {
+    if (playerSearch.searchSuccess !== null) {
+      return { ok: false, error: t("WASTELANDER.Scavenging.PlayerSearch.TeamLocked") };
+    }
+    if (searchTeamLocked(playerSearch)) {
+      return { ok: false, error: t("WASTELANDER.Scavenging.PlayerSearch.TeamLocked") };
+    }
+    if (!partyActorIdsForScene(data.sceneId).includes(data.actorId)) {
+      return { ok: false, error: t("WASTELANDER.Scavenging.PlayerSearch.ActorNotFound") };
+    }
+
+    playerSearch = applySearchTeamRole(playerSearch, data.actorId, data.role);
+    const next = await persistPlayerSearch(state, playerSearch);
+    return { ok: true, state: next };
+  }
+
   if (data.action === "searchRoll") {
-    if (getOrInitPlayerSearch(state)?.searchSuccess === true) {
+    if (playerSearch.searchSuccess === true) {
       return { ok: false, error: t("WASTELANDER.Scavenging.PlayerSearch.AlreadySucceeded") };
+    }
+    if (playerSearch.searchSuccess === false) {
+      return { ok: false, error: t("WASTELANDER.Scavenging.PlayerSearch.SearchFailed") };
     }
 
     const actor = game.actors.get(data.actorId);
     if (!actor) {
       return { ok: false, error: t("WASTELANDER.Scavenging.PlayerSearch.ActorNotFound") };
     }
+    if (!assertActorOwnedByUser(data.actorId, userId, data.sceneId)) {
+      return { ok: false, error: t("WASTELANDER.Scavenging.PlayerSearch.NotYourCharacter") };
+    }
 
     const user = getUser(userId);
+    const role = getSearchTeamRole(playerSearch, data.actorId);
+
+    if (role === "assist") {
+      if (playerSearch.assistRolls[data.actorId]) {
+        return { ok: false, error: t("WASTELANDER.Scavenging.PlayerSearch.AssistAlreadyRolled") };
+      }
+
+      const test = await rollAssistPerSurvival(actor);
+      playerSearch = ensureSearchTeam(playerSearch, partyActorIdsForScene(data.sceneId));
+      playerSearch = recordAssistRoll(playerSearch, {
+        actorId: data.actorId,
+        userId,
+        userName: user?.name ?? "Unknown",
+        targetNumber: test.targetNumber,
+        face: test.faces[0] ?? 0,
+        successes: test.successes,
+        contributesSuccess: test.contributesSuccess,
+        detail: test.detail,
+        at: Date.now(),
+      });
+
+      const next = await persistPlayerSearch(state, playerSearch);
+      return { ok: true, state: next };
+    }
+
+    if (role !== "primary") {
+      return { ok: false, error: t("WASTELANDER.Scavenging.PlayerSearch.NotPrimarySearcher") };
+    }
+    if (!primaryCanScavengeSearch(playerSearch, partyActorIdsForScene(data.sceneId))) {
+      return { ok: false, error: t("WASTELANDER.Scavenging.PlayerSearch.AssistsPending") };
+    }
+    if (playerSearch.searchRollLog) {
+      return { ok: false, error: t("WASTELANDER.Scavenging.PlayerSearch.PrimaryAlreadyRolled") };
+    }
+
     const test = await rollPerSurvivalSearch(actor, location.searchDifficulty);
-    let playerSearch: ScavengerPlayerSearchState;
+    const assistBonus = countAssistBonusSuccesses(playerSearch);
 
     if (test.success) {
+      const totalSuccesses = test.successes + assistBonus;
+      const bonusAp = Math.max(0, totalSuccesses - test.difficulty);
+      if (bonusAp > 0) {
+        const granted = await addPartyAp(bonusAp);
+        if (!granted) {
+          return { ok: false, error: t("WASTELANDER.Scavenging.PlayerSearch.BonusApFailed") };
+        }
+      }
+
       playerSearch = initPlayerSearchOnSuccess(location);
+      playerSearch.teamRoles = { ...preparePlayerSearch(state).teamRoles };
+      playerSearch.assistRolls = { ...preparePlayerSearch(state).assistRolls };
       playerSearch.searchRollLog = {
         actorId: data.actorId,
         userId,
@@ -214,12 +325,15 @@ async function executePlayerSearchActionInner(
         successes: test.successes,
         faces: test.faces,
         success: true,
-        detail: test.detail,
+        detail: `${test.detail}${assistBonus ? `; +${assistBonus} assist success(es)` : ""}${bonusAp ? `; +${bonusAp} party AP` : ""}`,
         at: Date.now(),
+        assistBonusSuccesses: assistBonus,
+        totalSuccesses,
+        bonusApGranted: bonusAp,
       };
     } else {
       playerSearch = {
-        version: 1,
+        ...playerSearch,
         searchSuccess: false,
         searchRollLog: {
           actorId: data.actorId,
@@ -232,6 +346,9 @@ async function executePlayerSearchActionInner(
           success: false,
           detail: test.detail,
           at: Date.now(),
+          assistBonusSuccesses: 0,
+          totalSuccesses: test.successes,
+          bonusApGranted: 0,
         },
         remainingMin: {},
         rollsUsed: {},
@@ -244,7 +361,7 @@ async function executePlayerSearchActionInner(
     return { ok: true, state: next };
   }
 
-  let playerSearch = getOrInitPlayerSearch(state);
+  playerSearch = getOrInitPlayerSearch(state) ?? playerSearch;
   if (!playerSearch || playerSearch.searchSuccess !== true) {
     return { ok: false, error: t("WASTELANDER.Scavenging.PlayerSearch.NeedSearchSuccess") };
   }
@@ -347,6 +464,14 @@ async function executePlayerSearchActionInner(
       "system.luckPoints": luck - 1,
     });
 
+    await postLuckLootFindChat({
+      actor,
+      luckSpent: 1,
+      itemLabel: entry.label,
+      categoryLabel: formatLootCategoryLabel(entry.category),
+      rollSum: entry.rollSum,
+    });
+
     const next = await persistPlayerSearch(state, playerSearch);
     return { ok: true, state: next };
   }
@@ -395,6 +520,14 @@ async function executePlayerSearchActionInner(
 
     await updateWorldActor(data.actorId, {
       "system.luckPoints": luck - jumpCost,
+    });
+
+    await postLuckLootFindChat({
+      actor,
+      luckSpent: jumpCost,
+      itemLabel: entry.label,
+      categoryLabel: formatLootCategoryLabel(entry.category),
+      rollSum: entry.rollSum,
     });
 
     const next = await persistPlayerSearch(state, playerSearch);

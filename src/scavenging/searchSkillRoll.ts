@@ -1,5 +1,3 @@
-import { readActorSpecial } from "../export/actorDerivedStats.js";
-import type { FalloutActorSystemSlice } from "../export/actorDerivedStats.js";
 import { evaluateFoundryRoll } from "../integrations/foundryRoll.js";
 import { presentScavengerRoll } from "./scavengerRollChat.js";
 import { rollD20 } from "./dice.js";
@@ -15,21 +13,20 @@ export type SkillTestResult = {
   detail: string;
 };
 
-function getSkillValue(actor: Actor, skillName: string): number {
-  const item = actor.items.find(
-    (i) => i.type === "skill" && i.name.toLowerCase() === skillName.toLowerCase(),
-  );
-  if (!item) return 0;
-  const system = item.system as { value?: number; rank?: number };
-  const value = Number(system.value ?? system.rank ?? 0);
-  return Number.isFinite(value) ? Math.max(0, value) : 0;
+import {
+  getPerSurvivalTargetNumber,
+} from "./searchTeam.js";
+
+export function countDieSuccesses(face: number, targetNumber: number): number {
+  if (face === 1) return 2;
+  if (face <= targetNumber) return 1;
+  return 0;
 }
 
 function count2d20Successes(faces: number[], targetNumber: number): number {
   let successes = 0;
   for (const face of faces) {
-    if (face === 1) successes += 2;
-    else if (face <= targetNumber) successes += 1;
+    successes += countDieSuccesses(face, targetNumber);
   }
   return successes;
 }
@@ -42,10 +39,7 @@ export async function rollPerSurvivalSearch(
   difficulty: number,
   options?: { animate?: boolean },
 ): Promise<SkillTestResult> {
-  const system = actor.system as FalloutActorSystemSlice;
-  const { per } = readActorSpecial(system);
-  const survival = getSkillValue(actor, "Survival");
-  const targetNumber = per + survival;
+  const { per, survival, targetNumber } = getPerSurvivalTargetNumber(actor);
   const formula = "2d20";
 
   let faces: number[] = [];
@@ -108,5 +102,74 @@ export async function rollPerSurvivalSearch(
     formula,
     roll,
     detail,
+  };
+}
+
+/** Assist search: one d20 vs PER+Survival TN (contributes +1 success when primary also passes). */
+export async function rollAssistPerSurvival(
+  actor: Actor,
+  options?: { animate?: boolean },
+): Promise<SkillTestResult & { contributesSuccess: boolean }> {
+  const { per, survival, targetNumber } = getPerSurvivalTargetNumber(actor);
+  const formula = "1d20";
+
+  let face = 0;
+  let roll: Roll | undefined;
+
+  try {
+    roll = await evaluateFoundryRoll(formula, { animate: false });
+    const dice = roll.dice ?? [];
+    for (const die of dice) {
+      for (const r of die.results ?? []) {
+        if (r.active !== false) face = r.result;
+      }
+    }
+    if (!face) {
+      const terms = roll.terms ?? [];
+      for (const term of terms) {
+        if (
+          typeof term === "object" &&
+          term !== null &&
+          "results" in term &&
+          Array.isArray((term as { results: Array<{ result: number; active?: boolean }> }).results)
+        ) {
+          const active = (term as { results: Array<{ result: number; active?: boolean }> })
+            .results.find((r) => r.active !== false);
+          if (active) face = active.result;
+        }
+      }
+    }
+  } catch {
+    face = rollD20(1).faces[0] ?? 1;
+  }
+
+  if (!face) {
+    face = rollD20(1).faces[0] ?? 1;
+  }
+
+  const successes = countDieSuccesses(face, targetNumber);
+  const contributesSuccess = successes >= 1;
+  const detail = `Assist: PER ${per} + Survival ${survival} = TN ${targetNumber}; rolled [${face}] → ${successes} success(es)${contributesSuccess ? " (helps primary)" : ""}`;
+
+  if (options?.animate !== false && roll) {
+    await presentScavengerRoll({
+      roll,
+      formula,
+      label: "Assist search (PER + Survival)",
+      total: successes,
+      detail,
+    });
+  }
+
+  return {
+    targetNumber,
+    difficulty: 0,
+    faces: [face],
+    successes,
+    success: contributesSuccess,
+    formula,
+    roll,
+    detail,
+    contributesSuccess,
   };
 }

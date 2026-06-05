@@ -9,6 +9,7 @@ import type {
   ScavengerLocationProblems,
 } from "./ScavengerLocation.js";
 import { getPartyActorsOnScene } from "./partyContext.js";
+import { scheduleScavengerJournalSync } from "./scavengerJournalSync.js";
 import {
   normalizePlayerSearch,
   type ScavengerPlayerSearchState,
@@ -134,6 +135,7 @@ export async function savePlayerSearchForScene(
   }
 
   await stripLegacyEmbeddedPlayerSearch(sceneId);
+  scheduleScavengerJournalSync(sceneId);
 }
 
 /** Remove playerSearch from the main scavengerSceneState flag (old saves). */
@@ -328,6 +330,7 @@ export async function persistScavengerSceneState(params: {
     await savePlayerSearchForScene(params.sceneId, null);
   }
   await saveScavengerSceneState(buildPersistedSceneState(params));
+  scheduleScavengerJournalSync(params.sceneId);
 }
 
 /** Apply saved state to app fields; refreshes party from scene tokens. */

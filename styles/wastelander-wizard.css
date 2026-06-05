@@ -2178,7 +2178,7 @@
 }
 
 .wastelander-scavenger-scene-scope {
-  margin: 0.35rem 0 0;
+  margin: 0.65rem 0 0.65rem 0;
   font-size: 0.85rem;
   font-weight: 600;
   opacity: 0.9;
@@ -2217,6 +2217,18 @@
 
 .wastelander-scavenger-tab-panel {
   padding: 0 0.25rem;
+}
+
+.wastelander-scavenger-location-info {
+  margin: 0.5rem 0 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--wstl-amber-muted, #5c6238);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.wastelander-scavenger-location-info .wastelander-scavenger-location-meta {
+  margin: 0;
 }
 
 .wastelander-scavenger-location-meta {
@@ -2301,10 +2313,50 @@
   border: 1px solid var(--wstl-amber-muted, #6b5a2a);
 }
 
+.wastelander-scavenger-app .wastelander-btn-secondary:disabled,
+.wastelander-scavenger-app .wastelander-btn-secondary.is-disabled,
+.wastelander-scavenger-search .wastelander-btn-secondary:disabled,
+.wastelander-scavenger-search .wastelander-btn-secondary.is-disabled,
+.wastelander-scavenger-app .wastelander-btn-secondary[aria-disabled="true"],
+.wastelander-scavenger-search .wastelander-btn-secondary[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+  color: rgba(255, 255, 220, 0.5);
+  border-color: rgba(107, 90, 42, 0.45);
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.wastelander-scavenger-app .wastelander-btn-primary:disabled,
+.wastelander-scavenger-app .wastelander-btn-primary.is-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .wastelander-scavenger-offline {
   font-size: 0.8em;
   opacity: 0.75;
   font-weight: normal;
+}
+
+.wastelander-scavenger-panel {
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--wstl-amber-muted, #5c6238);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.wastelander-scavenger-panel > h2 {
+  margin: 0 0 0.65rem;
+  padding-bottom: 0.45rem;
+  border-bottom: 1px solid var(--wstl-amber-muted, #5c6238);
+}
+
+.wastelander-scavenger-panel > .wastelander-scavenger-hint:last-child,
+.wastelander-scavenger-panel > p:last-child,
+.wastelander-scavenger-panel > ul:last-child {
+  margin-bottom: 0;
 }
 
 .wastelander-scavenger-generated-stats {
@@ -2370,21 +2422,38 @@
   margin-top: 0.5rem;
 }
 
-.wastelander-scavenger-hazard-kind {
-  margin: 0.5rem 0 0;
-  padding: 0.5rem 0.75rem;
+.wastelander-scavenger-problem-box {
+  margin: 0.65rem 0 0;
+  padding: 0.65rem 0.85rem;
   border: 1px solid var(--wstl-amber-muted, #5c6238);
   border-radius: 4px;
+  background: rgba(0, 0, 0, 0.15);
 }
 
-.wastelander-scavenger-hazard-kind legend {
+.wastelander-scavenger-problem-box legend {
   font-size: 0.85rem;
   padding: 0 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
-.wastelander-scavenger-hazard-kind label {
+.wastelander-scavenger-problem-box label {
   display: block;
   margin: 0.25rem 0;
+}
+
+.wastelander-scavenger-problem-box .wastelander-scavenger-field {
+  margin: 0 0 0.5rem;
+}
+
+.wastelander-scavenger-problem-box-summary {
+  margin: 0.5rem 0 0;
+  padding-top: 0.45rem;
+  border-top: 1px solid var(--wstl-amber-muted, #5c6238);
+}
+
+.wastelander-scavenger-problem-box-summary:last-child {
+  margin-bottom: 0;
 }
 
 .wastelander-scavenger-inhabitant-summary {
@@ -2601,6 +2670,195 @@
 
 .wastelander-loot-item:active {
   cursor: grabbing;
+}
+
+.wastelander-scavenger-hazard-damage {
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--wstl-amber-muted, #6b5a2a);
+}
+
+.wastelander-scavenger-subheading {
+  font-size: 0.95em;
+  margin: 0.5rem 0 0.35rem;
+  color: var(--wstl-text-readable, #eaf062);
+}
+
+.wastelander-scavenger-hazard-damage-formula {
+  margin-bottom: 0.35rem;
+}
+
+.wastelander-scavenger-hazard-damage-time {
+  opacity: 0.85;
+}
+
+.wastelander-scavenger-hazard-damage-party {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.wastelander-scavenger-hazard-damage-party li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin-bottom: 0.45rem;
+}
+
+.wastelander-scavenger-hazard-damage-name {
+  font-weight: 600;
+}
+
+.wastelander-scavenger-hazard-damage-user {
+  opacity: 0.8;
+  font-size: 0.9em;
+}
+
+.wastelander-scavenger-hazard-damage-btn {
+  margin-left: auto;
+}
+
+/* Fallout system combat die icon (via TextEditor enrichers: `1 CD`, `@fos[CD]`) */
+.wastelander-scavenger-journal-muted {
+  opacity: 0.85;
+  font-size: 0.9em;
+}
+
+/* Scavenger journal pages — layout matches Current tab; body copy readable on Foundry paper */
+.journal-sheet .journal-entry-content .wastelander-scavenger-journal,
+.wastelander-scavenger-journal {
+  color: #000;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  padding: 0.5rem 0.25rem 1rem;
+}
+
+.wastelander-scavenger-journal :is(h1, h2, h3, h4, h5, h6) {
+  color: #4a3f14;
+}
+
+.wastelander-scavenger-journal :is(p, li, dd, dt, td, th, span, strong, label, output) {
+  color: #000;
+}
+
+.wastelander-scavenger-journal .wastelander-scavenger-hint,
+.wastelander-scavenger-journal .wastelander-scavenger-journal-muted,
+.wastelander-scavenger-journal .wastelander-scavenger-stat-label,
+.wastelander-scavenger-journal .wastelander-scavenger-stat-value,
+.wastelander-scavenger-journal .wastelander-scavenger-stat-sub,
+.wastelander-scavenger-journal .wastelander-scavenger-warning,
+.wastelander-scavenger-journal .wastelander-scavenger-ok,
+.wastelander-scavenger-journal .wastelander-scavenger-inhabitant-meta,
+.wastelander-scavenger-journal .wastelander-scavenger-hazard-damage-name,
+.wastelander-scavenger-journal .wastelander-scavenger-hazard-damage-user,
+.wastelander-scavenger-journal .wastelander-scavenger-hazard-damage-time,
+.wastelander-scavenger-journal .wastelander-scavenger-luck-roll,
+.wastelander-scavenger-journal .wastelander-scavenger-luck-item,
+.wastelander-scavenger-journal .wastelander-scavenger-loot-unlocked-label {
+  color: #000;
+}
+
+.wastelander-scavenger-journal .entity-link {
+  color: #000;
+  text-decoration: underline;
+}
+
+.wastelander-scavenger-journal .wastelander-scavenger-panel,
+.wastelander-scavenger-journal .wastelander-scavenger-generated-stats,
+.wastelander-scavenger-journal .wastelander-scavenger-preview {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.wastelander-scavenger-journal-header {
+  margin-bottom: 1rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--wstl-amber-muted, #6b5a2a);
+}
+
+.wastelander-scavenger-journal-header h1 {
+  margin: 0 0 0.35rem;
+  font-size: 1.15rem;
+}
+
+.wastelander-scavenger-journal .wastelander-scavenger-loot-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+}
+
+.wastelander-scavenger-journal .wastelander-scavenger-loot-table th,
+.wastelander-scavenger-journal .wastelander-scavenger-loot-table td {
+  border: 1px solid var(--wstl-amber-muted, #6b5a2a);
+  padding: 0.35rem 0.5rem;
+  text-align: left;
+  color: #000;
+}
+
+.wastelander-scavenger-journal .wastelander-scavenger-loot-table th {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.9;
+}
+
+.wastelander-scavenger-journal .wastelander-scavenger-preview {
+  margin-bottom: 1.25rem;
+}
+
+.wastelander-scavenger-journal .wastelander-scavenger-preview h2 {
+  font-size: 0.95rem;
+  margin: 0 0 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.wastelander-scavenger-journal .wastelander-scavenger-journal-check {
+  margin: 0.5rem 0 0;
+}
+
+.wastelander-scavenger-journal .wastelander-scavenger-journal-roll-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem 1rem;
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.wastelander-scavenger-journal .wastelander-scavenger-journal-roll-meta dt {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
+  margin: 0 0 0.1rem;
+}
+
+.wastelander-scavenger-journal .wastelander-scavenger-journal-roll-meta dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.wastelander-scavenger-journal .wastelander-scavenger-journal-luck-ladder {
+  margin: 0.35rem 0 0.5rem;
+  padding-left: 1rem;
+}
+
+.wastelander-scavenger-search .wastelander-scavenger-team-table select {
+  min-width: 6.5rem;
+  font-size: 0.9rem;
+}
+
+.wastelander-scavenger-journal-roll-title {
+  font-size: 0.9rem;
+  margin: 0.65rem 0 0.35rem;
+  font-weight: 600;
+}
+
+.wastelander-scavenger-app .wastelander-fallout-enrich i.fo-pip-boy {
+  display: inline;
+  vertical-align: middle;
+  margin: 0 0.05em;
 }
 
 .wastelander-denizen-import-app {

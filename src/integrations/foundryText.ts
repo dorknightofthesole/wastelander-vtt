@@ -11,3 +11,13 @@ export async function enrichHtml(
   if (!content) return "";
   return getTextEditor().enrichHTML(content, { async: true });
 }
+
+/**
+ * Run Fallout system text enrichers (e.g. `1 CD` → combat die icon, `@fos[CD]`).
+ * Wrap in `.fallout` so system icon font rules apply outside actor sheets.
+ */
+export async function enrichFalloutHtml(content: string): Promise<string> {
+  if (!content) return "";
+  const enriched = await enrichHtml(content);
+  return `<span class="fallout wastelander-fallout-enrich">${enriched}</span>`;
+}

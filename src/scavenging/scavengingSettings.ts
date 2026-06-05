@@ -5,6 +5,8 @@ export const SCAVENGING_SETTINGS = {
   preferFoundryTables: "preferFoundryTables",
   searchRollWhisper: "searchRollWhisper",
   autoAllocateDegreeReduction: "autoAllocateDegreeReduction",
+  /** World id of the shared Overseer Scavenger journal. */
+  scavengerJournalId: "scavengerJournalId",
 } as const;
 
 export function registerScavengingSettings(): void {
@@ -37,6 +39,13 @@ export function registerScavengingSettings(): void {
     config: true,
     type: Boolean,
     default: true,
+  });
+
+  settings.register(MODULE_ID, SCAVENGING_SETTINGS.scavengerJournalId, {
+    scope: "world",
+    type: String,
+    default: "",
+    config: false,
   });
 
   settings.registerMenu(MODULE_ID, "importDenizens", {

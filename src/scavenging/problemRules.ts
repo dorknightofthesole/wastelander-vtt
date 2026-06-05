@@ -126,6 +126,42 @@ export function formatObstacleSummary(
   return `${labels.obstacleTypeLabel}: ${labels.obstacleSkillLabel}, difficulty ${diff}, ~${bypass} min to bypass${overcome}`;
 }
 
+/** Merge Create-tab form toggles with a generated location without wiping stored sub-fields. */
+export function problemsForProblemUi(
+  formProblems: ScavengerLocationProblems,
+  location: { level: number; problems: ScavengerLocationProblems } | null,
+): { problems: ScavengerLocationProblems; level: number } {
+  const level = location?.level ?? 1;
+  if (location) {
+    const stored = location.problems;
+    return {
+      problems: resolveLocationProblems(
+        {
+          ...stored,
+          hazard: formProblems.hazard,
+          obstacle: formProblems.obstacle,
+          inhabitants: formProblems.inhabitants,
+          hazardKind: formProblems.hazardKind ?? stored.hazardKind,
+          obstacleType: formProblems.obstacleType ?? stored.obstacleType,
+          inhabitantType: formProblems.inhabitantType ?? stored.inhabitantType,
+        },
+        level,
+      ),
+      level,
+    };
+  }
+  return {
+    problems: resolveLocationProblems(
+      {
+        ...formProblems,
+        hazardKind: formProblems.hazardKind ?? "ongoing",
+        obstacleType: formProblems.obstacleType ?? "mechanical",
+      },
+      level,
+    ),
+  };
+}
+
 export function formatHazardSummary(
   problems: ScavengerLocationProblems,
   locationLevel: number,
@@ -142,9 +178,7 @@ export function formatHazardSummary(
         : "WASTELANDER.Scavenging.Problems.HazardSummaryOngoingPer10Min",
     );
   }
-  const cd =
-    problems.hazardDamageDc ?? getOccasionalHazardDamageDc(locationLevel);
-  return t("WASTELANDER.Scavenging.Problems.HazardSummaryOccasional", { cd });
+  return t("WASTELANDER.Scavenging.Problems.HazardSummaryOccasional");
 }
 
 export function canSearchLocation(problems: ScavengerLocationProblems): boolean {

@@ -180,7 +180,7 @@
       "WindowTitleScene": "Wastelander – Scavenger Location ({scene})",
       "SceneScope": "Saved for scene: {scene}",
       "Tooltip": "Generate scavenger location",
-      "Hint": "Creates a location using the GM Screen booklet rules (category, scale, degree, level). Save to a Journal for play.",
+      "Hint": "Creates a location using the GM Screen booklet rules (category, scale, degree, level). A Scavenger journal page for this scene updates automatically for Overseers.",
       "Tabs": {
         "Current": "Current scavenge location",
         "Create": "Create"
@@ -194,6 +194,23 @@
         "None": "None",
         "Wip": "WIP",
         "ObstacleOvercome": "Obstacle overcome"
+      },
+      "HazardDamage": {
+        "PartyTitle": "Apply hazard damage (search time)",
+        "FormulaPer10Min": "{count} CD for this search (1 CD per 10 min × {searchMinutes} min search)",
+        "FormulaPerMin": "{count} CD for this search (1 CD per min × {searchMinutes} min search)",
+        "SearchTime": "{minutes} min ({scaleLabel})",
+        "Apply": "Apply hazard damage",
+        "PartyEmpty": "No player characters with linked tokens on this scene. Select party on Create or add linked tokens.",
+        "PartyFromLocation": "Party (from location)",
+        "RollName": "Hazard — {location} ({actor})",
+        "RollDetail": "{count} CD from {minutes} min spent searching",
+        "NotOngoing": "Hazard damage rolls apply only to ongoing hazards.",
+        "ActorMissing": "That actor could not be found.",
+        "RollFailed": "Combat dice roll failed.",
+        "Applied": "Applied {damage} damage to {actor} ({before} → {after} HP).",
+        "NoDamage": "Hazard roll dealt no damage.",
+        "HealthNotApplied": "Could not update HP on {actor} (missing health data)."
       },
       "Party": {
         "Title": "Party on scene",
@@ -237,9 +254,9 @@
           "ongoing": "Ongoing",
           "occasional": "Occasional"
         },
-        "HazardSummaryOngoingPer10Min": "+1 CD per 10 minutes within the location",
-        "HazardSummaryOngoingPerMin": "+1 CD per minute within the location (level 11+)",
-        "HazardSummaryOccasional": "+{cd} CD per trigger (failed search, complication, etc.)",
+        "HazardSummaryOngoingPer10Min": "1 CD per 10 minutes within the location",
+        "HazardSummaryOngoingPerMin": "1 CD per minute within the location (level 11+)",
+        "HazardSummaryOccasional": "Overseer to add situational traps",
         "ObstacleOvercome": "overcome",
         "ObstacleNotOvercome": "not yet overcome — search blocked",
         "GeneratedSummary": "After generate: {summary}",
@@ -270,12 +287,6 @@
           "little": "Little"
         }
       },
-      "Preview": {
-        "Title": "Generated location",
-        "Level": "Level",
-        "Search": "Search",
-        "Loot": "Loot rolled"
-      },
       "Tables": {
         "Title": "Scavenging Roll Tables",
         "SidebarHint": "Foundry sidebar → Roll Tables. Names must match the GM Screen booklet (e.g. Food, Oddities and Valuables, Weapons (Ranged)).",
@@ -300,22 +311,50 @@
         "InhabitantCountDetail": "Rolled {dieFace} on {formula} → {count} inhabitants"
       },
       "Actions": {
-        "Generate": "Generate location",
-        "SimulateSearch": "Simulate search (success)",
-        "SaveJournal": "Save to Journal"
+        "Generate": "Generate location"
       },
-      "Simulate": {
-        "Title": "Simulate search",
-        "Body": "Assume the party succeeded on PER + Survival at minimum loot. Roll loot tables now?",
-        "ObstacleBlocksTitle": "Obstacle not overcome",
-        "ObstacleBlocksBody": "The rulebook requires overcoming the obstacle before searching. Mark it overcome on the Current tab, or simulate anyway?"
+      "Journal": {
+        "Title": "Scavenger",
+        "Updated": "Last updated {time}",
+        "SceneLabel": "Scene: {scene}",
+        "Yes": "Yes",
+        "No": "No",
+        "LootRollsUsed": "Rolls used",
+        "UnnamedScene": "Scene",
+        "PartyTitle": "Party on scene",
+        "LocationTitle": "Scavenger location",
+        "PlayerTitle": "Player scavenge",
+        "NoLocation": "No location generated yet for this scene.",
+        "NoPlayerSearch": "No player scavenge activity yet.",
+        "SearchStatus": "Search",
+        "SearchPending": "Not started",
+        "SearchSuccess": "Succeeded",
+        "SearchFail": "Failed",
+        "SearchRoll": "PER + Survival",
+        "SearchRollPlayer": "Player",
+        "SearchRollOutcome": "Outcome",
+        "SearchRollDice": "Dice",
+        "SearchRollWhen": "When",
+        "LootRollBase": "natural {base}",
+        "AssistRollsTitle": "Assist rolls",
+        "PrimaryRollTitle": "Primary roll",
+        "AssistHelps": "Assist succeeded (+1 if primary passes)",
+        "AssistNoHelp": "Assist did not succeed",
+        "AssistBonusLine": "+{count} assist success(es) applied to primary",
+        "NoLootRollsYet": "No loot rolls yet.",
+        "LootProgressTitle": "Loot progress",
+        "LootProgress": "min remaining {rem}, rolls used {used}",
+        "LootResults": "Loot rolls",
+        "LootSourceMin": "minimum roll",
+        "LootSourceAp": "AP roll",
+        "LootLuck": "luck shift {shift} ({spent} spent)",
+        "PartySelected": "in party",
+        "PartyNotSelected": "not selected"
       },
       "Notify": {
         "Generated": "Location generated (level {level}).",
         "GenerateError": "Could not generate location: {error}",
-        "SearchDone": "Search simulated; loot rolled at category minimums.",
-        "JournalSaved": "Location saved to Journal.",
-        "JournalError": "Could not save Journal: {error}"
+        "JournalSyncError": "Scavenger journal could not update: {error}"
       },
       "Settings": {
         "PreferFoundryTables": "Prefer Foundry RollTables",
@@ -335,7 +374,31 @@
         "PartyApUnavailable": "— (Fallout AP tracker unavailable)",
         "SearchSection": "Search the location",
         "SearchHint": "Roll PER + Survival vs the location search difficulty. If you succeed, loot tables are revealed.",
+        "SearchTeamHint": "Choose one primary searcher and optional assistants. Assistants roll first (1d20); the primary rolls 2d20 after all assistants have scavengeed. Bonus successes above the search difficulty become party AP when the primary succeeds.",
         "RollSearch": "Roll PER + Survival",
+        "Scavenge": "Scavenge",
+        "ScavengeAssistHint": "Roll 1d20 assist (PER + Survival)",
+        "ScavengePrimaryHint": "Roll 2d20 primary search",
+        "PrimaryWaitingAssists": "Waiting for all assistants to scavenge first",
+        "TeamColumnUser": "Player",
+        "TeamColumnCharacter": "Character",
+        "TeamColumnPerSurvival": "PER + Survival",
+        "TeamColumnRole": "Role",
+        "PerSurvivalShort": "PER {per} + Surv {survival} (TN {tn})",
+        "TeamRole": {
+          "none": "None",
+          "assist": "Assist",
+          "primary": "Primary"
+        },
+        "TeamRoleNone": "Set role to Assist or Primary to scavenge",
+        "AssistsPending": "The primary searcher must wait until every assistant has scavengeed ({count} remaining).",
+        "AssistAlreadyRolled": "This assistant has already rolled.",
+        "PrimaryAlreadyRolled": "The primary search roll is already complete.",
+        "NotPrimarySearcher": "Only the primary searcher can roll the final search test.",
+        "NotYourCharacter": "Only that player's character can use this button.",
+        "TeamLocked": "Team roles cannot change after the first search roll.",
+        "BonusApGranted": "+{amount} party AP from bonus successes.",
+        "BonusApFailed": "Could not add bonus party AP.",
         "ActingCharacter": "Character",
         "Luck": "Luck",
         "NoCharacter": "Select a character with a linked token on this scene (players: assign your character in User Configuration).",
@@ -355,6 +418,8 @@
         "UnlockedLoot": "Your loot",
         "LootItemHint": "Click to preview; drag onto a character sheet to add.",
         "LootRollChat": "Scavenge: {category}",
+        "LuckFindChatTitle": "Luck — better loot",
+        "LuckFindChat": "{actor} used {luck} Luck Points to find {item}.",
         "ActionDone": "Scavenge updated.",
         "GmMarkSuccess": "Mark search succeeded",
         "GmMarkFail": "Mark search failed",

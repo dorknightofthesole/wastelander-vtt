@@ -7,10 +7,21 @@ import { canSearchLocation } from "./problemRules.js";
 import {
   canRollMin,
   canSpendApOnCategory,
+  emptyPlayerSearchState,
   remainingMinFor,
   rollsUsedFor,
   type ScavengerPlayerSearchState,
+  type SearchTeamRole,
 } from "./playerSearchState.js";
+import {
+  assistActorIds,
+  ensureSearchTeam,
+  getPerSurvivalTargetNumber,
+  getSearchTeamRole,
+  hasPendingAssistRolls,
+  primaryCanScavengeSearch,
+  searchTeamLocked,
+} from "./searchTeam.js";
 import {
   readPartyApForDisplay,
   requestPlayerSearchAction,
@@ -50,6 +61,20 @@ type LootRowContext = {
   canSpendAp: boolean;
   installed: boolean;
   tableId?: string;
+};
+
+type TeamRowContext = {
+  actorId: string;
+  actorName: string;
+  userName: string;
+  userActive: boolean;
+  perSurvivalLabel: string;
+  role: SearchTeamRole;
+  roleOptions: { value: SearchTeamRole; label: string; selected: boolean }[];
+  canScavenge: boolean;
+  scavengeTitle: string;
+  assistRollDetail: string;
+  primaryRollDetail: string;
 };
 
 type RollEntryContext = {
@@ -96,7 +121,8 @@ export default class ScavengerSearchApp extends HandlebarsApplicationMixin(
     },
     position: { width: 640, height: 720 },
     actions: {
-      rollSearch: ScavengerSearchApp.onRollSearch,
+      rollTeamSearch: ScavengerSearchApp.onRollTeamSearch,
+      setTeamRole: ScavengerSearchApp.onSetTeamRole,
       rollMin: ScavengerSearchApp.onRollMin,
       spendAp: ScavengerSearchApp.onSpendAp,
       openRollTable: ScavengerSearchApp.onOpenRollTable,
@@ -177,9 +203,13 @@ export default class ScavengerSearchApp extends HandlebarsApplicationMixin(
     return rows[0]?.actorId ?? null;
   }
 
-  #partyActorsForUi(): PartyActorRow[] {
+  #partyOnScene(): PartyActorRow[] {
     if (!this.#sceneId) return [];
-    const rows = getPartyActorsOnScene(this.#sceneId);
+    return getPartyActorsOnScene(this.#sceneId);
+  }
+
+  #partyActorsForUi(): PartyActorRow[] {
+    const rows = this.#partyOnScene();
     const list = game.user?.isGM
       ? rows
       : rows.filter((r) => r.userId === game.user?.id);
@@ -205,6 +235,98 @@ export default class ScavengerSearchApp extends HandlebarsApplicationMixin(
     ];
   }
 
+  #canControlActor(actorId: string, userId: string): boolean {
+    if (game.user?.isGM) return true;
+    const row = this.#partyOnScene().find((r) => r.actorId === actorId);
+    return row?.userId === userId;
+  }
+
+  #buildTeamRows(
+    playerSearch: ScavengerPlayerSearchState,
+    searchPending: boolean,
+  ): TeamRowContext[] {
+    const party = this.#partyOnScene();
+    const ps = ensureSearchTeam(
+      playerSearch,
+      party.map((r) => r.actorId),
+    );
+    const canEditTeam = searchPending && !searchTeamLocked(ps);
+    const partyIds = party.map((r) => r.actorId);
+    const pendingAssists = hasPendingAssistRolls(ps, partyIds);
+    const primaryCanRoll = primaryCanScavengeSearch(ps, partyIds);
+    const userId = game.user?.id ?? "";
+
+    return party.map((row) => {
+      const actor = game.actors.get(row.actorId);
+      const { per, survival, targetNumber } = actor
+        ? getPerSurvivalTargetNumber(actor)
+        : { per: 0, survival: 0, targetNumber: 0 };
+      const role = getSearchTeamRole(ps, row.actorId);
+      const roleOptions: TeamRowContext["roleOptions"] = (
+        ["none", "assist", "primary"] as const
+      ).map((value) => ({
+        value,
+        label: t(`WASTELANDER.Scavenging.PlayerSearch.TeamRole.${value}`),
+        selected: value === role,
+      }));
+
+      const assistLog = ps.assistRolls[row.actorId];
+      const isPrimary = role === "primary";
+      const isAssist = role === "assist";
+      const owns = this.#canControlActor(row.actorId, userId);
+
+      let canScavenge = false;
+      let scavengeTitle = "";
+
+      if (searchPending && owns) {
+        if (isAssist && !assistLog) {
+          canScavenge = true;
+          scavengeTitle = t("WASTELANDER.Scavenging.PlayerSearch.ScavengeAssistHint");
+        } else if (isPrimary) {
+          if (primaryCanRoll) {
+            canScavenge = true;
+            scavengeTitle = t("WASTELANDER.Scavenging.PlayerSearch.ScavengePrimaryHint");
+          } else if (pendingAssists) {
+            scavengeTitle = t("WASTELANDER.Scavenging.PlayerSearch.PrimaryWaitingAssists", {
+              count: assistActorIds(ps).filter((id) => !ps.assistRolls[id]).length,
+            });
+          }
+        } else if (isAssist && assistLog) {
+          scavengeTitle = t("WASTELANDER.Scavenging.PlayerSearch.AssistAlreadyRolled");
+        } else if (role === "none") {
+          scavengeTitle = t("WASTELANDER.Scavenging.PlayerSearch.TeamRoleNone");
+        }
+      } else if (!owns) {
+        scavengeTitle = t("WASTELANDER.Scavenging.PlayerSearch.NotYourCharacter");
+      }
+
+      const assistRollDetail = assistLog
+        ? assistLog.detail
+        : "";
+      const primaryRollDetail =
+        isPrimary && ps.searchRollLog ? ps.searchRollLog.detail : "";
+
+      return {
+        actorId: row.actorId,
+        actorName: row.actorName,
+        userName: row.userName,
+        userActive: row.userActive,
+        perSurvivalLabel: t("WASTELANDER.Scavenging.PlayerSearch.PerSurvivalShort", {
+          per,
+          survival,
+          tn: targetNumber,
+        }),
+        role,
+        roleOptions,
+        canScavenge,
+        scavengeDisabled: !canScavenge,
+        scavengeTitle,
+        assistRollDetail,
+        primaryRollDetail,
+      };
+    });
+  }
+
   #location(): ScavengerLocation | null {
     return this.#sceneState?.location ?? null;
   }
@@ -224,11 +346,25 @@ export default class ScavengerSearchApp extends HandlebarsApplicationMixin(
     root.addEventListener("change", (event) => {
       const target = event.target;
       if (!(target instanceof HTMLSelectElement)) return;
-      if (target.dataset.action !== "selectActor") return;
-      const actorId = target.value;
-      if (actorId) {
-        this.#actingActorId = actorId;
-        void this.render();
+      if (target.dataset.action === "selectActor") {
+        const actorId = target.value;
+        if (actorId) {
+          this.#actingActorId = actorId;
+          void this.render();
+        }
+        return;
+      }
+      if (target.dataset.action === "setTeamRole") {
+        const actorId = target.dataset.actorId;
+        const role = target.value as SearchTeamRole;
+        if (!actorId || !this.#sceneId) return;
+        if (role !== "primary" && role !== "assist" && role !== "none") return;
+        void this.#runAction({
+          action: "setSearchTeamRole",
+          sceneId: this.#sceneId,
+          actorId,
+          role,
+        });
       }
     });
 
@@ -271,6 +407,23 @@ export default class ScavengerSearchApp extends HandlebarsApplicationMixin(
 
     const actingOptions = this.#buildActingOptions();
     const luckMax = location?.level ?? 0;
+    const searchPending =
+      !playerSearch ||
+      playerSearch.searchSuccess === null ||
+      playerSearch.searchSuccess === undefined;
+
+    const teamPlayerSearch = ensureSearchTeam(
+      playerSearch ?? emptyPlayerSearchState(),
+      this.#partyOnScene().map((r) => r.actorId),
+    );
+    const teamRows = searchPending
+      ? this.#buildTeamRows(teamPlayerSearch, true)
+      : this.#buildTeamRows(teamPlayerSearch, false);
+    const teamPartyIds = this.#partyOnScene().map((r) => r.actorId);
+    const assistsPendingHint =
+      searchPending && hasPendingAssistRolls(teamPlayerSearch, teamPartyIds)
+        ? t("WASTELANDER.Scavenging.PlayerSearch.AssistsPending")
+        : "";
 
     let lootRows: LootRowContext[] = [];
     let rollEntries: RollEntryContext[] = [];
@@ -355,20 +508,22 @@ export default class ScavengerSearchApp extends HandlebarsApplicationMixin(
       showLootTables,
       searchSuccess,
       searchFailed,
-      searchPending:
-        !playerSearch ||
-        playerSearch.searchSuccess === null ||
-        playerSearch.searchSuccess === undefined,
+      searchPending,
+      searchResolved: searchSuccess || searchFailed,
       searchLog: playerSearch?.searchRollLog?.detail ?? "",
-      canSearch:
-        !empty &&
-        !obstacleBlocked &&
-        !searchSuccess &&
-        !searchFailed &&
-        Boolean(this.#actingActorId),
+      bonusApMessage:
+        playerSearch?.searchRollLog?.bonusApGranted &&
+        playerSearch.searchRollLog.bonusApGranted > 0
+          ? t("WASTELANDER.Scavenging.PlayerSearch.BonusApGranted", {
+              amount: playerSearch.searchRollLog.bonusApGranted,
+            })
+          : "",
       noLootMessage: searchFailed
         ? t("WASTELANDER.Scavenging.PlayerSearch.SearchFailed")
         : "",
+      teamRows,
+      canEditTeam: searchPending && !searchTeamLocked(teamPlayerSearch),
+      assistsPendingHint,
       luckMax,
       actingActors: actingOptions,
       lootRows,
@@ -418,24 +573,34 @@ export default class ScavengerSearchApp extends HandlebarsApplicationMixin(
     }
   }
 
-  static onRollSearch(
+  static onRollTeamSearch(
     this: ScavengerSearchApp,
     _event: Event,
-    _target: HTMLElement,
+    target: HTMLElement,
   ): void {
     if (!this.#sceneId) {
       ui.notifications.warn(t("WASTELANDER.Scavenging.PlayerSearch.NoActiveScene"));
       return;
     }
-    if (!this.#actingActorId) {
+    const el = target.closest<HTMLElement>("[data-actor-id]") ?? target;
+    const actorId = el.dataset.actorId;
+    if (!actorId) {
       ui.notifications.warn(t("WASTELANDER.Scavenging.PlayerSearch.NoCharacter"));
       return;
     }
     void this.#runAction({
       action: "searchRoll",
       sceneId: this.#sceneId,
-      actorId: this.#actingActorId,
+      actorId,
     });
+  }
+
+  static onSetTeamRole(
+    this: ScavengerSearchApp,
+    _event: Event,
+    _target: HTMLElement,
+  ): void {
+    // Handled via change listener on <select data-action="setTeamRole">.
   }
 
   static onOpenRollTable(

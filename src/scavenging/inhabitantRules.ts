@@ -248,7 +248,16 @@ export async function buildLocationInhabitants(params: {
   }
 
   const byType = filterDenizensByType(allDenizens, params.inhabitantType);
-  const pool = filterDenizensByLevelBand(byType, params.locationLevel);
+  let pool = filterDenizensByLevelBand(byType, params.locationLevel);
+
+  if (!pool.length && byType.length) {
+    const min = Math.max(1, params.locationLevel - 2);
+    const max = params.locationLevel;
+    warnings.push(
+      `No ${params.inhabitantType} denizens at level ${min}–${max}; using full ${params.inhabitantType} catalog`,
+    );
+    pool = byType;
+  }
 
   if (!pool.length) {
     warnings.push(

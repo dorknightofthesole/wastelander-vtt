@@ -85,6 +85,12 @@ declare class ChatMessage {
 interface FalloutGlobal {
   Roller2D20?: {
     showDiceSoNice: (roll: Roll) => Promise<void>;
+    rollD6: (options: {
+      actor?: string | null;
+      dicenum?: number;
+      rollname?: string;
+      weapon?: unknown;
+    }) => Promise<unknown>;
   };
   utils?: {
     getMessageStyles?: () => { OTHER: number };

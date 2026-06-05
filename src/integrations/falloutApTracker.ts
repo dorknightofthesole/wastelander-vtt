@@ -59,6 +59,26 @@ export async function setPartyAp(value: number): Promise<boolean> {
 }
 
 /** Uses Fallout's adjustAP (updates settings + AP tracker UI; players route via system.fallout socket). */
+export async function addPartyAp(amount: number): Promise<boolean> {
+  const grant = Math.max(0, Math.floor(amount));
+  if (grant <= 0) return true;
+
+  const tracker = apTracker();
+  if (tracker?.adjustAP) {
+    try {
+      await tracker.adjustAP("partyAP", grant);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  if (!game.user?.isGM) return false;
+  const current = await getPartyAp();
+  if (current === null) return false;
+  return setPartyAp(current + grant);
+}
+
 export async function spendPartyAp(amount = 1): Promise<boolean> {
   const current = await getPartyAp();
   if (current === null) return false;
