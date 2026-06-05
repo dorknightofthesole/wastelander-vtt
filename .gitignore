@@ -150,3 +150,6 @@ vite.config.ts.timestamp-*
 
 # User-installed Modiphius character sheet PDFs (not redistributed with the module)
 assets/sheets/*.pdf
+
+# Foundry LevelDB lock files (runtime only)
+packs/**/LOCK

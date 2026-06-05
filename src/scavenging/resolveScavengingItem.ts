@@ -1,4 +1,4 @@
-import { MODULE_ID } from "../constants.js";
+import { MODULE_ID, WASTELANDER_ITEMS_PACK } from "../constants.js";
 import compendiumNames from "../data/scavenging/loot/compendium-names.json";
 import {
   buildEquipmentItemIndex,
@@ -9,8 +9,10 @@ import {
 const NAME_MAP = compendiumNames as Record<string, Record<string, string>>;
 
 const PREFERRED_PACKS: Record<string, string[]> = {
-  food: ["fallout.consumables"],
-  ammunition: ["fallout.ammunition"],
+  food: [WASTELANDER_ITEMS_PACK, "fallout.consumables"],
+  beverages: [WASTELANDER_ITEMS_PACK, "fallout.consumables"],
+  chems: [WASTELANDER_ITEMS_PACK, "fallout.consumables"],
+  ammunition: [WASTELANDER_ITEMS_PACK, "fallout.ammunition"],
 };
 
 export type ResolvedScavengingItem = {

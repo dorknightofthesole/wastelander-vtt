@@ -112,6 +112,21 @@ The same denizen data feeds the **Scavenger Location** generator:
 
 Run import once per world (or after adding new bundled denizens in a module update), then scavenging inhabitant workflows work out of the box.
 
+---
+
+## Bundled compendiums
+
+The module includes a **Wastelander** compendium folder with two packs:
+
+| Pack | Contents |
+|------|----------|
+| **Items** | Custom items (consumables, gear, etc.) used when scavenging resolves loot to compendium entries |
+| **Wastelander** | RollTable loot tables for scavenging (booklet-style names such as ammunition, food, armor) |
+
+They appear automatically when the module is enabled. Scavenging looks up roll tables in `wastelander.wastelander` first, then Fallout system tables.
+
+To refresh pack data from your Foundry world after editing compendiums, see [packs/README.md](packs/README.md).
+
 ### Development
 
 Denizen JSON lives in `src/data/denizens/`. Rebuild the scavenging catalog after adding or editing exports:
@@ -130,6 +145,7 @@ npm run build
 | [foundryvtt-fallout](https://github.com/Muttley/foundryvtt-fallout) | **Required** — actors, compendiums, AP tracker, sheets |
 | Simple Calendar Reborn | Advance world time after scavenging |
 | Licensed Modiphius PDFs | Character sheet export only |
+| Bundled `wastelander.items` / `wastelander.wastelander` | Custom scavenging items and roll tables (included with module) |
 
 ---
 

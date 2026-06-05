@@ -1,3 +1,4 @@
+import { WASTELANDER_ROLL_TABLES_PACK } from "../constants.js";
 import rollTableNames from "../data/scavenging/roll-table-names.json";
 import type { ItemCategoryRange, LootCategoryKey } from "./ScavengerLocation.js";
 
@@ -165,7 +166,7 @@ async function findCompendiumRollTableByKey(
   key: ScavengingRollTableKey,
 ): Promise<RollTableRef | undefined> {
   const candidates = new Set(getRollTableNameCandidates(key).map(normalizeName));
-  const packIds: string[] = [];
+  const packIds: string[] = [WASTELANDER_ROLL_TABLES_PACK];
 
   if (game.system?.id === FALLOUT_SYSTEM_ID) {
     const scavPack = game.settings.get(FALLOUT_SYSTEM_ID, "scavengingCompendium") as string;

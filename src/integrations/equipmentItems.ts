@@ -1,7 +1,9 @@
+import { WASTELANDER_ITEMS_PACK } from "../constants.js";
 import type { ResolvedEquipmentLine } from "../wizard/equipmentRules.js";
 
 /** Fallout item compendiums used for starting equipment lookups. */
 const EQUIPMENT_ITEM_PACK_IDS = [
+  WASTELANDER_ITEMS_PACK,
   "fallout.weapons",
   "fallout.apparel",
   "fallout.consumables",

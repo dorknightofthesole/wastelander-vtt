@@ -25,6 +25,41 @@
   },
   "esmodules": ["dist/wastelander.mjs"],
   "styles": ["styles/wastelander-wizard.css"],
+  "packFolders": [
+    {
+      "name": "Wastelander",
+      "sorting": "m",
+      "packs": ["items", "wastelander"],
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    }
+  ],
+  "packs": [
+    {
+      "name": "items",
+      "label": "Items",
+      "path": "packs/items",
+      "type": "Item",
+      "system": "fallout",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "wastelander",
+      "label": "Wastelander",
+      "path": "packs/wastelander",
+      "type": "RollTable",
+      "system": "fallout",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    }
+  ],
   "languages": [
     {
       "lang": "en",
