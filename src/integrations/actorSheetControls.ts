@@ -265,9 +265,31 @@ export function registerActorSheetControlHooks(): void {
   );
 }
 
+function resolveSheetWindowRoot(
+  app: { element?: HTMLElement | HTMLElement[] },
+  $html: JQuery,
+): JQuery {
+  const el = app.element;
+  const appRoot = Array.isArray(el) ? el[0] : el;
+  if (appRoot instanceof HTMLElement) {
+    return $(appRoot);
+  }
+  const closest = $html.closest(".window-app, .application");
+  return closest.length ? closest : $html;
+}
+
+/** Legacy fallback injected into sheet body when header hooks are unavailable. */
+function removeMisplacedLegacyMenu($html: JQuery): void {
+  $html
+    .find(
+      ".sheet-header .wastelander-sheet-menu-wrap, .sheet-body .wastelander-sheet-menu-wrap",
+    )
+    .remove();
+}
+
 /** Wire click handler after sheet render (AppV2 header controls + v1 fallback). */
 export function registerActorSheetControls(
-  app: { actor?: Actor; document?: Actor },
+  app: { actor?: Actor; document?: Actor; element?: HTMLElement | HTMLElement[] },
   html: JQuery | HTMLElement,
 ): void {
   const actor = actorFromSheetApp(app);
@@ -276,13 +298,18 @@ export function registerActorSheetControls(
   bindGlobalPortalClose();
 
   const $html = html instanceof jQuery ? html : $(html);
+  const $windowRoot = resolveSheetWindowRoot(app, $html);
 
-  const v2Button = $html.find(`[data-action="${WASTELANDER_HEADER_ACTION}"]`);
-  if (v2Button.length) {
-    wireHeaderButton(v2Button, actor);
+  const headerControl = $windowRoot.find(
+    `[data-action="${WASTELANDER_HEADER_ACTION}"]`,
+  );
+  if (headerControl.length) {
+    wireHeaderButton(headerControl, actor);
+    removeMisplacedLegacyMenu($html);
     return;
   }
 
+  if ($windowRoot.find(".wastelander-sheet-menu-wrap").length) return;
   if ($html.find(".wastelander-sheet-menu-wrap").length) return;
 
   registerTranslations();
