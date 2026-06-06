@@ -1,16 +1,64 @@
-import type { InhabitantType } from "./ScavengerLocation.js";
-
 export type NpcSize = "big" | "little" | null;
 
-/** Slim denizen row for scavenging (no stat blocks or rulebook prose). */
-export interface DenizenCatalogEntry {
-  id: string;
-  name: string;
-  level: number;
-  foundryActorType: "npc" | "creature" | "robot";
-  inhabitantType: InhabitantType;
-  falloutCategory: "normal" | "notable" | "major";
-  npcSize: NpcSize;
+/** Core rulebook “Denizens of the Wasteland” actor sidebar folders. */
+export type DenizenBookFolder =
+  | "Animals and Insects"
+  | "Mutated Humanoids"
+  | "Robots"
+  | "Super Mutants"
+  | "Synths"
+  | "Turrets"
+  | "Brotherhood of Steel"
+  | "Raiders"
+  | "Wastelanders";
+
+/** Matches “Denizens of the Wasteland” actor sidebar folders, plus overseer-only modes. */
+export type InhabitantType = DenizenBookFolder | "overseerOverride" | "none";
+
+export const DENIZEN_BOOK_SUBFOLDERS: DenizenBookFolder[] = [
+  "Animals and Insects",
+  "Mutated Humanoids",
+  "Robots",
+  "Super Mutants",
+  "Synths",
+  "Turrets",
+  "Brotherhood of Steel",
+  "Raiders",
+  "Wastelanders",
+];
+
+const BOOK_FOLDER_SET = new Set<string>(DENIZEN_BOOK_SUBFOLDERS);
+
+/** Map legacy scavenging inhabitant keys to book folder names. */
+export const LEGACY_INHABITANT_TYPE_MAP: Record<string, DenizenBookFolder> = {
+  animals: "Animals and Insects",
+  feralGhouls: "Mutated Humanoids",
+  raiders: "Raiders",
+  superMutants: "Super Mutants",
+  robots: "Robots",
+};
+
+const BROTHERHOOD_NAMES = new Set([
+  "elder",
+  "knight",
+  "lancer",
+  "paladin",
+  "scribe",
+]);
+
+const WASTELANDER_NAMES = new Set([
+  "mercenary",
+  "minuteman",
+  "railroad agent",
+  "trader / caravan merchant",
+  "trader : caravan merchant",
+  "vault dweller",
+  "wastelander",
+  "institute scientist",
+]);
+
+export function isDenizenBookFolder(value: string): value is DenizenBookFolder {
+  return BOOK_FOLDER_SET.has(value);
 }
 
 export type FalloutActorJson = {
@@ -26,6 +74,17 @@ export type FalloutActorJson = {
   };
   items?: Array<{ name?: string; type?: string }>;
 };
+
+/** Slim denizen row for scavenging (no stat blocks or rulebook prose). */
+export interface DenizenCatalogEntry {
+  id: string;
+  name: string;
+  level: number;
+  foundryActorType: "npc" | "creature" | "robot";
+  inhabitantType: InhabitantType;
+  falloutCategory: "normal" | "notable" | "major";
+  npcSize: NpcSize;
+}
 
 /** Fallout actor.type used when creating world actors from denizen exports. */
 export type DenizenImportActorType = "npc" | "creature" | "robot";
@@ -68,6 +127,39 @@ export function isRobotNpcExport(data: FalloutActorJson): boolean {
 
   if (origin.includes("robot") && bodyType !== "humanoid") return true;
   return false;
+}
+
+/**
+ * Map a denizen export to the rulebook sidebar folder (first match wins).
+ * Also used as the scavenging inhabitant type in the denizen catalog.
+ */
+export function resolveDenizenBookFolder(data: FalloutActorJson): DenizenBookFolder {
+  const name = (data.name ?? "").trim().toLowerCase();
+  const origin = (data.system?.origin ?? "").trim().toLowerCase();
+
+  if (name.includes("turret")) return "Turrets";
+  if (name.includes("synth")) return "Synths";
+  if (BROTHERHOOD_NAMES.has(name)) return "Brotherhood of Steel";
+  if (
+    name.includes("raider") ||
+    name === "gunner" ||
+    name === "children of atom"
+  ) {
+    return "Raiders";
+  }
+  if (name.includes("super mutant") || name === "mutant hound") {
+    return "Super Mutants";
+  }
+  if (WASTELANDER_NAMES.has(name)) return "Wastelanders";
+  if (name.includes("ghoul") || name === "glowing one" || name === "zetan") {
+    return "Mutated Humanoids";
+  }
+  if (isRobotNpcExport(data)) return "Robots";
+
+  if (origin.includes("ghoul")) return "Mutated Humanoids";
+  if (data.type === "npc") return "Wastelanders";
+
+  return "Animals and Insects";
 }
 
 /**
@@ -148,24 +240,6 @@ export function normalizeRobotExportJson(data: FalloutActorJson): boolean {
   return changed;
 }
 
-export const INHABITANT_TYPE_OVERRIDES: Record<string, InhabitantType> = {
-  gunner: "raiders",
-  "children of atom": "raiders",
-  "institute scientist": "raiders",
-  mercenary: "raiders",
-  wastelander: "raiders",
-  "vault dweller": "raiders",
-  paladin: "raiders",
-  knight: "raiders",
-  lancer: "raiders",
-  elder: "raiders",
-  scribe: "raiders",
-  minuteman: "raiders",
-  "railroad agent": "raiders",
-  "trader : caravan merchant": "raiders",
-  zetan: "raiders",
-};
-
 export function slugFromFilename(filename: string): string {
   return filename
     .replace(/\.json$/i, "")
@@ -195,40 +269,6 @@ export function resolveFoundryActorType(data: FalloutActorJson): FoundryActorTyp
   return "creature";
 }
 
-export function inferInhabitantType(
-  name: string,
-  origin: string,
-  actorType: string,
-): InhabitantType {
-  const key = name.trim().toLowerCase();
-  const override = INHABITANT_TYPE_OVERRIDES[key];
-  if (override) return override;
-
-  if (actorType === "robot") return "robots";
-
-  const n = key;
-  const o = origin.toLowerCase();
-
-  if (
-    o.includes("robot") ||
-    n.includes("turret") ||
-    n.includes("protectron") ||
-    n.includes("assaultron") ||
-    n.includes("eyebot") ||
-    n.includes("sentry bot") ||
-    n.includes("mister ") ||
-    n.includes("miss nanny") ||
-    n.includes("synth")
-  ) {
-    return "robots";
-  }
-  if (n.includes("ghoul") || o.includes("ghoul")) return "feralGhouls";
-  if (n.includes("mutant") || o.includes("mutant")) return "superMutants";
-  if (n.includes("raider") || o.includes("raider")) return "raiders";
-  if (actorType === "npc") return "raiders";
-  return "animals";
-}
-
 export function parseDenizenFromActorJson(
   filename: string,
   data: FalloutActorJson,
@@ -238,7 +278,6 @@ export function parseDenizenFromActorJson(
   if (!Number.isFinite(level)) return null;
 
   const foundryActorType = resolveFoundryActorType(data);
-  const origin = data.system?.origin?.trim() ?? "";
   const category = data.system?.category;
   const falloutCategory =
     category === "notable" || category === "major" ? category : "normal";
@@ -248,7 +287,7 @@ export function parseDenizenFromActorJson(
     name,
     level,
     foundryActorType,
-    inhabitantType: inferInhabitantType(name, origin, foundryActorType),
+    inhabitantType: resolveDenizenBookFolder(data),
     falloutCategory,
     npcSize: parseNpcSize(data.items),
   };

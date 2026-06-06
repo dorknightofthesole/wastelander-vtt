@@ -23,14 +23,9 @@ export type LocationCategoryId =
   | "agriculture"
   | "military";
 
-export type InhabitantType =
-  | "animals"
-  | "feralGhouls"
-  | "raiders"
-  | "superMutants"
-  | "robots"
-  | "overseerOverride"
-  | "none";
+import type { InhabitantType } from "./denizenBookFolders.js";
+
+export type { DenizenBookFolder, InhabitantType } from "./denizenBookFolders.js";
 
 export interface ItemCategoryRange {
   category: LootCategoryKey;
@@ -48,7 +43,7 @@ export interface InhabitantRosterEntry {
   denizenId: string;
   name: string;
   level: number;
-  role: "normal";
+  role: "normal" | "leader";
   npcSize?: "big" | "little" | null;
   foundryUuid?: string | null;
 }

@@ -69,6 +69,25 @@ export function assistActorIds(state: ScavengerPlayerSearchState): string[] {
     .map(([actorId]) => actorId);
 }
 
+/** Primary searcher and assistants assigned for this location's search. */
+export function searchTeamActorIds(state: ScavengerPlayerSearchState): string[] {
+  const ids: string[] = [];
+  const primary = primaryActorId(state);
+  if (primary) ids.push(primary);
+  for (const id of assistActorIds(state)) {
+    if (!ids.includes(id)) ids.push(id);
+  }
+  return ids;
+}
+
+export function isSearchTeamActor(
+  state: ScavengerPlayerSearchState,
+  actorId: string,
+): boolean {
+  const role = getSearchTeamRole(state, actorId);
+  return role === "primary" || role === "assist";
+}
+
 export function searchTeamLocked(state: ScavengerPlayerSearchState): boolean {
   return Boolean(state.searchRollLog) || Object.keys(state.assistRolls).length > 0;
 }

@@ -24,6 +24,7 @@ import {
   canHaveInhabitants,
   formatInhabitantCountSummary,
   INHABITANT_TYPE_OPTIONS,
+  inhabitantTypeLabel,
 } from "./inhabitantRules.js";
 import { formatLootCategoryLabel } from "./lootGrid.js";
 import { loadDenizens } from "./loadDenizens.js";
@@ -337,11 +338,8 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
         : [];
 
     const inhabitantsAllowed = canHaveInhabitants(scale);
-    const inhabitantType =
-      this.location?.inhabitants?.type ??
-      this.#form.inhabitantType ??
-      "raiders";
-    this.#form.inhabitantType = inhabitantType;
+    // Create-tab dropdown follows form state only — do not overwrite from the last generated location.
+    const inhabitantType = this.#form.inhabitantType ?? "Raiders";
     if (this.#form.problems.inhabitants) {
       this.#form.problems.inhabitantType = inhabitantType;
     }
@@ -351,7 +349,7 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
 
     const inhabitantTypeOptions = INHABITANT_TYPE_OPTIONS.map((value) => ({
       value,
-      label: t(`WASTELANDER.Scavenging.Inhabitants.Types.${value}`),
+      label: inhabitantTypeLabel(value),
       selected: value === inhabitantType,
     }));
 
@@ -499,6 +497,7 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
     } else if (field === "inhabitantType") {
       this.#form.inhabitantType = el.value as InhabitantType;
       this.#form.problems.inhabitantType = this.#form.inhabitantType;
+      void this.render();
     } else if (field === "degree") {
       this.#form.degree = el.value as LocationDegree;
       void this.render();
@@ -615,6 +614,9 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
 
       this.#activeTab = "current";
       this.#form.problems = { ...this.location.problems };
+      if (this.location.inhabitants?.type) {
+        this.#form.inhabitantType = this.location.inhabitants.type;
+      }
       ui.notifications.info(
         t("WASTELANDER.Scavenging.Notify.Generated", {
           level: this.location.level,
@@ -770,7 +772,7 @@ function problemsForGeneration(
     next.hazardKind = problems.hazardKind ?? "ongoing";
   }
   if (problems.inhabitants) {
-    next.inhabitantType = problems.inhabitantType ?? "raiders";
+    next.inhabitantType = problems.inhabitantType ?? "Raiders";
   }
   return next;
 }

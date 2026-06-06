@@ -8,6 +8,7 @@ import {
   canRollMin,
   canSpendApOnCategory,
   emptyPlayerSearchState,
+  normalizePlayerSearch,
   remainingMinFor,
   rollsUsedFor,
   type ScavengerPlayerSearchState,
@@ -19,7 +20,9 @@ import {
   getPerSurvivalTargetNumber,
   getSearchTeamRole,
   hasPendingAssistRolls,
+  isSearchTeamActor,
   primaryCanScavengeSearch,
+  searchTeamActorIds,
   searchTeamLocked,
 } from "./searchTeam.js";
 import {
@@ -43,9 +46,10 @@ import {
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
-type ActingActorOption = {
+type LuckActorOption = {
   actorId: string;
   name: string;
+  roleLabel: string;
   selected: boolean;
   luckPoints: number;
 };
@@ -85,7 +89,6 @@ type RollEntryContext = {
   luckShift: number;
   luckSpent: number;
   userName: string;
-  isOwn: boolean;
   luckLocked: boolean;
   itemUuid?: string;
   /** Ladder options only (excludes the committed roll). */
@@ -190,15 +193,38 @@ export default class ScavengerSearchApp extends HandlebarsApplicationMixin(
     this.#partyAp = ap.value;
     this.#partyApAvailable = ap.available;
 
-    this.#actingActorId = this.#resolveDefaultActorId();
+    const playerSearch = this.#normalizedPlayerSearch();
+    const teamIds = playerSearch ? searchTeamActorIds(playerSearch) : [];
+    if (!this.#actingActorId || !teamIds.includes(this.#actingActorId)) {
+      this.#actingActorId = this.#resolveDefaultActorId(playerSearch);
+    }
   }
 
-  #resolveDefaultActorId(): string | null {
+  #normalizedPlayerSearch(): ScavengerPlayerSearchState | undefined {
+    const raw = this.#sceneState?.playerSearch;
+    if (!raw || !this.#sceneId) return undefined;
+    const normalized = normalizePlayerSearch(raw);
+    if (!normalized) return undefined;
+    return ensureSearchTeam(normalized, this.#partyOnScene().map((r) => r.actorId));
+  }
+
+  #resolveDefaultActorId(playerSearch?: ScavengerPlayerSearchState): string | null {
+    const teamIds = playerSearch ? searchTeamActorIds(playerSearch) : [];
+    const userId = game.user?.id ?? "";
+
     const char = (game.user as { character?: { id: string } | string | null })
       ?.character;
     const charId = typeof char === "string" ? char : char?.id;
-    if (charId && game.actors.get(charId)) return charId;
+    if (charId && teamIds.includes(charId) && game.actors.get(charId)) {
+      return charId;
+    }
 
+    const controlled = teamIds.find((id) => this.#canControlActor(id, userId));
+    if (controlled) return controlled;
+
+    if (teamIds[0] && game.actors.get(teamIds[0])) return teamIds[0];
+
+    if (charId && game.actors.get(charId)) return charId;
     const rows = this.#partyActorsForUi();
     return rows[0]?.actorId ?? null;
   }
@@ -346,7 +372,7 @@ export default class ScavengerSearchApp extends HandlebarsApplicationMixin(
     root.addEventListener("change", (event) => {
       const target = event.target;
       if (!(target instanceof HTMLSelectElement)) return;
-      if (target.dataset.action === "selectActor") {
+      if (target.dataset.action === "selectLuckActor") {
         const actorId = target.value;
         if (actorId) {
           this.#actingActorId = actorId;
@@ -405,8 +431,22 @@ export default class ScavengerSearchApp extends HandlebarsApplicationMixin(
     const obstacleBlocked =
       Boolean(location) && !canSearchLocation(location!.problems);
 
-    const actingOptions = this.#buildActingOptions();
     const luckMax = location?.level ?? 0;
+    const playerSearchForLoot =
+      playerSearch && location
+        ? ensureSearchTeam(playerSearch, this.#partyOnScene().map((r) => r.actorId))
+        : undefined;
+    const luckActorOptions = playerSearchForLoot
+      ? this.#buildLuckActorOptions(playerSearchForLoot)
+      : [];
+    if (
+      luckActorOptions.length &&
+      !luckActorOptions.some((o) => o.actorId === this.#actingActorId)
+    ) {
+      this.#actingActorId = luckActorOptions[0]!.actorId;
+    }
+    const selectedLuckPoints = this.#actorLuck(this.#actingActorId);
+    const canSpendLuck = this.#canSpendLuck(playerSearchForLoot);
     const searchPending =
       !playerSearch ||
       playerSearch.searchSuccess === null ||
@@ -453,12 +493,8 @@ export default class ScavengerSearchApp extends HandlebarsApplicationMixin(
       rollEntries = await Promise.all(
         reversed.map(async (entry) => {
           const row = lootRows.find((r) => r.category === entry.category);
-          const isOwn = entry.userId === game.user?.id;
           const shift = entry.luckShift;
-          const actorLuck = this.#actorLuck(entry.actorId);
           const luckLocked = entry.luckSpent > 0;
-          const canEditLuck =
-            isOwn && entry.actorId === this.#actingActorId;
           const neighborRows = luckLocked
             ? []
             : (
@@ -466,10 +502,10 @@ export default class ScavengerSearchApp extends HandlebarsApplicationMixin(
               ).map((row) => ({
                 ...row,
                 canJump:
-                  canEditLuck &&
+                  canSpendLuck &&
                   !row.isCurrent &&
                   row.jumpCost > 0 &&
-                  row.jumpCost <= actorLuck,
+                  row.jumpCost <= selectedLuckPoints,
               }));
           const previewRows = neighborRows.filter((row) => !row.isCurrent);
           return {
@@ -480,7 +516,6 @@ export default class ScavengerSearchApp extends HandlebarsApplicationMixin(
             luckShift: shift,
             luckSpent: entry.luckSpent,
             userName: entry.userName,
-            isOwn,
             luckLocked,
             itemUuid: entry.itemUuid,
             previewRows,
@@ -525,21 +560,38 @@ export default class ScavengerSearchApp extends HandlebarsApplicationMixin(
       canEditTeam: searchPending && !searchTeamLocked(teamPlayerSearch),
       assistsPendingHint,
       luckMax,
-      actingActors: actingOptions,
+      luckActorOptions,
+      selectedLuckPoints,
+      canSpendLuck,
       lootRows,
       rollEntries,
       busy: this.#busy,
     };
   }
 
-  #buildActingOptions(): ActingActorOption[] {
-    const mine = this.#partyActorsForUi();
-    return mine.map((row) => ({
-      actorId: row.actorId,
-      name: row.actorName,
-      selected: row.actorId === this.#actingActorId,
-      luckPoints: this.#actorLuck(row.actorId),
-    }));
+  #buildLuckActorOptions(
+    playerSearch: ScavengerPlayerSearchState,
+  ): LuckActorOption[] {
+    const userId = game.user?.id ?? "";
+    return searchTeamActorIds(playerSearch)
+      .filter((actorId) => game.user?.isGM || this.#canControlActor(actorId, userId))
+      .map((actorId) => {
+        const actor = game.actors.get(actorId);
+        const role = getSearchTeamRole(playerSearch, actorId);
+        return {
+          actorId,
+          name: actor?.name ?? actorId,
+          roleLabel: t(`WASTELANDER.Scavenging.PlayerSearch.TeamRole.${role}`),
+          selected: actorId === this.#actingActorId,
+          luckPoints: this.#actorLuck(actorId),
+        };
+      });
+  }
+
+  #canSpendLuck(playerSearch?: ScavengerPlayerSearchState): boolean {
+    if (!this.#actingActorId || !playerSearch) return false;
+    if (!isSearchTeamActor(playerSearch, this.#actingActorId)) return false;
+    return this.#canControlActor(this.#actingActorId, game.user?.id ?? "");
   }
 
   #actorLuck(actorId: string | null): number {

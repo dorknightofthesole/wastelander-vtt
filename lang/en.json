@@ -275,12 +275,8 @@
         "RosterEmpty": "No matching denizens in catalog for this type and location level.",
         "LevelShort": "Lv",
         "Types": {
-          "animals": "Animals",
-          "feralGhouls": "Feral ghouls",
-          "raiders": "Raiders",
-          "superMutants": "Super mutants",
-          "robots": "Robots",
-          "overseerOverride": "Overseer override"
+          "overseerOverride": "Overseer override",
+          "none": "None"
         },
         "Size": {
           "big": "Big",
@@ -411,6 +407,8 @@
         "BonusApGranted": "+{amount} party AP from bonus successes.",
         "BonusApFailed": "Could not add bonus party AP.",
         "ActingCharacter": "Character",
+        "LuckActor": "Spend Luck as",
+        "LuckActorHint": "Choose the primary searcher or an assistant. Each option costs Luck Points from that character (they have {luck}; shift up to ±{luckMax} per location level).",
         "Luck": "Luck",
         "NoCharacter": "Select a character with a linked token on this scene (players: assign your character in User Configuration).",
         "NoActiveScene": "No active scene — open the scavenger scene first.",
@@ -451,6 +449,7 @@
         "NoPartyAp": "Not enough party AP.",
         "EntryNotFound": "Roll entry not found.",
         "NotYourRoll": "You can only adjust luck on your own rolls.",
+        "NotSearchTeamActor": "Only the primary searcher or an assistant can spend Luck on loot.",
         "LuckShiftLimit": "Luck shift cannot exceed ±{max} for this location.",
         "NoLuck": "No luck points remaining.",
         "NoLuckForJump": "Need {cost} Luck to choose that result (you have {have})."

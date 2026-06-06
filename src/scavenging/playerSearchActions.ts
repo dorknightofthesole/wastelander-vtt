@@ -31,6 +31,7 @@ import {
   countAssistBonusSuccesses,
   ensureSearchTeam,
   getSearchTeamRole,
+  isSearchTeamActor,
   primaryCanScavengeSearch,
   recordAssistRoll,
   searchTeamLocked,
@@ -447,8 +448,11 @@ async function executePlayerSearchActionInner(
     if (!entry) {
       return { ok: false, error: t("WASTELANDER.Scavenging.PlayerSearch.EntryNotFound") };
     }
-    if (entry.actorId !== data.actorId) {
-      return { ok: false, error: t("WASTELANDER.Scavenging.PlayerSearch.NotYourRoll") };
+    if (!isSearchTeamActor(playerSearch, data.actorId)) {
+      return { ok: false, error: t("WASTELANDER.Scavenging.PlayerSearch.NotSearchTeamActor") };
+    }
+    if (!assertActorOwnedByUser(data.actorId, userId, data.sceneId)) {
+      return { ok: false, error: t("WASTELANDER.Scavenging.PlayerSearch.NotYourCharacter") };
     }
 
     const maxShift = location.level;
@@ -493,8 +497,11 @@ async function executePlayerSearchActionInner(
     if (!entry) {
       return { ok: false, error: t("WASTELANDER.Scavenging.PlayerSearch.EntryNotFound") };
     }
-    if (entry.actorId !== data.actorId) {
-      return { ok: false, error: t("WASTELANDER.Scavenging.PlayerSearch.NotYourRoll") };
+    if (!isSearchTeamActor(playerSearch, data.actorId)) {
+      return { ok: false, error: t("WASTELANDER.Scavenging.PlayerSearch.NotSearchTeamActor") };
+    }
+    if (!assertActorOwnedByUser(data.actorId, userId, data.sceneId)) {
+      return { ok: false, error: t("WASTELANDER.Scavenging.PlayerSearch.NotYourCharacter") };
     }
 
     const maxShift = location.level;

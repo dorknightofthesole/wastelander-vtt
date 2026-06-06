@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-04T20:00:37.344Z",
+  "generatedAt": "2026-06-06T00:24:30.799Z",
   "source": "Built from src/data/denizens/*.json — commit denizens-catalog.json; raw exports stay gitignored",
   "denizens": [
     {
@@ -7,7 +7,7 @@
       "name": "Assaultron",
       "level": 13,
       "foundryActorType": "robot",
-      "inhabitantType": "robots",
+      "inhabitantType": "Robots",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -16,7 +16,7 @@
       "name": "Bloatfly",
       "level": 2,
       "foundryActorType": "creature",
-      "inhabitantType": "animals",
+      "inhabitantType": "Animals and Insects",
       "falloutCategory": "normal",
       "npcSize": "little"
     },
@@ -25,7 +25,7 @@
       "name": "Bloodbug",
       "level": 5,
       "foundryActorType": "creature",
-      "inhabitantType": "animals",
+      "inhabitantType": "Animals and Insects",
       "falloutCategory": "normal",
       "npcSize": "little"
     },
@@ -34,7 +34,7 @@
       "name": "Brahmin",
       "level": 3,
       "foundryActorType": "creature",
-      "inhabitantType": "animals",
+      "inhabitantType": "Animals and Insects",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -43,7 +43,7 @@
       "name": "Children of Atom",
       "level": 6,
       "foundryActorType": "npc",
-      "inhabitantType": "raiders",
+      "inhabitantType": "Raiders",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -52,7 +52,7 @@
       "name": "Deathclaw",
       "level": 11,
       "foundryActorType": "creature",
-      "inhabitantType": "animals",
+      "inhabitantType": "Animals and Insects",
       "falloutCategory": "normal",
       "npcSize": "big"
     },
@@ -61,7 +61,7 @@
       "name": "Dog",
       "level": 3,
       "foundryActorType": "creature",
-      "inhabitantType": "animals",
+      "inhabitantType": "Animals and Insects",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -70,7 +70,7 @@
       "name": "Elder",
       "level": 10,
       "foundryActorType": "npc",
-      "inhabitantType": "raiders",
+      "inhabitantType": "Brotherhood of Steel",
       "falloutCategory": "major",
       "npcSize": null
     },
@@ -79,7 +79,7 @@
       "name": "Eyebot",
       "level": 2,
       "foundryActorType": "robot",
-      "inhabitantType": "robots",
+      "inhabitantType": "Robots",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -88,7 +88,7 @@
       "name": "Feral Ghoul",
       "level": 3,
       "foundryActorType": "creature",
-      "inhabitantType": "feralGhouls",
+      "inhabitantType": "Mutated Humanoids",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -97,7 +97,7 @@
       "name": "Glowing One",
       "level": 9,
       "foundryActorType": "creature",
-      "inhabitantType": "animals",
+      "inhabitantType": "Mutated Humanoids",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -106,7 +106,7 @@
       "name": "Gunner",
       "level": 6,
       "foundryActorType": "npc",
-      "inhabitantType": "raiders",
+      "inhabitantType": "Raiders",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -115,7 +115,7 @@
       "name": "Institute Scientist",
       "level": 7,
       "foundryActorType": "npc",
-      "inhabitantType": "raiders",
+      "inhabitantType": "Wastelanders",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -124,7 +124,7 @@
       "name": "Knight",
       "level": 7,
       "foundryActorType": "npc",
-      "inhabitantType": "raiders",
+      "inhabitantType": "Brotherhood of Steel",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -133,7 +133,7 @@
       "name": "Lancer",
       "level": 5,
       "foundryActorType": "npc",
-      "inhabitantType": "raiders",
+      "inhabitantType": "Brotherhood of Steel",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -142,7 +142,7 @@
       "name": "Laser Turret (Wall Mount)",
       "level": 5,
       "foundryActorType": "creature",
-      "inhabitantType": "robots",
+      "inhabitantType": "Turrets",
       "falloutCategory": "normal",
       "npcSize": "little"
     },
@@ -151,7 +151,7 @@
       "name": "Laser Turret 3-Shot (Wall Mount)",
       "level": 10,
       "foundryActorType": "creature",
-      "inhabitantType": "robots",
+      "inhabitantType": "Turrets",
       "falloutCategory": "normal",
       "npcSize": "little"
     },
@@ -160,7 +160,7 @@
       "name": "Machine Gun Turret (Wall Mount)",
       "level": 5,
       "foundryActorType": "creature",
-      "inhabitantType": "robots",
+      "inhabitantType": "Turrets",
       "falloutCategory": "normal",
       "npcSize": "little"
     },
@@ -169,7 +169,7 @@
       "name": "Machine Gun Turret 3-Shot (Wall Mount)",
       "level": 10,
       "foundryActorType": "creature",
-      "inhabitantType": "robots",
+      "inhabitantType": "Turrets",
       "falloutCategory": "normal",
       "npcSize": "little"
     },
@@ -178,7 +178,7 @@
       "name": "Machine Gun Turret Mk I",
       "level": 5,
       "foundryActorType": "creature",
-      "inhabitantType": "robots",
+      "inhabitantType": "Turrets",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -187,7 +187,7 @@
       "name": "Machine Gun Turret Mk III",
       "level": 10,
       "foundryActorType": "creature",
-      "inhabitantType": "robots",
+      "inhabitantType": "Turrets",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -196,7 +196,7 @@
       "name": "Machine Gun Turret Mk V",
       "level": 14,
       "foundryActorType": "creature",
-      "inhabitantType": "robots",
+      "inhabitantType": "Turrets",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -205,7 +205,7 @@
       "name": "Mercenary",
       "level": 6,
       "foundryActorType": "npc",
-      "inhabitantType": "raiders",
+      "inhabitantType": "Wastelanders",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -214,7 +214,7 @@
       "name": "Minuteman",
       "level": 7,
       "foundryActorType": "npc",
-      "inhabitantType": "raiders",
+      "inhabitantType": "Wastelanders",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -223,7 +223,7 @@
       "name": "Mirelurk",
       "level": 7,
       "foundryActorType": "creature",
-      "inhabitantType": "animals",
+      "inhabitantType": "Animals and Insects",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -232,7 +232,7 @@
       "name": "Mirelurk Hatchling",
       "level": 1,
       "foundryActorType": "creature",
-      "inhabitantType": "animals",
+      "inhabitantType": "Animals and Insects",
       "falloutCategory": "normal",
       "npcSize": "little"
     },
@@ -241,7 +241,7 @@
       "name": "Mirelurk Hunter",
       "level": 12,
       "foundryActorType": "creature",
-      "inhabitantType": "animals",
+      "inhabitantType": "Animals and Insects",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -250,7 +250,7 @@
       "name": "Mirelurk Queen",
       "level": 19,
       "foundryActorType": "creature",
-      "inhabitantType": "animals",
+      "inhabitantType": "Animals and Insects",
       "falloutCategory": "normal",
       "npcSize": "big"
     },
@@ -259,7 +259,7 @@
       "name": "Miss Nanny",
       "level": 6,
       "foundryActorType": "robot",
-      "inhabitantType": "robots",
+      "inhabitantType": "Robots",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -268,7 +268,7 @@
       "name": "Mister Gutsy",
       "level": 7,
       "foundryActorType": "robot",
-      "inhabitantType": "robots",
+      "inhabitantType": "Robots",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -277,7 +277,7 @@
       "name": "Mister Handy",
       "level": 6,
       "foundryActorType": "robot",
-      "inhabitantType": "robots",
+      "inhabitantType": "Robots",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -286,7 +286,7 @@
       "name": "Mole Rat",
       "level": 2,
       "foundryActorType": "creature",
-      "inhabitantType": "animals",
+      "inhabitantType": "Animals and Insects",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -295,7 +295,7 @@
       "name": "Mongrel Dog",
       "level": 3,
       "foundryActorType": "creature",
-      "inhabitantType": "animals",
+      "inhabitantType": "Animals and Insects",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -304,7 +304,7 @@
       "name": "Mutant Hound",
       "level": 4,
       "foundryActorType": "creature",
-      "inhabitantType": "superMutants",
+      "inhabitantType": "Super Mutants",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -313,7 +313,7 @@
       "name": "Paladin",
       "level": 8,
       "foundryActorType": "npc",
-      "inhabitantType": "raiders",
+      "inhabitantType": "Brotherhood of Steel",
       "falloutCategory": "notable",
       "npcSize": null
     },
@@ -322,7 +322,7 @@
       "name": "Protectron",
       "level": 3,
       "foundryActorType": "robot",
-      "inhabitantType": "robots",
+      "inhabitantType": "Robots",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -331,7 +331,7 @@
       "name": "Radroach",
       "level": 1,
       "foundryActorType": "creature",
-      "inhabitantType": "animals",
+      "inhabitantType": "Animals and Insects",
       "falloutCategory": "normal",
       "npcSize": "little"
     },
@@ -340,7 +340,7 @@
       "name": "Radscorpion",
       "level": 7,
       "foundryActorType": "creature",
-      "inhabitantType": "animals",
+      "inhabitantType": "Animals and Insects",
       "falloutCategory": "normal",
       "npcSize": "big"
     },
@@ -349,7 +349,7 @@
       "name": "Radstag",
       "level": 5,
       "foundryActorType": "creature",
-      "inhabitantType": "animals",
+      "inhabitantType": "Animals and Insects",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -358,7 +358,7 @@
       "name": "Raider",
       "level": 2,
       "foundryActorType": "npc",
-      "inhabitantType": "raiders",
+      "inhabitantType": "Raiders",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -367,7 +367,7 @@
       "name": "Raider Boss",
       "level": 10,
       "foundryActorType": "npc",
-      "inhabitantType": "raiders",
+      "inhabitantType": "Raiders",
       "falloutCategory": "major",
       "npcSize": null
     },
@@ -376,7 +376,7 @@
       "name": "Raider Psycho",
       "level": 7,
       "foundryActorType": "npc",
-      "inhabitantType": "raiders",
+      "inhabitantType": "Raiders",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -385,7 +385,7 @@
       "name": "Raider Scavver",
       "level": 7,
       "foundryActorType": "npc",
-      "inhabitantType": "raiders",
+      "inhabitantType": "Raiders",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -394,7 +394,7 @@
       "name": "Raider Veteran",
       "level": 8,
       "foundryActorType": "npc",
-      "inhabitantType": "raiders",
+      "inhabitantType": "Raiders",
       "falloutCategory": "notable",
       "npcSize": null
     },
@@ -403,7 +403,7 @@
       "name": "Railroad Agent",
       "level": 7,
       "foundryActorType": "npc",
-      "inhabitantType": "raiders",
+      "inhabitantType": "Wastelanders",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -412,7 +412,7 @@
       "name": "Scribe",
       "level": 4,
       "foundryActorType": "npc",
-      "inhabitantType": "raiders",
+      "inhabitantType": "Brotherhood of Steel",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -421,7 +421,7 @@
       "name": "Sentry Bot",
       "level": 15,
       "foundryActorType": "robot",
-      "inhabitantType": "robots",
+      "inhabitantType": "Robots",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -430,7 +430,7 @@
       "name": "Stingwing",
       "level": 5,
       "foundryActorType": "creature",
-      "inhabitantType": "animals",
+      "inhabitantType": "Animals and Insects",
       "falloutCategory": "normal",
       "npcSize": "little"
     },
@@ -439,7 +439,7 @@
       "name": "Super Mutant",
       "level": 5,
       "foundryActorType": "npc",
-      "inhabitantType": "superMutants",
+      "inhabitantType": "Super Mutants",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -448,7 +448,7 @@
       "name": "Super Mutant Behemoth",
       "level": 18,
       "foundryActorType": "creature",
-      "inhabitantType": "superMutants",
+      "inhabitantType": "Super Mutants",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -457,7 +457,7 @@
       "name": "Super Mutant Brute",
       "level": 7,
       "foundryActorType": "npc",
-      "inhabitantType": "superMutants",
+      "inhabitantType": "Super Mutants",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -466,7 +466,7 @@
       "name": "Super Mutant Master",
       "level": 10,
       "foundryActorType": "npc",
-      "inhabitantType": "superMutants",
+      "inhabitantType": "Super Mutants",
       "falloutCategory": "notable",
       "npcSize": null
     },
@@ -475,7 +475,7 @@
       "name": "Super Mutant Suicider",
       "level": 6,
       "foundryActorType": "npc",
-      "inhabitantType": "superMutants",
+      "inhabitantType": "Super Mutants",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -484,7 +484,7 @@
       "name": "Synth",
       "level": 4,
       "foundryActorType": "creature",
-      "inhabitantType": "robots",
+      "inhabitantType": "Synths",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -493,7 +493,7 @@
       "name": "Synth Courser",
       "level": 11,
       "foundryActorType": "npc",
-      "inhabitantType": "robots",
+      "inhabitantType": "Synths",
       "falloutCategory": "notable",
       "npcSize": null
     },
@@ -502,7 +502,7 @@
       "name": "Synth Strider",
       "level": 7,
       "foundryActorType": "creature",
-      "inhabitantType": "robots",
+      "inhabitantType": "Synths",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -511,7 +511,7 @@
       "name": "Synth Trooper",
       "level": 16,
       "foundryActorType": "creature",
-      "inhabitantType": "robots",
+      "inhabitantType": "Synths",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -520,7 +520,7 @@
       "name": "Trader / Caravan Merchant",
       "level": 4,
       "foundryActorType": "npc",
-      "inhabitantType": "raiders",
+      "inhabitantType": "Wastelanders",
       "falloutCategory": "notable",
       "npcSize": null
     },
@@ -529,7 +529,7 @@
       "name": "Vault Dweller",
       "level": 7,
       "foundryActorType": "npc",
-      "inhabitantType": "raiders",
+      "inhabitantType": "Wastelanders",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -538,7 +538,7 @@
       "name": "Wastelander",
       "level": 2,
       "foundryActorType": "npc",
-      "inhabitantType": "raiders",
+      "inhabitantType": "Wastelanders",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -547,7 +547,7 @@
       "name": "Yao Guai",
       "level": 14,
       "foundryActorType": "creature",
-      "inhabitantType": "animals",
+      "inhabitantType": "Animals and Insects",
       "falloutCategory": "normal",
       "npcSize": "big"
     },
@@ -556,7 +556,7 @@
       "name": "Zetan",
       "level": 8,
       "foundryActorType": "creature",
-      "inhabitantType": "raiders",
+      "inhabitantType": "Mutated Humanoids",
       "falloutCategory": "normal",
       "npcSize": null
     }

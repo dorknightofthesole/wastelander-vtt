@@ -8,6 +8,7 @@ import type {
   ScavengerLocation,
   ScavengerLocationProblems,
 } from "./ScavengerLocation.js";
+import { normalizeInhabitantType } from "./inhabitantRules.js";
 import { getPartyActorsOnScene } from "./partyContext.js";
 import { scheduleScavengerJournalSync } from "./scavengerJournalSync.js";
 import {
@@ -49,7 +50,7 @@ const DEFAULT_PROBLEMS: ScavengerLocationProblems = {
   obstacle: false,
   hazard: false,
   inhabitants: true,
-  inhabitantType: "raiders",
+  inhabitantType: "Raiders",
   obstacleType: "mechanical",
   hazardKind: "ongoing",
 };
@@ -61,7 +62,7 @@ export function defaultFormState(): ScavengerFormState {
     scale: "average",
     categoryId: "residential",
     degree: "partly",
-    inhabitantType: "raiders",
+    inhabitantType: "Raiders",
     problems: { ...DEFAULT_PROBLEMS },
   };
 }
@@ -204,21 +205,20 @@ function normalizeForm(raw: unknown): ScavengerFormState {
     f.degree === "heavily"
       ? f.degree
       : base.degree;
-  const inhabitantType =
-    f.inhabitantType === "animals" ||
-    f.inhabitantType === "feralGhouls" ||
-    f.inhabitantType === "raiders" ||
-    f.inhabitantType === "superMutants" ||
-    f.inhabitantType === "robots" ||
-    f.inhabitantType === "overseerOverride"
-      ? f.inhabitantType
-      : base.inhabitantType;
+  const inhabitantType = normalizeInhabitantType(
+    f.inhabitantType,
+    base.inhabitantType,
+  );
 
   const problems = { ...base.problems, ...(f.problems as object) };
   if (typeof problems.obstacle !== "boolean") problems.obstacle = base.problems.obstacle;
   if (typeof problems.hazard !== "boolean") problems.hazard = base.problems.hazard;
   if (typeof problems.inhabitants !== "boolean") {
     problems.inhabitants = base.problems.inhabitants;
+  }
+
+  if (problems.inhabitants) {
+    problems.inhabitantType = inhabitantType;
   }
 
   return {
@@ -239,7 +239,21 @@ function normalizeLocation(
   if (!raw || typeof raw !== "object") return null;
   const loc = raw as ScavengerLocation;
   if (typeof loc.id !== "string" || typeof loc.level !== "number") return null;
-  return { ...loc, sceneId };
+  const inhabitants = loc.inhabitants
+    ? {
+        ...loc.inhabitants,
+        type: normalizeInhabitantType(loc.inhabitants.type, "Raiders"),
+      }
+    : undefined;
+  const problems = loc.problems
+    ? {
+        ...loc.problems,
+        inhabitantType: loc.problems.inhabitantType
+          ? normalizeInhabitantType(loc.problems.inhabitantType, "Raiders")
+          : loc.problems.inhabitantType,
+      }
+    : loc.problems;
+  return { ...loc, sceneId, inhabitants, problems };
 }
 
 export function loadScavengerSceneState(

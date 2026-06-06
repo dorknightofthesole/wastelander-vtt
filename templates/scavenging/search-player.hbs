@@ -114,16 +114,6 @@
       <section class="wastelander-scavenger-section">
         <h2>{{localize "WASTELANDER.Scavenging.PlayerSearch.LootSection"}}</h2>
         <p class="wastelander-scavenger-hint">{{localize "WASTELANDER.Scavenging.PlayerSearch.LootHint" luckMax=luckMax}}</p>
-        {{#if actingActors.length}}
-          <label class="wastelander-scavenger-field">
-            <span>{{localize "WASTELANDER.Scavenging.PlayerSearch.ActingCharacter"}}</span>
-            <select data-action="selectActor" {{#if busy}}disabled{{/if}}>
-              {{#each actingActors}}
-                <option value="{{actorId}}" data-actor-id="{{actorId}}" {{#if selected}}selected{{/if}}>{{name}} ({{localize "WASTELANDER.Scavenging.PlayerSearch.Luck"}} {{luckPoints}})</option>
-              {{/each}}
-            </select>
-          </label>
-        {{/if}}
         <table class="wastelander-scavenger-loot-table">
           <thead>
             <tr>
@@ -165,6 +155,17 @@
       {{#if rollEntries.length}}
         <section class="wastelander-scavenger-section">
           <h2>{{localize "WASTELANDER.Scavenging.PlayerSearch.ResultsSection"}}</h2>
+          {{#if luckActorOptions.length}}
+            <label class="wastelander-scavenger-field wastelander-scavenger-luck-actor">
+              <span>{{localize "WASTELANDER.Scavenging.PlayerSearch.LuckActor"}}</span>
+              <select data-action="selectLuckActor" {{#if busy}}disabled{{/if}}>
+                {{#each luckActorOptions}}
+                  <option value="{{actorId}}" {{#if selected}}selected{{/if}}>{{name}} — {{roleLabel}} ({{localize "WASTELANDER.Scavenging.PlayerSearch.Luck"}} {{luckPoints}})</option>
+                {{/each}}
+              </select>
+            </label>
+            <p class="wastelander-scavenger-hint">{{localize "WASTELANDER.Scavenging.PlayerSearch.LuckActorHint" luck=selectedLuckPoints luckMax=luckMax}}</p>
+          {{/if}}
           <ul class="wastelander-scavenger-roll-results">
             {{#each rollEntries}}
               <li class="wastelander-scavenger-roll-entry">

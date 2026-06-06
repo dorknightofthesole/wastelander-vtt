@@ -1,7 +1,13 @@
 import countData from "../data/scavenging/inhabitant-count.json";
+import { t } from "../integrations/i18n.js";
+import {
+  DENIZEN_BOOK_SUBFOLDERS,
+  LEGACY_INHABITANT_TYPE_MAP,
+  isDenizenBookFolder,
+  type InhabitantType,
+} from "./denizenCatalogParse.js";
 import type {
   InhabitantRosterEntry,
-  InhabitantType,
   LocationScale,
   ScavengerLocationInhabitants,
   ScavengerLocationRollLog,
@@ -9,14 +15,12 @@ import type {
 import { evaluateFoundryRoll } from "../integrations/foundryRoll.js";
 import { postInhabitantCountRollChat } from "./scavengerRollChat.js";
 import {
-  filterDenizensByLevelBand,
   filterDenizensByType,
   loadDenizens,
   type DenizenEntry,
   type NpcSize,
 } from "./loadDenizens.js";
 import { findActorUuidForDenizen } from "./resolveDenizenActor.js";
-import { t } from "../integrations/i18n.js";
 
 type RangeOutcome = { min: number; max: number; count: number };
 type FaceOutcome = { face: number; count: number };
@@ -135,8 +139,93 @@ export function applyNpcSizeToCount(baseCount: number, size: NpcSize | "mixed" |
   return { count: baseCount };
 }
 
-function sampleDenizens(pool: DenizenEntry[], count: number): DenizenEntry[] {
+/** Booklet: distinct leaders may be up to 2 levels above the location (Raider Boss for now). */
+const LEADER_DENIZEN_NAMES = new Set(["Raider Boss"]);
+
+export function isInhabitantLeader(entry: DenizenEntry): boolean {
+  return LEADER_DENIZEN_NAMES.has(entry.name);
+}
+
+export function leaderLevelBand(locationLevel: number): { min: number; max: number } {
+  const level = Math.max(1, Math.floor(locationLevel));
+  return { min: level, max: level + 2 };
+}
+
+/** Normal inhabitants: location level down to 2 levels below. Leaders unioned when eligible. */
+export function buildInhabitantPool(
+  byType: DenizenEntry[],
+  locationLevel: number,
+): {
+  pool: DenizenEntry[];
+  normalPool: DenizenEntry[];
+  leaderPool: DenizenEntry[];
+} {
+  const { min, max } = inhabitantLevelBand(locationLevel);
+  const normalPool = byType.filter((d) => d.level >= min && d.level <= max);
+
+  const leaderBand = leaderLevelBand(locationLevel);
+  const leaderPool = byType.filter(
+    (d) =>
+      isInhabitantLeader(d) &&
+      d.level >= leaderBand.min &&
+      d.level <= leaderBand.max,
+  );
+
+  const byId = new Map<string, DenizenEntry>();
+  for (const d of normalPool) byId.set(d.id, d);
+  for (const d of leaderPool) byId.set(d.id, d);
+
+  return { pool: [...byId.values()], normalPool, leaderPool };
+}
+
+/** Animals/insects travel in groups of one species; other categories mix randomly. */
+function usesHomogeneousRoster(inhabitantType: InhabitantType): boolean {
+  return inhabitantType === "Animals and Insects";
+}
+
+function poolWithoutLeaders(pool: DenizenEntry[]): DenizenEntry[] {
+  return pool.filter((d) => !isInhabitantLeader(d));
+}
+
+/** At most one Raider Boss per location; re-roll extra boss picks from non-leaders. */
+function enforceSingleLeaderInRoster(
+  roster: DenizenEntry[],
+  pool: DenizenEntry[],
+): DenizenEntry[] {
+  if (roster.filter(isInhabitantLeader).length <= 1) return roster;
+
+  const result = [...roster];
+  const replacePool = poolWithoutLeaders(pool);
+  let leaderKept = false;
+
+  for (let i = 0; i < result.length; i++) {
+    const entry = result[i]!;
+    if (!isInhabitantLeader(entry)) continue;
+    if (!leaderKept) {
+      leaderKept = true;
+      continue;
+    }
+    if (replacePool.length) {
+      result[i] = replacePool[Math.floor(Math.random() * replacePool.length)]!;
+    }
+  }
+
+  return result;
+}
+
+function sampleDenizens(
+  pool: DenizenEntry[],
+  count: number,
+  options?: { homogeneous?: boolean; species?: DenizenEntry },
+): DenizenEntry[] {
   if (!pool.length || count <= 0) return [];
+
+  if (options?.homogeneous || options?.species) {
+    const species =
+      options.species ?? pool[Math.floor(Math.random() * pool.length)]!;
+    return Array.from({ length: count }, () => species);
+  }
+
   const roster: DenizenEntry[] = [];
   for (let i = 0; i < count; i++) {
     const pick = pool[Math.floor(Math.random() * pool.length)]!;
@@ -154,7 +243,7 @@ async function toRosterEntry(entry: DenizenEntry): Promise<InhabitantRosterEntry
     denizenId: entry.id,
     name: entry.name,
     level: entry.level,
-    role: "normal",
+    role: isInhabitantLeader(entry) ? "leader" : "normal",
     npcSize: entry.npcSize,
     foundryUuid,
   };
@@ -248,20 +337,19 @@ export async function buildLocationInhabitants(params: {
   }
 
   const byType = filterDenizensByType(allDenizens, params.inhabitantType);
-  let pool = filterDenizensByLevelBand(byType, params.locationLevel);
-
-  if (!pool.length && byType.length) {
-    const min = Math.max(1, params.locationLevel - 2);
-    const max = params.locationLevel;
-    warnings.push(
-      `No ${params.inhabitantType} denizens at level ${min}–${max}; using full ${params.inhabitantType} catalog`,
-    );
-    pool = byType;
-  }
+  const { pool, normalPool, leaderPool } = buildInhabitantPool(
+    byType,
+    params.locationLevel,
+  );
+  const { min, max } = inhabitantLevelBand(params.locationLevel);
 
   if (!pool.length) {
+    const leaderBand = leaderLevelBand(params.locationLevel);
     warnings.push(
-      `No denizens for ${params.inhabitantType} at level ${Math.max(1, params.locationLevel - 2)}–${params.locationLevel}`,
+      `No ${params.inhabitantType} denizens at level ${min}–${max}` +
+        (leaderPool.length
+          ? ` (leaders allowed ${leaderBand.min}–${leaderBand.max})`
+          : ""),
     );
     return {
       inhabitants: {
@@ -275,7 +363,25 @@ export async function buildLocationInhabitants(params: {
     };
   }
 
-  let draft = sampleDenizens(pool, baseCount);
+  if (!normalPool.length && leaderPool.length) {
+    rollLogs.push({
+      id: "inhabitant-leader-only",
+      label: "Inhabitant levels",
+      detail: `No ${params.inhabitantType} at level ${min}–${max}; leader eligible in pool`,
+    });
+  }
+
+  const homogeneous = usesHomogeneousRoster(params.inhabitantType);
+  let draft = sampleDenizens(pool, baseCount, { homogeneous });
+  draft = enforceSingleLeaderInRoster(draft, pool);
+  if (homogeneous && draft[0]) {
+    rollLogs.push({
+      id: "inhabitant-species",
+      label: "Inhabitant species",
+      detail: `Animals and Insects — all ${draft[0].name}`,
+    });
+  }
+
   const sizeFlag = homogeneousNpcSize(draft);
   const adjusted = applyNpcSizeToCount(baseCount, sizeFlag);
   if (adjusted.modifierNote) {
@@ -288,9 +394,25 @@ export async function buildLocationInhabitants(params: {
   }
 
   if (adjusted.count > draft.length) {
-    draft = [...draft, ...sampleDenizens(pool, adjusted.count - draft.length)];
+    draft = [
+      ...draft,
+      ...sampleDenizens(pool, adjusted.count - draft.length, {
+        homogeneous,
+        species: homogeneous ? draft[0] : undefined,
+      }),
+    ];
+    draft = enforceSingleLeaderInRoster(draft, pool);
   } else if (adjusted.count < draft.length) {
     draft = draft.slice(0, adjusted.count);
+  }
+
+  const leaderPicked = draft.find(isInhabitantLeader);
+  if (leaderPicked) {
+    rollLogs.push({
+      id: "inhabitant-leader",
+      label: "Inhabitant leader",
+      detail: `${leaderPicked.name} (Lv ${leaderPicked.level})`,
+    });
   }
 
   const roster = await Promise.all(draft.map((d) => toRosterEntry(d)));
@@ -308,10 +430,27 @@ export async function buildLocationInhabitants(params: {
 }
 
 export const INHABITANT_TYPE_OPTIONS: InhabitantType[] = [
-  "animals",
-  "feralGhouls",
-  "raiders",
-  "superMutants",
-  "robots",
+  ...DENIZEN_BOOK_SUBFOLDERS,
   "overseerOverride",
 ];
+
+export function normalizeInhabitantType(
+  raw: unknown,
+  fallback: InhabitantType = "Raiders",
+): InhabitantType {
+  if (typeof raw !== "string") return fallback;
+  if (raw === "overseerOverride" || raw === "none") return raw;
+  if (isDenizenBookFolder(raw)) return raw;
+  return LEGACY_INHABITANT_TYPE_MAP[raw] ?? fallback;
+}
+
+/** UI label for inhabitant type (book folders use their display name). */
+export function inhabitantTypeLabel(type: InhabitantType): string {
+  if (type === "overseerOverride") {
+    return t("WASTELANDER.Scavenging.Inhabitants.Types.overseerOverride");
+  }
+  if (type === "none") {
+    return t("WASTELANDER.Scavenging.Inhabitants.Types.none");
+  }
+  return type;
+}

@@ -219,7 +219,7 @@ export async function generateScavengerLocation(params: {
     const inhabitantType: InhabitantType =
       problems.inhabitantType && problems.inhabitantType !== "none"
         ? problems.inhabitantType
-        : "raiders";
+        : "Raiders";
     problems.inhabitantType = inhabitantType;
     problems.inhabitantLevel = level;
 
@@ -235,6 +235,7 @@ export async function generateScavengerLocation(params: {
     inhabitants = builtInhabitants.inhabitants ?? undefined;
     if (inhabitants) {
       problems.inhabitantCount = inhabitants.count;
+      problems.hasLeader = inhabitants.roster.some((r) => r.role === "leader");
     }
   }
 

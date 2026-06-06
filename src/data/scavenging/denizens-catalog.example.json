@@ -7,7 +7,7 @@
       "name": "Example Raider",
       "level": 2,
       "foundryActorType": "npc",
-      "inhabitantType": "raiders",
+      "inhabitantType": "Raiders",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -16,7 +16,7 @@
       "name": "Example Mole Rat",
       "level": 2,
       "foundryActorType": "creature",
-      "inhabitantType": "animals",
+      "inhabitantType": "Animals and Insects",
       "falloutCategory": "normal",
       "npcSize": null
     },
@@ -25,7 +25,7 @@
       "name": "Example Radroach",
       "level": 1,
       "foundryActorType": "creature",
-      "inhabitantType": "animals",
+      "inhabitantType": "Animals and Insects",
       "falloutCategory": "normal",
       "npcSize": "little"
     }

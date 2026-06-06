@@ -3,7 +3,10 @@ import {
   buildHazardDamageUi,
   type HazardDamageUi,
 } from "./hazardDamage.js";
-import { formatInhabitantCountSummary } from "./inhabitantRules.js";
+import {
+  formatInhabitantCountSummary,
+  inhabitantTypeLabel,
+} from "./inhabitantRules.js";
 import { SEARCH_TIME_BY_SCALE } from "./locationRules.js";
 import { getCategoryOptions } from "./locationGenerator.js";
 import type {
@@ -137,7 +140,7 @@ export function buildCurrentTabContext(
     const isOverseerOverride = inh.type === "overseerOverride";
     inhabitants = {
       countSummary: formatInhabitantCountSummary(inh, location.level),
-      typeLabel: t(`WASTELANDER.Scavenging.Inhabitants.Types.${inh.type}`),
+      typeLabel: inhabitantTypeLabel(inh.type),
       overseerOverride: isOverseerOverride,
       rosterEmpty: !isOverseerOverride && inh.roster.length === 0,
       roster: inh.roster.map((r) => ({

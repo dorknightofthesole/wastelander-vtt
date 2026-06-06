@@ -297,7 +297,7 @@ function pickExportsForImport(
       if (!data) return null;
       return {
         data,
-        bookFolder: resolveDenizenBookFolder(data, entry),
+        bookFolder: resolveDenizenBookFolder(data),
       };
     })
     .filter((row): row is DenizenImportRow => row != null);
