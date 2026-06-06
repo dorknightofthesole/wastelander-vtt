@@ -1,6 +1,26 @@
 {
   "WASTELANDER": {
     "ModuleTitle": "Wastelander",
+    "CombatDiceRoll": {
+      "Title": "Roll combat dice",
+      "ChatButton": "Roll combat dice",
+      "Hint": "Enter how many combat dice (CD) to roll. Effect faces (5 or 6) are highlighted in chat. Press Enter to roll.",
+      "CountLabel": "Combat dice",
+      "Decrement": "Fewer combat dice",
+      "Increment": "More combat dice",
+      "InvalidCount": "Enter between 1 and 100 combat dice.",
+      "RollLabel": "Label (optional)",
+      "RollLabelPlaceholder": "e.g. Animal Friend",
+      "Character": "Character",
+      "Roll": "Roll",
+      "Cancel": "Cancel",
+      "DefaultLabel": "Combat dice",
+      "CdSummaryLine": "Total {total} | Effects {effects}",
+      "DetailNoEffects": "No effects",
+      "DetailWithEffects": "{count} effect(s)",
+      "RollFailed": "Combat dice roll failed.",
+      "RequiresFallout": "Combat dice rolls require the Fallout system."
+    },
     "ActorSheet": {
       "Menu": {
         "Build": "Build Character",
@@ -385,7 +405,13 @@
         "RollSearch": "Roll PER + Survival",
         "Scavenge": "Scavenge",
         "ScavengeAssistHint": "Roll 1d20 assist (PER + Survival)",
-        "ScavengePrimaryHint": "Roll 2d20 primary search",
+        "ScavengePrimaryHint": "Open Survival check — add d20s with AP, then roll",
+        "SurvivalSearchRollName": "Search — {location}",
+        "SurvivalAssistRollName": "Assist search — {location}",
+        "SearchRollCancelled": "Search roll cancelled.",
+        "InvalidPrimaryRoll": "Primary search roll could not be validated.",
+        "InvalidAssistRoll": "Assist search roll could not be validated.",
+        "MissFortuneSynced": "Scavenge search updated from Miss Fortune re-roll.",
         "PrimaryWaitingAssists": "Waiting for all assistants to scavenge first",
         "TeamColumnUser": "Player",
         "TeamColumnCharacter": "Character",

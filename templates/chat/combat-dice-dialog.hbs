@@ -1,0 +1,74 @@
+<div class="wastelander-combat-dice-dialog">
+  <p class="wastelander-scavenger-hint">{{localize "WASTELANDER.CombatDiceRoll.Hint"}}</p>
+
+  <div class="form-group wastelander-combat-dice-count-group">
+    <label for="wastelander-combat-dice-count">{{localize "WASTELANDER.CombatDiceRoll.CountLabel"}}</label>
+    <div class="wastelander-combat-dice-stepper">
+      <button
+        type="button"
+        class="wastelander-combat-dice-step-btn"
+        data-action="decrementCount"
+        aria-label="{{localize "WASTELANDER.CombatDiceRoll.Decrement"}}"
+        {{#if rolling}}disabled{{/if}}{{#if atMinCount}} disabled{{/if}}
+      >
+        <i class="fas fa-minus" aria-hidden="true"></i>
+      </button>
+      <input
+        id="wastelander-combat-dice-count"
+        type="number"
+        name="count"
+        min="1"
+        max="{{maxCount}}"
+        step="1"
+        inputmode="numeric"
+        value="{{selectedCount}}"
+        {{#if rolling}}disabled{{/if}}
+      />
+      <button
+        type="button"
+        class="wastelander-combat-dice-step-btn"
+        data-action="incrementCount"
+        aria-label="{{localize "WASTELANDER.CombatDiceRoll.Increment"}}"
+        {{#if rolling}}disabled{{/if}}{{#if atMaxCount}} disabled{{/if}}
+      >
+        <i class="fas fa-plus" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="wastelander-combat-dice-label">{{localize "WASTELANDER.CombatDiceRoll.RollLabel"}}</label>
+    <input
+      id="wastelander-combat-dice-label"
+      type="text"
+      name="rollLabel"
+      value="{{rollLabel}}"
+      placeholder="{{localize "WASTELANDER.CombatDiceRoll.RollLabelPlaceholder"}}"
+      {{#if rolling}}disabled{{/if}}
+    />
+  </div>
+
+  {{#if actorName}}
+    <p class="wastelander-scavenger-hint">
+      <strong>{{localize "WASTELANDER.CombatDiceRoll.Character"}}:</strong> {{actorName}}
+    </p>
+  {{/if}}
+
+  <footer class="wastelander-combat-dice-dialog-footer">
+    <button type="button" class="wastelander-btn-secondary" data-action="cancel" {{#if rolling}}disabled{{/if}}>
+      {{localize "WASTELANDER.CombatDiceRoll.Cancel"}}
+    </button>
+    <button type="button" class="wastelander-btn-primary" data-action="roll" {{#if rolling}}disabled{{/if}}>
+      {{#if rolling}}
+        <i class="fas fa-spinner fa-spin" aria-hidden="true"></i>
+      {{else}}
+        <span
+          class="wastelander-combat-dice-effect-icon"
+          style="background-image: url('{{cdEffectIcon}}');"
+          aria-hidden="true"
+        >&nbsp;</span>
+      {{/if}}
+      {{localize "WASTELANDER.CombatDiceRoll.Roll"}}
+    </button>
+  </footer>
+</div>

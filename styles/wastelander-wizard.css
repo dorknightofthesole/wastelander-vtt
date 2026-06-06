@@ -2912,3 +2912,118 @@
   opacity: 0.45;
   cursor: not-allowed;
 }
+
+/* Fallout combat die effect face (chat button + dialog) */
+.wastelander-combat-dice-effect-icon {
+  display: inline-block;
+  width: 1.25rem;
+  height: 1.25rem;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  vertical-align: middle;
+}
+
+.wastelander-combat-dice-chat-btn {
+  overflow: visible;
+  line-height: 0;
+}
+
+.wastelander-combat-dice-chat-btn .wastelander-combat-dice-effect-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  transform: scale(1.3);
+  transform-origin: center center;
+}
+
+/* Combat dice roll dialog (chat button) */
+.wastelander-combat-dice-roll-app .wastelander-combat-dice-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem 0;
+}
+
+.wastelander-combat-dice-roll-app .wastelander-combat-dice-stepper {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 0.35rem;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.wastelander-combat-dice-roll-app .wastelander-combat-dice-step-btn {
+  flex: 0 0 auto;
+  width: 2.25rem;
+  padding: 0;
+  border: 1px solid var(--wstl-amber-muted, #6b5a2a);
+  border-radius: 3px;
+  background: var(--wstl-bg-panel, #0b0d07);
+  color: lightyellow;
+  cursor: pointer;
+}
+
+.wastelander-combat-dice-roll-app .wastelander-combat-dice-step-btn:hover:not(:disabled) {
+  border-color: var(--wstl-amber-bright, #e8c170);
+}
+
+.wastelander-combat-dice-roll-app .wastelander-combat-dice-step-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.wastelander-combat-dice-roll-app .wastelander-combat-dice-stepper input[type="number"] {
+  flex: 0 0 auto;
+  width: 3.25rem;
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+  text-align: center;
+}
+
+.wastelander-combat-dice-roll-app .form-group label {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.wastelander-combat-dice-roll-app .form-group input[type="text"] {
+  width: 100%;
+}
+
+.wastelander-combat-dice-roll-app .wastelander-combat-dice-dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin: 0 -1rem;
+  border-top: 1px solid var(--wstl-amber-muted, #6b5a2a);
+  background: var(--wstl-bg-panel, #0b0d07);
+}
+
+.wastelander-combat-dice-roll-app .wastelander-btn-primary,
+.wastelander-combat-dice-roll-app .wastelander-btn-secondary {
+  padding: 0.4rem 0.85rem;
+  border-radius: 3px;
+  cursor: pointer;
+  color: lightyellow;
+}
+
+.wastelander-combat-dice-roll-app .wastelander-btn-primary {
+  background: var(--wstl-amber-muted, #8b6914);
+  border: 1px solid var(--wstl-amber-bright, #e8c170);
+}
+
+.wastelander-combat-dice-roll-app .wastelander-btn-secondary {
+  background: transparent;
+  border: 1px solid var(--wstl-amber-muted, #6b5a2a);
+}
+
+.wastelander-combat-dice-roll-app .wastelander-btn-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.wastelander-combat-dice-roll-app .wastelander-btn-primary .wastelander-combat-dice-effect-icon {
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.25rem;
+}

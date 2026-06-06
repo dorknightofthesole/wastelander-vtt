@@ -41,17 +41,37 @@ import {
   savePlayerSearchForScene,
   type ScavengerScenePersistedState,
 } from "./scenePersist.js";
-import { rollAssistPerSurvival, rollPerSurvivalSearch } from "./searchSkillRoll.js";
+import {
+  assistSearchFromClientRoll,
+  primarySearchFromClientRoll,
+  rollAssistPerSurvival,
+  rollPerSurvivalSearch,
+  type ClientAssistSearchRoll,
+  type ClientPrimarySearchRoll,
+} from "./searchSkillRoll.js";
 import { postLuckLootFindChat, presentScavengerRoll } from "./scavengerRollChat.js";
 import { formatLootCategoryLabel } from "./lootGrid.js";
 import { applySearchTimeToWorldClock } from "./searchWorldClock.js";
+import {
+  clearAllRerollWatches,
+  onAssistSearchRollCommitted,
+  onPrimarySearchRollCommitted,
+  suppressRerollWatchesForUser,
+} from "./searchRerollWatch.js";
 import { t } from "../integrations/i18n.js";
+
+export type PrimarySearchRollPayload = ClientPrimarySearchRoll;
+export type AssistSearchRollPayload = ClientAssistSearchRoll;
 
 export type PlayerSearchSocketAction =
   | {
       action: "searchRoll";
       sceneId: string;
       actorId: string;
+      /** Primary search rolled via Fallout Dialog2d20 on the client (includes extra AP dice). */
+      primaryRoll?: PrimarySearchRollPayload;
+      /** Assist search rolled via Fallout Dialog2d20 on the client (1d20). */
+      assistRoll?: AssistSearchRollPayload;
     }
   | {
       action: "setSearchTeamRole";
@@ -89,6 +109,10 @@ export type PlayerSearchSocketAction =
       action: "gmSetSearchOutcome";
       sceneId: string;
       outcome: "success" | "fail" | "reset";
+    }
+  | {
+      action: "closeRerollWatches";
+      sceneId: string;
     };
 
 export type PlayerSearchActionResult =
@@ -212,6 +236,7 @@ async function executePlayerSearchActionInner(
     let playerSearch: ScavengerPlayerSearchState | undefined;
     if (data.outcome === "reset") {
       playerSearch = undefined;
+      clearAllRerollWatches(state.sceneId);
     } else if (data.outcome === "success") {
       playerSearch = await applySearchTimeToWorldClock(
         location,
@@ -230,7 +255,17 @@ async function executePlayerSearchActionInner(
     }
 
     const next = await persistPlayerSearch(state, playerSearch);
+    if (data.outcome === "success" || data.outcome === "fail") {
+      clearAllRerollWatches(state.sceneId);
+    }
     return { ok: true, state: next };
+  }
+
+  if (data.action === "closeRerollWatches") {
+    suppressRerollWatchesForUser(data.sceneId, userId);
+    const loaded = requireSceneState(data.sceneId);
+    if ("error" in loaded) return { ok: false, error: loaded.error };
+    return { ok: true, state: loaded.state };
   }
 
   const loaded = requireSceneState(data.sceneId);
@@ -283,7 +318,19 @@ async function executePlayerSearchActionInner(
         return { ok: false, error: t("WASTELANDER.Scavenging.PlayerSearch.AssistAlreadyRolled") };
       }
 
-      const test = await rollAssistPerSurvival(actor);
+      let test;
+      if (data.assistRoll) {
+        const parsed = assistSearchFromClientRoll(actor, data.assistRoll);
+        if ("error" in parsed) {
+          return {
+            ok: false,
+            error: t("WASTELANDER.Scavenging.PlayerSearch.InvalidAssistRoll"),
+          };
+        }
+        test = parsed;
+      } else {
+        test = await rollAssistPerSurvival(actor);
+      }
       playerSearch = ensureSearchTeam(playerSearch, partyActorIdsForScene(data.sceneId));
       playerSearch = recordAssistRoll(playerSearch, {
         actorId: data.actorId,
@@ -298,6 +345,7 @@ async function executePlayerSearchActionInner(
       });
 
       const next = await persistPlayerSearch(state, playerSearch);
+      onAssistSearchRollCommitted(state.sceneId, data.actorId, userId);
       return { ok: true, state: next };
     }
 
@@ -311,7 +359,25 @@ async function executePlayerSearchActionInner(
       return { ok: false, error: t("WASTELANDER.Scavenging.PlayerSearch.PrimaryAlreadyRolled") };
     }
 
-    const test = await rollPerSurvivalSearch(actor, location.searchDifficulty);
+    let test;
+    if (data.primaryRoll) {
+      if (data.primaryRoll.difficulty !== location.searchDifficulty) {
+        return {
+          ok: false,
+          error: t("WASTELANDER.Scavenging.PlayerSearch.InvalidPrimaryRoll"),
+        };
+      }
+      const parsed = primarySearchFromClientRoll(actor, data.primaryRoll);
+      if ("error" in parsed) {
+        return {
+          ok: false,
+          error: t("WASTELANDER.Scavenging.PlayerSearch.InvalidPrimaryRoll"),
+        };
+      }
+      test = parsed;
+    } else {
+      test = await rollPerSurvivalSearch(actor, location.searchDifficulty);
+    }
     const assistBonus = countAssistBonusSuccesses(playerSearch);
 
     if (test.success) {
@@ -371,6 +437,7 @@ async function executePlayerSearchActionInner(
     playerSearch = await applySearchTimeToWorldClock(location, playerSearch);
 
     const next = await persistPlayerSearch(state, playerSearch);
+    onPrimarySearchRollCommitted(state.sceneId, data.actorId, userId, test.success);
     return { ok: true, state: next };
   }
 
@@ -642,6 +709,25 @@ export async function handlePlayerSearchSocket(
     ok: result.ok,
     state: result.ok ? result.state : undefined,
     error: result.ok ? undefined : result.error,
+  });
+}
+
+/** Fire-and-forget: stop Miss Fortune chat watches when the Scavenge window closes. */
+export function notifyScavengeSearchAppClosed(sceneId: string): void {
+  if (!sceneId) return;
+  const userId = game.user?.id;
+  if (!userId) return;
+  if (game.user?.isGM) {
+    suppressRerollWatchesForUser(sceneId, userId);
+    return;
+  }
+  const channel = `module.${MODULE_ID}`;
+  const socket = (game as { socket?: { emit: (channel: string, data: unknown) => void } })
+    .socket;
+  socket?.emit(channel, {
+    action: "closeRerollWatches",
+    sceneId,
+    userId: game.user?.id,
   });
 }
 

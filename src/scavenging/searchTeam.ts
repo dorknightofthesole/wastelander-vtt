@@ -130,8 +130,12 @@ export function primaryCanScavengeSearch(
   return !hasPendingAssistRolls(state, partyActorIds);
 }
 
+/** Sum assist d20 successes (0–2 per assist, including crits on tagged skills). */
 export function countAssistBonusSuccesses(state: ScavengerPlayerSearchState): number {
-  return Object.values(state.assistRolls).filter((r) => r.contributesSuccess).length;
+  return Object.values(state.assistRolls).reduce(
+    (sum, roll) => sum + Math.max(0, roll.successes),
+    0,
+  );
 }
 
 /**

@@ -39,6 +39,7 @@ declare const ui: {
     info: (message: string) => void;
     error: (message: string) => void;
   };
+  windows: Record<string, { bringToFront?: () => void; render?: (options?: object) => Promise<unknown> }>;
 };
 
 declare const JournalEntry: {
@@ -83,6 +84,27 @@ declare class ChatMessage {
 }
 
 interface FalloutGlobal {
+  Dialog2d20?: {
+    createDialog: (options: {
+      rollName?: string;
+      diceNum?: number;
+      attribute?: number;
+      skill?: number;
+      tag?: boolean;
+      complication?: number;
+      rollLocation?: boolean;
+      actor?: string | Actor | null;
+      item?: Item | null;
+    }) => Promise<{
+      roll?: Roll;
+      dicesRolled?: Array<{
+        success?: number;
+        result: number;
+        complication?: number;
+        reroll?: boolean;
+      }>;
+    } | null>;
+  };
   Roller2D20?: {
     showDiceSoNice: (roll: Roll) => Promise<void>;
     rollD6: (options: {
@@ -253,6 +275,10 @@ declare namespace foundry {
         protected _prepareContext(
           options?: object,
         ): Promise<Record<string, unknown>>;
+        protected _onRender(
+          context: Record<string, unknown>,
+          options: ApplicationRenderOptions,
+        ): Promise<void> | void;
       }
       function HandlebarsApplicationMixin<T extends typeof ApplicationV2>(
         Base: T,

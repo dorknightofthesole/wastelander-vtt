@@ -10,12 +10,18 @@
     {{#if hasDetail}}
       <p><strong>{{strings.detail}}:</strong> {{detail}}</p>
     {{/if}}
-    {{#if hasCdSummary}}
+    {{#if plainCdSummary}}
       <div class="damage-plaq flexrow">
-        <p class="flexlarge" style="margin: 0;">
-          {{#if hasModifier}}{{strings.cd}}: {{cdTotal}} | {{/if}}{{strings.effects}}: {{cdEffects}}{{#if hasModifier}} | {{strings.total}}: {{total}}{{/if}}
-        </p>
+        <p class="flexlarge" style="margin: 0;">{{cdSummaryLine}}</p>
       </div>
+    {{else}}
+      {{#if hasCdSummary}}
+        <div class="damage-plaq flexrow">
+          <p class="flexlarge" style="margin: 0;">
+            {{strings.cd}}: {{cdTotal}} | {{strings.effects}}: {{cdEffects}}{{#if hasModifier}} | {{strings.total}}: {{total}}{{/if}}
+          </p>
+        </div>
+      {{/if}}
     {{/if}}
     {{#if hasCdDice}}
       <div class="dices-result" style="display: flex; flex-wrap: wrap;">
@@ -46,7 +52,9 @@
       </p>
     {{/if}}
     {{#unless hasCdSummary}}
-      <p class="wastelander-roll-total"><strong>{{strings.total}}:</strong> {{total}}</p>
+      {{#unless plainCdSummary}}
+        <p class="wastelander-roll-total"><strong>{{strings.total}}:</strong> {{total}}</p>
+      {{/unless}}
     {{/unless}}
   </div>
 </div>

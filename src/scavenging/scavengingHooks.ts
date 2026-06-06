@@ -7,6 +7,7 @@ import {
 import ScavengerLocationApp from "./ScavengerLocationApp.js";
 import ScavengerSearchApp from "./ScavengerSearchApp.js";
 import { registerDenizenImportHooks } from "./registerDenizenImportHooks.js";
+import { registerSearchRollChatSyncHooks } from "./searchRollChatSync.js";
 import { SCENE_PLAYER_SEARCH_FLAG, SCENE_STATE_FLAG } from "./scenePersist.js";
 import { registerScavengingSettings } from "./scavengingSettings.js";
 
@@ -42,6 +43,7 @@ function registerSceneControlTool(
 export function registerScavengingHooks(): void {
   registerScavengingSettings();
   registerDenizenImportHooks();
+  registerSearchRollChatSyncHooks();
 
   Hooks.once("ready", () => {
     const channel = `module.${MODULE_ID}`;

@@ -5,11 +5,13 @@ import {
 } from "./integrations/actorSheetControls.js";
 import { registerTranslations } from "./integrations/i18n.js";
 import { getBundledDenizenCount, importBundledDenizens } from "./scavenging/denizenImport.js";
+import { registerCombatDiceChatButton } from "./integrations/combatDiceChatButton.js";
 import { registerScavengingHooks } from "./scavenging/scavengingHooks.js";
 
 Hooks.once("init", () => {
   registerTranslations();
   registerActorSheetControlHooks();
+  registerCombatDiceChatButton();
   registerScavengingHooks();
   console.log(`${MODULE_ID} | initializing`);
 });

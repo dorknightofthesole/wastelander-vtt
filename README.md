@@ -1,6 +1,6 @@
 # Wastelander
 
-A Foundry VTT module for **[Fallout: The Roleplaying Game](https://github.com/Muttley/foundryvtt-fallout)** (2d20). Wastelander adds a guided character builder, a full scavenging toolkit, and denizen import tooling — all aligned with the Core Rulebook and GM Screen booklet.
+A Foundry VTT module for **[Fallout: The Roleplaying Game](https://github.com/Muttley/foundryvtt-fallout)** (2d20). Wastelander adds a guided character builder, chat combat-dice rolls, a full scavenging toolkit, and denizen import tooling — all aligned with the Core Rulebook and GM Screen booklet.
 
 **Requires:** [Fallout 2d20 system](https://github.com/Muttley/foundryvtt-fallout) · Foundry VTT v13+
 
@@ -50,6 +50,19 @@ Open from any player **character** or **robot** actor sheet (Wastelander menu �
 - **PDF export & import**
   - **Export to PDF** — Fills the official human or robot character sheet (requires your licensed PDF templates).
   - **Parse PDF** — Upload a filled human or robot sheet to overwrite matching data on the open actor.
+
+---
+
+## Combat dice (chat)
+
+A quick **Roll combat dice** control in the chat bar (Fallout effect-face icon) opens a small dialog for rolling any number of CD without typing `/r Ndc` macros.
+
+- **Stepper input** — **−** / number / **+** (1–100 combat dice); the count field is focused when the dialog opens; **Enter** rolls immediately.
+- **Optional label** — e.g. perk or ability name; defaults to “Combat dice” in chat.
+- **Speaker** — Uses your single selected token’s actor, or your assigned character if no token is selected.
+- **Chat card** — Each die face is shown with Fallout CD art; effect faces (5 and 6) are highlighted. Summary line: **Total N | X Effects** (damage-plaq styling).
+
+Useful for perks and abilities that key off individual CD results (such as whether an effect was rolled), not just the numeric total.
 
 ---
 

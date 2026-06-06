@@ -1,4 +1,8 @@
 import { MODULE_PATH } from "../constants.js";
+import {
+  isFalloutSkillDialogAvailable,
+  promptSurvivalSearchRoll,
+} from "../integrations/falloutSkillDialog.js";
 import { t } from "../integrations/i18n.js";
 import type { LootCategoryKey, PartyActorRow, ScavengerLocation } from "./ScavengerLocation.js";
 import { buildPlayerLootRows } from "./lootGrid.js";
@@ -27,8 +31,11 @@ import {
 } from "./searchTeam.js";
 import {
   readPartyApForDisplay,
+  notifyScavengeSearchAppClosed,
   requestPlayerSearchAction,
+  type AssistSearchRollPayload,
   type PlayerSearchSocketAction,
+  type PrimarySearchRollPayload,
 } from "./playerSearchActions.js";
 import { openScavengingRollTable } from "./rollTableRegistry.js";
 import { handleLootItemPointer } from "./lootItemInteract.js";
@@ -179,6 +186,9 @@ export default class ScavengerSearchApp extends HandlebarsApplicationMixin(
   }
 
   protected override async _onClose(options?: object): Promise<void> {
+    if (this.#sceneId) {
+      notifyScavengeSearchAppClosed(this.#sceneId);
+    }
     if (ScavengerSearchApp.#open === this) {
       ScavengerSearchApp.#open = null;
     }
@@ -194,18 +204,18 @@ export default class ScavengerSearchApp extends HandlebarsApplicationMixin(
     this.#partyApAvailable = ap.available;
 
     const playerSearch = this.#normalizedPlayerSearch();
-    const teamIds = playerSearch ? searchTeamActorIds(playerSearch) : [];
+    const teamIds = searchTeamActorIds(playerSearch);
     if (!this.#actingActorId || !teamIds.includes(this.#actingActorId)) {
       this.#actingActorId = this.#resolveDefaultActorId(playerSearch);
     }
   }
 
-  #normalizedPlayerSearch(): ScavengerPlayerSearchState | undefined {
-    const raw = this.#sceneState?.playerSearch;
-    if (!raw || !this.#sceneId) return undefined;
-    const normalized = normalizePlayerSearch(raw);
-    if (!normalized) return undefined;
-    return ensureSearchTeam(normalized, this.#partyOnScene().map((r) => r.actorId));
+  /** Mirror server {@link preparePlayerSearch} so default team roles match the UI. */
+  #normalizedPlayerSearch(): ScavengerPlayerSearchState {
+    const base =
+      normalizePlayerSearch(this.#sceneState?.playerSearch) ?? emptyPlayerSearchState();
+    if (!this.#sceneId) return base;
+    return ensureSearchTeam(base, this.#partyOnScene().map((r) => r.actorId));
   }
 
   #resolveDefaultActorId(playerSearch?: ScavengerPlayerSearchState): string | null {
@@ -640,10 +650,72 @@ export default class ScavengerSearchApp extends HandlebarsApplicationMixin(
       ui.notifications.warn(t("WASTELANDER.Scavenging.PlayerSearch.NoCharacter"));
       return;
     }
-    void this.#runAction({
+    void this.#rollTeamSearch(actorId);
+  }
+
+  async #rollTeamSearch(actorId: string): Promise<void> {
+    if (this.#busy || !this.#sceneId) return;
+
+    const playerSearch = this.#normalizedPlayerSearch();
+    const role = getSearchTeamRole(playerSearch, actorId);
+    let primaryRoll: PrimarySearchRollPayload | undefined;
+    let assistRoll: AssistSearchRollPayload | undefined;
+
+    if ((role === "primary" || role === "assist") && isFalloutSkillDialogAvailable()) {
+      const actor = game.actors.get(actorId);
+      if (!actor) {
+        ui.notifications.warn(t("WASTELANDER.Scavenging.PlayerSearch.ActorNotFound"));
+        return;
+      }
+
+      const location = this.#location();
+      const isAssist = role === "assist";
+      this.#busy = true;
+      void this.render();
+      let dialogResult;
+      try {
+        dialogResult = await promptSurvivalSearchRoll(actor, {
+          diceNum: isAssist ? 1 : 2,
+          rollName: isAssist
+            ? t("WASTELANDER.Scavenging.PlayerSearch.SurvivalAssistRollName", {
+                location: location?.name ?? "",
+              })
+            : t("WASTELANDER.Scavenging.PlayerSearch.SurvivalSearchRollName", {
+                location: location?.name ?? "",
+              }),
+        });
+      } finally {
+        this.#busy = false;
+        void this.render();
+      }
+
+      if (!dialogResult) {
+        ui.notifications.info(t("WASTELANDER.Scavenging.PlayerSearch.SearchRollCancelled"));
+        return;
+      }
+
+      if (isAssist) {
+        assistRoll = {
+          faces: dialogResult.faces,
+          successes: dialogResult.successes,
+          targetNumber: dialogResult.targetNumber,
+        };
+      } else {
+        primaryRoll = {
+          faces: dialogResult.faces,
+          successes: dialogResult.successes,
+          targetNumber: dialogResult.targetNumber,
+          difficulty: location?.searchDifficulty ?? 0,
+        };
+      }
+    }
+
+    await this.#runAction({
       action: "searchRoll",
       sceneId: this.#sceneId,
       actorId,
+      ...(primaryRoll ? { primaryRoll } : {}),
+      ...(assistRoll ? { assistRoll } : {}),
     });
   }
 

@@ -6,6 +6,8 @@ export type WizardRollContext = {
   itemName?: string;
   label: string;
   detail?: string;
+  /** Plain "{total} + N Effects" line — no Fallout damage-plaq / pip-boy styling. */
+  plainCdSummary?: boolean;
 };
 
 type DieTerm = {
@@ -136,6 +138,13 @@ export async function postWizardRollChat(
   const cdEffects = breakdown.cdDice.filter((die) => isCombatDieEffectFace(die.face))
     .length;
   const cdTotal = hasCdDice ? context.total - breakdown.modifier : 0;
+  const plainCdSummary = Boolean(context.plainCdSummary && hasCdDice);
+  const cdSummaryLine = plainCdSummary
+    ? game.i18n.format("WASTELANDER.CombatDiceRoll.CdSummaryLine", {
+        total: cdTotal,
+        effects: cdEffects,
+      })
+    : "";
 
   const html = await foundry.applications.handlebars.renderTemplate(
     `${MODULE_PATH}/templates/chat/wizard-roll.hbs`,
@@ -143,14 +152,16 @@ export async function postWizardRollChat(
       actorName,
       cdDice: breakdown.cdDice,
       cdEffects,
+      cdSummaryLine,
       cdTotal,
       d20Faces: breakdown.d20Faces,
       detail: context.detail ?? "",
       formula: context.formula,
       hasActor: Boolean(actorName),
       hasCdDice,
-      hasCdSummary: hasCdDice,
-      hasDetail: Boolean(context.detail),
+      hasCdSummary: hasCdDice && !plainCdSummary,
+      hasDetail: Boolean(context.detail) && !plainCdSummary,
+      plainCdSummary,
       hasD20Faces,
       hasItem: Boolean(context.itemName),
       hasModifier,
