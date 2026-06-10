@@ -1,0 +1,58 @@
+{
+  "name": "Test",
+  "img": "icons/svg/d20-grey.svg",
+  "description": "",
+  "results": [
+    {
+      "type": "text",
+      "weight": 1,
+      "range": [
+        1,
+        1
+      ],
+      "_id": "uhsHAZyniNm2PiCZ",
+      "name": "Test",
+      "img": "icons/svg/d20-black.svg",
+      "description": "<p>This is a test result.</p>",
+      "drawn": false,
+      "flags": {},
+      "_stats": {
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null,
+        "coreVersion": "13.351",
+        "systemId": "fallout",
+        "systemVersion": "11.16.6",
+        "createdTime": 1781129686768,
+        "modifiedTime": 1781129746642,
+        "lastModifiedBy": "aQFumtartfrYuUIR"
+      },
+      "documentUuid": null
+    }
+  ],
+  "replacement": true,
+  "displayRoll": true,
+  "folder": null,
+  "flags": {},
+  "_stats": {
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": {
+      "worldId": "fallout",
+      "uuid": "RollTable.dXzsVRcGXdfFh8X7",
+      "coreVersion": "13.351",
+      "systemId": "fallout",
+      "systemVersion": "11.16.6"
+    },
+    "coreVersion": "13.351",
+    "systemId": "fallout",
+    "systemVersion": "11.16.6",
+    "createdTime": 1781129244385,
+    "modifiedTime": 1781129689673,
+    "lastModifiedBy": "aQFumtartfrYuUIR"
+  },
+  "formula": "",
+  "ownership": {
+    "default": 0
+  }
+}

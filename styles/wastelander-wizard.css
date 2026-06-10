@@ -1240,6 +1240,49 @@
   text-align: center;
 }
 
+.wastelander-level-up {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 0;
+  flex: 1;
+}
+
+.wastelander-level-up-meta {
+  margin: 0.25rem 0 0;
+  font-size: 12px;
+  color: var(--wstl-text-muted);
+}
+
+.wastelander-level-up-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--wstl-border, rgba(255, 255, 255, 0.12));
+}
+
+.wastelander-perk-row.is-owned .wastelander-perk-check:disabled {
+  opacity: 1;
+}
+
+.wastelander-perk-row.is-purchase .wastelander-perk-row-label {
+  font-weight: 700;
+}
+
+.wastelander-perk-owned-rank {
+  font-size: 0.85em;
+  color: var(--wstl-text-muted);
+  font-weight: 400;
+}
+
+.wastelander-perk-detail-owned {
+  margin: 0 0 0.5rem;
+  font-size: 12px;
+  color: var(--wstl-accent, #7eb8da);
+}
+
 /* ---- Equipment step ---- */
 
 .wastelander-equipment-layout {

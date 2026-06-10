@@ -54,6 +54,7 @@ export function registerScavengingHooks(): void {
       };
     };
     const handler = (data: unknown, _userId: string): void => {
+      if (!game.user?.isGM) return;
       if (isPlayerSearchSocketRequest(data as Parameters<typeof isPlayerSearchSocketRequest>[0])) {
         void handlePlayerSearchSocket(
           data as Parameters<typeof handlePlayerSearchSocket>[0],
@@ -62,9 +63,8 @@ export function registerScavengingHooks(): void {
     };
     if (socket.socket?.register) {
       socket.socket.register(channel, handler);
-    } else {
-      socket.socket?.on(channel, (data: unknown) => handler(data, ""));
     }
+    socket.socket?.on(channel, (data: unknown) => handler(data, ""));
   });
 
   Hooks.on("getSceneControlButtons", (controls: SceneControlsRecord) => {

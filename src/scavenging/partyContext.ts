@@ -63,6 +63,29 @@ export function countSelectedParty(rows: PartyActorRow[]): number {
   return rows.filter((r) => r.selected).length;
 }
 
+/** Whether a user may act for this actor (party row, assigned character, or OWNER). */
+export function userControlsActor(
+  actorId: string,
+  userId: string,
+  sceneId?: string | null,
+): boolean {
+  const users = getGameUsers();
+  const user = users.find((u) => u.id === userId);
+  if (!user) return false;
+  if (user.isGM) return true;
+
+  if (sceneId) {
+    const row = getPartyActorsOnScene(sceneId).find((r) => r.actorId === actorId);
+    if (row?.userId === userId) return true;
+  }
+
+  if (getUserCharacterId(user) === actorId) return true;
+
+  const actor = game.actors.get(actorId);
+  if (!actor) return false;
+  return actorOwnsUser(actor, user);
+}
+
 function findOwningUserForActor(
   actorId: string,
   users: UserDocument[],

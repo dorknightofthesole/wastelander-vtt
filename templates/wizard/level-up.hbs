@@ -1,0 +1,84 @@
+<div class="wastelander-level-up">
+  <div class="wastelander-perks-layout">
+    <header class="wastelander-perks-summary">
+      <p class="wastelander-perks-instructions">{{{strings.instructions}}}</p>
+      <div class="wastelander-perks-counter">{{perkCountText}}</div>
+      <p class="wastelander-level-up-meta">{{levelText}}</p>
+    </header>
+
+    <div class="wastelander-perks-columns">
+      <div class="wastelander-perk-list" role="listbox" aria-label="{{strings.title}}">
+        {{#each perkPickerRows}}
+        <div
+          class="wastelander-perk-row {{#if met}}is-met{{else}}is-unmet{{/if}} {{#if focused}}is-focused{{/if}} {{#if showChosen}}is-chosen{{/if}} {{#if isOwned}}is-owned{{/if}} {{#if isPurchase}}is-purchase{{/if}}"
+          role="option"
+          aria-selected="{{focused}}"
+        >
+          <button
+            type="button"
+            class="wastelander-perk-check {{#if showChosen}}is-on{{/if}}"
+            data-action="togglePerkSelection"
+            data-perk-uuid="{{uuid}}"
+            aria-label="Select {{name}}"
+            {{#unless canToggle}}disabled{{/unless}}
+          >
+            <span class="wastelander-toggle-mark" aria-hidden="true">{{#if showChosen}}×{{else}}&nbsp;{{/if}}</span>
+          </button>
+          <button
+            type="button"
+            class="wastelander-perk-row-label"
+            data-action="focusPerk"
+            data-perk-uuid="{{uuid}}"
+          >
+            {{name}}{{#if rankLabel}} <span class="wastelander-perk-owned-rank">{{rankLabel}}</span>{{/if}}
+          </button>
+        </div>
+        {{/each}}
+        {{#unless perkPickerRows.length}}
+        <p class="wastelander-perks-empty">{{strings.placeholder}}</p>
+        {{/unless}}
+      </div>
+
+      <aside class="wastelander-perk-detail">
+        {{#if focusedPerkDetail}}
+        <h3 class="wastelander-perk-detail-title">{{focusedPerkDetail.name}}</h3>
+        {{#if focusedPerkDetail.rankLabel}}
+        <p class="wastelander-perk-detail-owned">{{focusedPerkDetail.rankLabel}}</p>
+        {{/if}}
+        {{#if focusedPerkDetail.requirementsText}}
+        <p class="wastelander-perk-detail-req">
+          <span class="wastelander-perk-detail-req-label">{{strings.requirements}}</span>
+          {{focusedPerkDetail.requirementsText}}
+        </p>
+        {{/if}}
+        {{#unless focusedPerkDetail.met}}
+        <ul class="wastelander-perk-detail-unmet">
+          <li class="wastelander-perk-detail-unmet-heading">{{strings.notMet}}</li>
+          {{#each focusedPerkDetail.unmetReasons}}
+          <li>{{this}}</li>
+          {{/each}}
+        </ul>
+        {{/unless}}
+        <div class="wastelander-perk-detail-body">{{{focusedPerkDetail.descriptionHtml}}}</div>
+        {{#if focusedPerkDetail.companionStatBlockHtml}}
+        <div class="wastelander-perk-detail-statblock">{{{focusedPerkDetail.companionStatBlockHtml}}}</div>
+        {{/if}}
+        {{else}}
+        <p class="wastelander-perk-detail-empty">{{strings.selectHint}}</p>
+        {{/if}}
+      </aside>
+    </div>
+  </div>
+
+  <footer class="wastelander-level-up-footer">
+    <button type="button" class="wastelander-btn-back" data-action="cancel">{{strings.cancel}}</button>
+    <button
+      type="button"
+      class="wastelander-btn-next wastelander-finish"
+      data-action="confirm"
+      {{#unless canConfirm}}disabled{{/unless}}
+    >
+      {{strings.confirm}}
+    </button>
+  </footer>
+</div>

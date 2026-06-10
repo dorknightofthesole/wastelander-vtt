@@ -1,4 +1,5 @@
 import { MODULE_ID } from "../constants.js";
+import { slugifyName } from "../utils/slugify.js";
 import { getWorldActor, resolveActorId } from "./falloutActor.js";
 
 export type { WizardRollContext } from "./falloutRollChat.js";
@@ -385,8 +386,35 @@ export function evaluatePerkRequirements(
 /**
  * All perks from `fallout.perks` with requirement evaluation for the wizard.
  */
+function normalizePerkLookupName(name: string): string {
+  return String(name).trim().toLowerCase();
+}
+
+function resolveKnownPerkRank(
+  entry: { name: string; uuid?: string },
+  options: {
+    knownRanksBySlug?: Record<string, number>;
+    knownRanksByUuid?: Record<string, number>;
+    knownRanksByName?: Record<string, number>;
+  },
+): number {
+  const slug = slugifyName(String(entry.name));
+  const uuid = String(entry.uuid ?? "");
+  const name = normalizePerkLookupName(entry.name);
+  return Math.max(
+    options.knownRanksByUuid?.[uuid] ?? 0,
+    options.knownRanksBySlug?.[slug] ?? 0,
+    options.knownRanksByName?.[name] ?? 0,
+  );
+}
+
 export async function listPerksFromCompendium(
   ctx: WizardPerkEvaluationContext,
+  options: {
+    knownRanksBySlug?: Record<string, number>;
+    knownRanksByUuid?: Record<string, number>;
+    knownRanksByName?: Record<string, number>;
+  } = {},
 ): Promise<Array<PerkCompendiumEntry & PerkRequirementResult>> {
   const pack = game.packs.get("fallout.perks");
   if (!pack) return [];
@@ -415,10 +443,15 @@ export async function listPerksFromCompendium(
       .filter(Boolean)
       .join("\n\n");
 
+    const knownRank = resolveKnownPerkRank(
+      { name: String(entry.name), uuid: String((entry as { uuid?: string }).uuid ?? "") },
+      options,
+    );
+
     const evaluation = evaluatePerkRequirements(reqEx, ctx, {
       multiRank,
       maxRank,
-      knownRank: 0,
+      knownRank,
     });
 
     results.push({

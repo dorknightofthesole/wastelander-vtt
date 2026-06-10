@@ -25,7 +25,7 @@ import {
   type ScavengerPlayerSearchState,
   type SearchTeamRole,
 } from "./playerSearchState.js";
-import { getPartyActorsOnScene } from "./partyContext.js";
+import { getPartyActorsOnScene, userControlsActor } from "./partyContext.js";
 import {
   applySearchTeamRole,
   countAssistBonusSuccesses,
@@ -144,11 +144,7 @@ function assertActorOwnedByUser(
   userId: string,
   sceneId: string,
 ): boolean {
-  if ((game.users?.get(userId) as { isGM?: boolean } | undefined)?.isGM) {
-    return true;
-  }
-  const row = getPartyActorsOnScene(sceneId).find((r) => r.actorId === actorId);
-  return row?.userId === userId;
+  return userControlsActor(actorId, userId, sceneId);
 }
 
 function preparePlayerSearch(
@@ -655,13 +651,14 @@ export async function requestPlayerSearchAction(
     }, 15000);
 
     const handler = (response: unknown): void => {
-      const msg = response as {
-        _requestId?: string;
-        ok?: boolean;
+      const msg = response as SocketPayload & {
+        _targetUserId?: string;
         state?: ScavengerScenePersistedState;
         error?: string;
       };
+      if (!isPlayerSearchSocketResponse(msg)) return;
       if (msg._requestId !== requestId) return;
+      if (msg._targetUserId && msg._targetUserId !== game.user?.id) return;
       window.clearTimeout(timeout);
       sock.socket?.off(channel, handler);
       if (msg.ok && msg.state) {
@@ -683,7 +680,13 @@ type SocketPayload = PlayerSearchSocketAction & {
 };
 
 export function isPlayerSearchSocketRequest(data: SocketPayload): boolean {
-  return Boolean(data.action) && data.ok === undefined;
+  return Boolean(data.action) && typeof data.ok !== "boolean";
+}
+
+export function isPlayerSearchSocketResponse(
+  data: SocketPayload,
+): data is SocketPayload & { ok: boolean; _requestId: string } {
+  return typeof data._requestId === "string" && typeof data.ok === "boolean";
 }
 
 export async function handlePlayerSearchSocket(
@@ -706,6 +709,7 @@ export async function handlePlayerSearchSocket(
 
   socket.emit(channel, {
     _requestId,
+    _targetUserId: userId,
     ok: result.ok,
     state: result.ok ? result.state : undefined,
     error: result.ok ? undefined : result.error,

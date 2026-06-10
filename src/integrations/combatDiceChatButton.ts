@@ -8,24 +8,20 @@ function isFalloutSystem(): boolean {
   return game.system.id === "fallout";
 }
 
-function findChatControlsContainer(
-  elements: Record<string, HTMLElement>,
-): HTMLElement | null {
-  const direct =
-    elements[".chat-controls"] ??
-    elements["chat-controls"] ??
-    elements[".control-buttons"] ??
-    null;
-  if (direct) return direct;
-
-  for (const element of Object.values(elements)) {
-    if (!(element instanceof HTMLElement)) continue;
-    if (element.classList.contains("chat-controls")) return element;
-    const nested = element.querySelector(".chat-controls, .control-buttons");
-    if (nested instanceof HTMLElement) return nested;
+function findChatControlsContainers(root: ParentNode = document): HTMLElement[] {
+  const selectors = [
+    ".chat-controls .control-buttons",
+    ".chat-controls",
+    "#chat-controls .control-buttons",
+    "#chat-controls",
+  ];
+  const found = new Set<HTMLElement>();
+  for (const selector of selectors) {
+    for (const el of root.querySelectorAll<HTMLElement>(selector)) {
+      found.add(el);
+    }
   }
-
-  return null;
+  return [...found];
 }
 
 function ensureCombatDiceChatButton(container: HTMLElement): void {
@@ -34,7 +30,6 @@ function ensureCombatDiceChatButton(container: HTMLElement): void {
   const button = document.createElement("button");
   button.type = "button";
   button.className = `ui-control icon ${BUTTON_CLASS}`;
-  button.setAttribute("type", "button");
   button.setAttribute("aria-label", t("WASTELANDER.CombatDiceRoll.ChatButton"));
   button.dataset.tooltip = t("WASTELANDER.CombatDiceRoll.ChatButton");
   button.innerHTML =
@@ -43,6 +38,11 @@ function ensureCombatDiceChatButton(container: HTMLElement): void {
     event.preventDefault();
     openCombatDiceRollDialog();
   });
+
+  if (container.classList.contains("control-buttons")) {
+    container.append(button);
+    return;
+  }
 
   const controlButtons = container.querySelector(".control-buttons");
   if (controlButtons instanceof HTMLElement) {
@@ -53,18 +53,40 @@ function ensureCombatDiceChatButton(container: HTMLElement): void {
   container.append(button);
 }
 
+function injectCombatDiceChatButtons(root: ParentNode = document): void {
+  if (!isFalloutSystem()) return;
+  for (const container of findChatControlsContainers(root)) {
+    ensureCombatDiceChatButton(container);
+  }
+}
+
 function onRenderChatInput(
   _app: unknown,
   elements: Record<string, HTMLElement>,
 ): void {
   if (!isFalloutSystem()) return;
-  const container = findChatControlsContainer(elements);
-  if (!container) return;
-  ensureCombatDiceChatButton(container);
+  for (const element of Object.values(elements)) {
+    if (!(element instanceof HTMLElement)) continue;
+    injectCombatDiceChatButtons(element);
+  }
+  injectCombatDiceChatButtons();
+}
+
+function onRenderChatLog(_app: unknown, element: HTMLElement): void {
+  if (!isFalloutSystem() || !(element instanceof HTMLElement)) return;
+  injectCombatDiceChatButtons(element);
 }
 
 export function registerCombatDiceChatButton(): void {
   Hooks.on("renderChatInput", onRenderChatInput);
+  Hooks.on("renderChatLog", onRenderChatLog);
+  Hooks.on("changeSidebarTab", () => {
+    window.setTimeout(() => injectCombatDiceChatButtons(), 50);
+  });
+
+  Hooks.once("ready", () => {
+    window.setTimeout(() => injectCombatDiceChatButtons(), 250);
+  });
 
   Hooks.on(
     "getHeaderControlsChatLog",

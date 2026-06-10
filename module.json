@@ -24,6 +24,7 @@
     ]
   },
   "esmodules": ["dist/wastelander.mjs"],
+  "socket": true,
   "styles": ["styles/wastelander-wizard.css"],
   "packFolders": [
     {

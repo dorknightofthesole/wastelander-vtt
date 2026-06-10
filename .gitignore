@@ -6,6 +6,8 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
+.DS_Store
+
 #directory for pdf files
 docs/reference/source/*.pdf
 

@@ -58,3 +58,54 @@ export async function updateWorldActor(
     SILENT,
   );
 }
+
+type RenderableActorSheet = {
+  rendered?: boolean;
+  render?: (force?: boolean) => Promise<unknown>;
+};
+
+/** Re-render open actor sheets after silent embedded-document updates. */
+export function refreshActorSheet(actor: Actor): void {
+  const sheets = new Set<RenderableActorSheet>();
+
+  const queue = (doc: Actor | null | undefined): void => {
+    const sheet = doc?.sheet as RenderableActorSheet | null | undefined;
+    if (sheet?.rendered && sheet.render) sheets.add(sheet);
+  };
+
+  queue(actor);
+  try {
+    queue(resolveActor(actor));
+  } catch {
+    // ignore token-only references
+  }
+
+  let worldId: string | undefined;
+  try {
+    worldId = resolveActorId(actor);
+  } catch {
+    worldId = actor.id;
+  }
+
+  const tokens = (
+    globalThis as {
+      canvas?: {
+        scene?: {
+          tokens?: Map<string, { document: { actorLink: boolean; actorId: string }; actor?: Actor }>;
+        };
+      };
+    }
+  ).canvas?.scene?.tokens;
+
+  if (tokens && worldId) {
+    for (const token of tokens.values()) {
+      const doc = token.document;
+      if (!doc?.actorLink || doc.actorId !== worldId) continue;
+      queue(token.actor);
+    }
+  }
+
+  for (const sheet of sheets) {
+    void sheet.render?.(true);
+  }
+}

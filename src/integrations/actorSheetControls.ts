@@ -6,6 +6,7 @@ import {
 import { importActorCharacterSheet } from "../export/importCharacterSheet.js";
 import { isPdfTemplateAvailable } from "../export/pdfTemplates.js";
 import CharacterWizardApp from "../wizard/CharacterWizardApp.js";
+import LevelUpApp from "../wizard/LevelUpApp.js";
 import { isFalloutWizardActor } from "./fallout.js";
 import { resolveActor } from "./falloutActor.js";
 import { registerTranslations, t } from "./i18n.js";
@@ -39,6 +40,16 @@ function openBuildWizard(actor: Actor): void {
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Cannot open character wizard.";
+    ui.notifications.warn(message);
+  }
+}
+
+function openLevelUp(actor: Actor): void {
+  try {
+    void LevelUpApp.renderForActor(resolveActor(actor));
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Cannot open level up.";
     ui.notifications.warn(message);
   }
 }
@@ -80,6 +91,7 @@ async function openPortalMenu(anchor: HTMLElement, actor: Actor): Promise<void> 
   registerTranslations();
 
   const buildLabel = t("ActorSheet.Menu.Build");
+  const levelUpLabel = t("ActorSheet.Menu.LevelUp");
   const exportLabel = t("ActorSheet.Menu.ExportPdf");
   const parseLabel = t("ActorSheet.Menu.ParsePdf");
   const exportAvailable = await isPdfTemplateAvailable(actor.type);
@@ -100,6 +112,10 @@ async function openPortalMenu(anchor: HTMLElement, actor: Actor): Promise<void> 
     <button type="button" class="wastelander-sheet-dropdown-item" data-action="build" role="menuitem">
       <i class="fas fa-hammer" aria-hidden="true"></i>
       <span>${buildLabel}</span>
+    </button>
+    <button type="button" class="wastelander-sheet-dropdown-item" data-action="level-up" role="menuitem">
+      <i class="fas fa-arrow-up" aria-hidden="true"></i>
+      <span>${levelUpLabel}</span>
     </button>
     <button type="button" class="wastelander-sheet-dropdown-item${exportDisabledClass}" data-action="export-pdf" role="menuitem"${exportDisabledAttr}>
       <i class="fas fa-file-pdf" aria-hidden="true"></i>
@@ -129,6 +145,10 @@ async function openPortalMenu(anchor: HTMLElement, actor: Actor): Promise<void> 
         return;
       }
       openBuildWizard(actor);
+      return;
+    }
+    if (action === "level-up") {
+      openLevelUp(actor);
       return;
     }
     if (action === "export-pdf") {

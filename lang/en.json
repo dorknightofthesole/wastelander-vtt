@@ -21,10 +21,24 @@
       "RollFailed": "Combat dice roll failed.",
       "RequiresFallout": "Combat dice rolls require the Fallout system."
     },
+    "LevelUp": {
+      "Title": "Level Up",
+      "WindowTitle": "Level Up — {name}",
+      "Instructions": "Single-rank perks you already have are marked. Multi-rank perks stay open so you can buy the next rank. Choose one perk to purchase with your perk point.",
+      "LevelLine": "Level {level}",
+      "PerkCount": "Perk point: {selected} / 1",
+      "Empty": "No perks available.",
+      "Cancel": "Cancel",
+      "Confirm": "Apply perk",
+      "Success": "Added perk: {name}",
+      "Error": "Could not apply perk.",
+      "RequirementsNotMet": "Requirements not met for this perk."
+    },
     "ActorSheet": {
       "Menu": {
         "Build": "Build Character",
         "BuildComplete": "Character creation is already complete.",
+        "LevelUp": "Level Up",
         "ExportPdf": "Export to PDF",
         "ParsePdf": "Parse PDF"
       },

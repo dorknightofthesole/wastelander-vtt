@@ -6,7 +6,7 @@ import {
 import { t } from "../integrations/i18n.js";
 import type { LootCategoryKey, PartyActorRow, ScavengerLocation } from "./ScavengerLocation.js";
 import { buildPlayerLootRows } from "./lootGrid.js";
-import { getPartyActorsOnScene } from "./partyContext.js";
+import { getPartyActorsOnScene, userControlsActor } from "./partyContext.js";
 import { canSearchLocation } from "./problemRules.js";
 import {
   canRollMin,
@@ -272,9 +272,7 @@ export default class ScavengerSearchApp extends HandlebarsApplicationMixin(
   }
 
   #canControlActor(actorId: string, userId: string): boolean {
-    if (game.user?.isGM) return true;
-    const row = this.#partyOnScene().find((r) => r.actorId === actorId);
-    return row?.userId === userId;
+    return userControlsActor(actorId, userId, this.#sceneId);
   }
 
   #buildTeamRows(
