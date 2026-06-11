@@ -115,13 +115,14 @@ Two scene tools (token controls):
 
 Player actions are validated on the GM client over Foundry’s socket so players cannot spoof rolls or loot.
 
-### Loot value filtering (optional)
+### Loot filtering (optional)
 
-Scavenging can **limit loot by item value** so lower-level locations are less likely to yield gear above a caps threshold. This is **off by default**; enable **Limit loot by item value** in module settings when you want it.
+Scavenging can **limit loot by item value or rarity** so lower-level locations are less likely to yield gear above what fits the ruin. **No filtering is the default** (“The New Vegas Option”); choose a filter mode in module settings when you want tighter tables.
 
-- **How it works** — Each scavenger location has a **level** (from party levels, search degree, and problems). When scene loot tables are built or reset, Wastelander reads each row’s linked Fallout item **cost (caps)** and **drops rows** whose value exceeds the max caps for that location level. Original booklet **roll ranges are preserved** on the rows that remain (no re-packing onto a denser 2d20 spread), so the table still behaves like the GM Screen layout — Foundry only draws on results that exist on the document.
+- **How it works** — Each scavenger location has a **level** (from party levels, search degree, and problems). When scene loot tables are built or reset, Wastelander reads each row’s linked Fallout item **cost (caps)** or **rarity** (depending on mode) and **drops rows** that exceed the limit for that location level. Original booklet **roll ranges are preserved** on the rows that remain (no re-packing onto a denser 2d20 spread), so the table still behaves like the GM Screen layout — Foundry only draws on results that exist on the document.
 - **Goal** — Reduce the chance that players find items far above what fits a low-level ruin, without hand-editing every table for every scene.
-- **Configuration** — **Configure Settings → Module Settings → Wastelander → Configure loot value caps** opens the level → max caps band editor (bundled defaults ship with the module). After changing the filter or regenerating a location at a new level, use **Reset loot tables** on the Loot tables tab so scene tables are rebuilt with the updated filter.
+- **Filter modes** — **Do not filter loot (The New Vegas Option)** leaves compendium tables unchanged. **Limit loot by item value (caps)** uses a quadratic level → max caps curve (bundled defaults ship with the module). **Limit loot by item rarity** uses a linear level → max rarity curve (0–6 scale; default 0.4 rarity per level).
+- **Configuration** — **Configure Settings → Module Settings → Wastelander → Loot filter mode** selects the active mode. **Configure loot value caps** and **Configure loot rarity** open the band editors for each mode. After changing the filter or regenerating a location at a new level, use **Reset loot tables** on the Loot tables tab so scene tables are rebuilt with the updated filter.
 
 ---
 
@@ -261,8 +262,9 @@ To refresh pack data from your Foundry world after editing compendiums, see [pac
 ## Module settings (scavenging)
 
 - **Prefer Foundry RollTables** — When no scene loot tables exist, player AP loot rolls use world Roll Tables when names match the GM Screen booklet (falls back to bundled tables).
-- **Limit loot by item value** — When enabled, scene loot tables are built with rows filtered by item caps vs. location level (see **Loot value filtering**).
-- **Configure loot value caps** — Menu (GM only) to edit location level → max item caps bands and related options used by value filtering.
+- **Loot filter mode** — **The New Vegas Option** (default) leaves tables unchanged; **value** or **rarity** filters scene loot tables by item caps or rarity vs. location level (see **Loot filtering**).
+- **Configure loot value caps** — Menu (GM only) to edit location level → max item caps bands used when value filtering is selected.
+- **Configure loot rarity** — Menu (GM only) to edit location level → max item rarity bands used when rarity filtering is selected.
 - **Whisper loot rolls to GM** — Loot roll chat cards visible only to the GM.
 - **Advance world clock after search** — Simple Calendar integration (default on).
 - **Auto-allocate degree reductions** — Randomly apply minimum reductions when generating a location.

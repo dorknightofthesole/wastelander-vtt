@@ -411,6 +411,10 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
       searchTimeLabel: searchTime.label,
     };
 
+    if (this.location?.sceneLoot?.folderId) {
+      this.location = refreshSceneLootSlotsFromFolder(this.location);
+    }
+
     const rollTableKeys = (
       this.location
         ? getRollTableKeysForLocation(this.location.items)
@@ -491,9 +495,6 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
     const tabCurrent = this.#activeTab === "current";
     const tabCreate = this.#activeTab === "create";
     const tabLootTables = this.#activeTab === "lootTables";
-    if (this.location?.sceneLoot?.folderId) {
-      this.location = refreshSceneLootSlotsFromFolder(this.location);
-    }
     const lootTables = await buildLootTablesTabContext(this.location, this.#sceneId);
     const problemsUi = buildProblemsUiContext(this.#form.problems, this.location);
     const current = buildCurrentTabContext(this.location, this.#form.problems, {

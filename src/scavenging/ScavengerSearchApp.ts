@@ -15,6 +15,7 @@ import {
   normalizePlayerSearch,
   remainingMinFor,
   rollsUsedFor,
+  syncPlayerSearchLootTracking,
   type ScavengerPlayerSearchState,
   type SearchTeamRole,
 } from "./playerSearchState.js";
@@ -216,7 +217,9 @@ export default class ScavengerSearchApp extends HandlebarsApplicationMixin(
     const base =
       normalizePlayerSearch(this.#sceneState?.playerSearch) ?? emptyPlayerSearchState();
     if (!this.#sceneId) return base;
-    return ensureSearchTeam(base, this.#partyOnScene().map((r) => r.actorId));
+    const withTeam = ensureSearchTeam(base, this.#partyOnScene().map((r) => r.actorId));
+    const location = this.#sceneState?.location;
+    return location ? syncPlayerSearchLootTracking(location, withTeam) : withTeam;
   }
 
   #resolveDefaultActorId(playerSearch?: ScavengerPlayerSearchState): string | null {
@@ -484,7 +487,7 @@ export default class ScavengerSearchApp extends HandlebarsApplicationMixin(
         label: row.label,
         min: row.min,
         max: row.max,
-        remainingMin: remainingMinFor(playerSearch, row.category),
+        remainingMin: remainingMinFor(playerSearch, row.category, location),
         rollsUsed: rollsUsedFor(playerSearch, row.category),
         canRollMin: canRollMin(playerSearch, location, row.category),
         canSpendAp:

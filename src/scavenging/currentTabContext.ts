@@ -14,10 +14,9 @@ import type {
   ScavengerLocation,
   ScavengerLocationProblems,
 } from "./ScavengerLocation.js";
-import {
-  getMaxCapsForLocationLevel,
-  isLootValueFilterEnabled,
-} from "./lootValueCap.js";
+import { getMaxCapsForLocationLevel } from "./lootValueCap.js";
+import { getMaxRarityForLocationLevel } from "./lootRarity.js";
+import { getLootFilterMode, type LootFilterMode } from "./lootFilter.js";
 import {
   formatHazardSummary,
   formatObstacleSummary,
@@ -63,11 +62,9 @@ export type CurrentTabContext = {
     showOvercome: boolean;
     overcome: boolean;
   };
-  lootValueCap?: {
-    enabled: boolean;
-    maxCaps?: number;
-    disabledLabel: string;
-    enabledLabel: string;
+  lootFilter?: {
+    mode: LootFilterMode;
+    summaryLabel: string;
   };
 };
 
@@ -164,15 +161,23 @@ export function buildCurrentTabContext(
     };
   }
 
-  const filterEnabled = isLootValueFilterEnabled();
-  const lootValueCap = {
-    enabled: filterEnabled,
-    maxCaps: filterEnabled ? getMaxCapsForLocationLevel(location.level) : undefined,
-    disabledLabel: t("WASTELANDER.Scavenging.Loot.ValueFilterDisabled"),
-    enabledLabel: t("WASTELANDER.Scavenging.Loot.ValueFilterEnabled", {
-      maxCaps: getMaxCapsForLocationLevel(location.level),
-    }),
-  };
+  const filterMode = getLootFilterMode();
+  const lootFilter =
+    filterMode === "value"
+      ? {
+          mode: filterMode,
+          summaryLabel: t("WASTELANDER.Scavenging.Loot.ValueFilterEnabled", {
+            maxCaps: getMaxCapsForLocationLevel(location.level),
+          }),
+        }
+      : filterMode === "rarity"
+        ? {
+            mode: filterMode,
+            summaryLabel: t("WASTELANDER.Scavenging.Loot.RarityFilterEnabled", {
+              maxRarity: getMaxRarityForLocationLevel(location.level),
+            }),
+          }
+        : undefined;
 
   return {
     empty: false,
@@ -190,6 +195,6 @@ export function buildCurrentTabContext(
     inhabitants,
     hazard,
     obstacle,
-    lootValueCap,
+    lootFilter,
   };
 }

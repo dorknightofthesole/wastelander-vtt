@@ -9,6 +9,7 @@ import {
   resolveRollTableKey,
   type ScavengingRollTableKey,
 } from "./rollTableRegistry.js";
+import { refreshSceneLootSlotsFromFolder } from "./sceneLootTables.js";
 import { MODULE_ID } from "../constants.js";
 import { normalizeTableName } from "../integrations/rollTableDocuments.js";
 
@@ -208,32 +209,33 @@ export function upsertSceneLootSlot(
   };
 }
 
+const WEAPON_TABLE_KEYS = new Set<ScavengingRollTableKey>([
+  "weaponsRanged",
+  "weaponsMelee",
+  "weaponsThrown",
+]);
+
 export function getActiveLootSlots(location: ScavengerLocation): ActiveLootSlot[] {
   const slots: ActiveLootSlot[] = [];
-  const sceneLoot = location.sceneLoot;
+  const syncedLocation = location.sceneLoot?.folderId
+    ? refreshSceneLootSlotsFromFolder(location)
+    : location;
+  const sceneLoot = syncedLocation.sceneLoot;
 
   if (sceneLoot?.slots.length) {
-    const weaponsItem = location.items.find((i) => i.category === "weapons");
-    const weaponTableKeys = new Set<ScavengingRollTableKey>([
-      "weaponsRanged",
-      "weaponsMelee",
-      "weaponsThrown",
-    ]);
-    let weaponsAdded = false;
-
     for (const slot of sceneLoot.slots) {
       if (slot.max <= 0 && slot.min <= 0) continue;
 
       const tableKey = slot.tableKey;
-      if (tableKey && weaponTableKeys.has(tableKey)) {
-        if (!weaponsAdded && weaponsItem) {
-          weaponsAdded = true;
-          slots.push({
-            category: "weapons",
-            min: weaponsItem.min,
-            max: weaponsItem.max,
-          });
-        }
+      if (tableKey && WEAPON_TABLE_KEYS.has(tableKey)) {
+        slots.push({
+          category: tableKey as LootCategoryKey,
+          min: slot.min,
+          max: slot.max,
+          tableKey,
+          tableId: slot.tableId,
+          label: getRollTableDisplayName(tableKey),
+        });
         continue;
       }
 
@@ -258,7 +260,7 @@ export function getActiveLootSlots(location: ScavengerLocation): ActiveLootSlot[
       });
     }
   } else {
-    for (const item of location.items) {
+    for (const item of syncedLocation.items) {
       if (item.category === "junk") continue;
       slots.push({
         category: item.category,
@@ -269,7 +271,7 @@ export function getActiveLootSlots(location: ScavengerLocation): ActiveLootSlot[
     }
   }
 
-  const junk = location.items.find((i) => i.category === "junk");
+  const junk = syncedLocation.items.find((i) => i.category === "junk");
   if (junk) {
     slots.push({ category: "junk", min: junk.min, max: junk.max });
   }

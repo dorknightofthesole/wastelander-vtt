@@ -53,16 +53,10 @@
           <span class="wastelander-scavenger-stat-label">{{localize "WASTELANDER.Scavenging.Generated.TimeTaken"}}</span>
           <output class="wastelander-scavenger-stat-value">{{current.generated.searchMinutes}} {{localize "WASTELANDER.Scavenging.Generated.Minutes"}} <span class="wastelander-scavenger-stat-sub">({{current.generated.searchTimeLabel}})</span></output>
         </div>
-        {{#if current.lootValueCap}}
+        {{#if current.lootFilter}}
           <div class="wastelander-scavenger-stat wastelander-scavenger-stat-wide">
-            <span class="wastelander-scavenger-stat-label">{{localize "WASTELANDER.Scavenging.Loot.ValueCapLabel"}}</span>
-            <output class="wastelander-scavenger-stat-value">
-              {{#if current.lootValueCap.enabled}}
-                {{current.lootValueCap.enabledLabel}}
-              {{else}}
-                {{current.lootValueCap.disabledLabel}}
-              {{/if}}
-            </output>
+            <span class="wastelander-scavenger-stat-label">{{localize "WASTELANDER.Scavenging.Loot.FilterLabel"}}</span>
+            <output class="wastelander-scavenger-stat-value">{{current.lootFilter.summaryLabel}}</output>
           </div>
         {{/if}}
       </section>

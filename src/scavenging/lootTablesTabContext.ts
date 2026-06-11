@@ -4,10 +4,9 @@ import {
   hasSceneLootFolder,
   resolveTableKeyForRollTable,
 } from "./sceneLoot.js";
-import {
-  getMaxCapsForLocationLevel,
-  isLootValueFilterEnabled,
-} from "./lootValueCap.js";
+import { getMaxCapsForLocationLevel } from "./lootValueCap.js";
+import { getMaxRarityForLocationLevel } from "./lootRarity.js";
+import { getLootFilterMode, type LootFilterMode } from "./lootFilter.js";
 import type { ScavengerLocation } from "./ScavengerLocation.js";
 import { collectTableResultRows } from "./rollTableLookup.js";
 import {
@@ -27,35 +26,50 @@ export type LootTableTabPanel = {
 export type LootTablesTabContext = {
   empty: boolean;
   legacyUpgrade: boolean;
-  filterEnabled: boolean;
-  maxCaps?: number;
+  filterMode: LootFilterMode;
   filterBanner?: string;
   hint?: string;
   tables: LootTableTabPanel[];
 };
 
+function filterBannerForMode(
+  mode: LootFilterMode,
+  level: number,
+): string | undefined {
+  if (mode === "value") {
+    const maxCaps = getMaxCapsForLocationLevel(level);
+    return t("WASTELANDER.Scavenging.LootTables.FilterBanner", { maxCaps });
+  }
+  if (mode === "rarity") {
+    const maxRarity = getMaxRarityForLocationLevel(level);
+    return t("WASTELANDER.Scavenging.LootTables.FilterBannerRarity", { maxRarity });
+  }
+  return undefined;
+}
+
 export async function buildLootTablesTabContext(
   location: ScavengerLocation | null,
   _sceneId: string | null,
 ): Promise<LootTablesTabContext> {
+  const filterMode = getLootFilterMode();
+
   if (!location) {
     return {
       empty: true,
       legacyUpgrade: false,
-      filterEnabled: isLootValueFilterEnabled(),
+      filterMode,
       hint: t("WASTELANDER.Scavenging.LootTables.NoLocation"),
       tables: [],
     };
   }
 
-  const filterEnabled = isLootValueFilterEnabled();
   const legacyUpgrade = hasLegacyLootData(location) && !hasSceneLootFolder(location);
 
   if (legacyUpgrade) {
     return {
       empty: false,
       legacyUpgrade: true,
-      filterEnabled,
+      filterMode,
       hint: t("WASTELANDER.Scavenging.LootTables.LegacyUpgrade"),
       tables: [],
     };
@@ -83,16 +97,11 @@ export async function buildLootTablesTabContext(
 
   tables.sort((a, b) => a.label.localeCompare(b.label));
 
-  const maxCaps = getMaxCapsForLocationLevel(refreshed.level);
-
   return {
     empty: false,
     legacyUpgrade: false,
-    filterEnabled,
-    maxCaps: filterEnabled ? maxCaps : undefined,
-    filterBanner: filterEnabled
-      ? t("WASTELANDER.Scavenging.LootTables.FilterBanner", { maxCaps })
-      : undefined,
+    filterMode,
+    filterBanner: filterBannerForMode(filterMode, refreshed.level),
     hint: t("WASTELANDER.Scavenging.LootTables.FoundryEditHint"),
     tables,
   };

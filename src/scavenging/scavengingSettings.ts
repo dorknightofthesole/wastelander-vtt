@@ -1,5 +1,6 @@
 import { MODULE_ID } from "../constants.js";
 import DenizenImportMenuApp from "./DenizenImportMenuApp.js";
+import LootRaritySettingsApp from "./LootRaritySettingsApp.js";
 import LootValueCapSettingsApp from "./LootValueCapSettingsApp.js";
 
 export const SCAVENGING_SETTINGS = {
@@ -9,10 +10,14 @@ export const SCAVENGING_SETTINGS = {
   autoAllocateDegreeReduction: "autoAllocateDegreeReduction",
   /** World id of the shared Overseer Scavenger journal. */
   scavengerJournalId: "scavengerJournalId",
-  /** When true, filter scavenging loot rows by location level → max caps table. */
+  /** @deprecated Migrated to lootFilterMode; kept for one-time upgrade. */
   lootValueFilterEnabled: "lootValueFilterEnabled",
-  /** GM override for level → max caps bands (empty uses bundled defaults). */
+  /** none | value | rarity — how scene loot tables are filtered when built/reset. */
+  lootFilterMode: "lootFilterMode",
+  /** GM override for level → max caps bands. */
   lootValueCapConfig: "lootValueCapConfig",
+  /** GM override for level → max rarity bands. */
+  lootRarityConfig: "lootRarityConfig",
 } as const;
 
 export function registerScavengingSettings(): void {
@@ -64,15 +69,37 @@ export function registerScavengingSettings(): void {
   });
 
   settings.register(MODULE_ID, SCAVENGING_SETTINGS.lootValueFilterEnabled, {
-    name: "WASTELANDER.Scavenging.Settings.LootValueFilterEnabled",
-    hint: "WASTELANDER.Scavenging.Settings.LootValueFilterEnabledHint",
     scope: "world",
-    config: true,
     type: Boolean,
     default: false,
+    config: false,
+  });
+
+  settings.register(MODULE_ID, SCAVENGING_SETTINGS.lootFilterMode, {
+    name: "WASTELANDER.Scavenging.Settings.LootFilterMode",
+    hint: "WASTELANDER.Scavenging.Settings.LootFilterModeHint",
+    scope: "world",
+    config: true,
+    type: String,
+    choices: {
+      none: "WASTELANDER.Scavenging.Settings.LootFilterModeNone",
+      value: "WASTELANDER.Scavenging.Settings.LootFilterModeValue",
+      rarity: "WASTELANDER.Scavenging.Settings.LootFilterModeRarity",
+    },
+    default: "none",
+    onChange: () => {
+      void game.settings.set(MODULE_ID, SCAVENGING_SETTINGS.lootValueFilterEnabled, false);
+    },
   });
 
   settings.register(MODULE_ID, SCAVENGING_SETTINGS.lootValueCapConfig, {
+    scope: "world",
+    type: Object,
+    default: {},
+    config: false,
+  });
+
+  settings.register(MODULE_ID, SCAVENGING_SETTINGS.lootRarityConfig, {
     scope: "world",
     type: Object,
     default: {},
@@ -85,6 +112,15 @@ export function registerScavengingSettings(): void {
     hint: "WASTELANDER.Scavenging.Settings.LootValueCapMenuHint",
     icon: "fas fa-coins",
     type: LootValueCapSettingsApp,
+    restricted: true,
+  });
+
+  settings.registerMenu(MODULE_ID, "lootRarityTable", {
+    name: "WASTELANDER.Scavenging.Settings.LootRarityMenuName",
+    label: "WASTELANDER.Scavenging.Settings.LootRarityMenuLabel",
+    hint: "WASTELANDER.Scavenging.Settings.LootRarityMenuHint",
+    icon: "fas fa-gem",
+    type: LootRaritySettingsApp,
     restricted: true,
   });
 

@@ -1,0 +1,81 @@
+<div class="wastelander-loot-cap-settings">
+  <p class="wastelander-scavenger-hint">{{localize "WASTELANDER.Scavenging.Settings.LootRarityIntro"}}</p>
+  <p class="wastelander-scavenger-hint">{{localize "WASTELANDER.Scavenging.Settings.LootRarityFilterNote"}}</p>
+
+  <section class="wastelander-scavenger-section wastelander-loot-cap-curve-section">
+    <h3>{{localize "WASTELANDER.Scavenging.Settings.LootRarityFormulaTitle"}}</h3>
+    <div class="wastelander-loot-cap-curve-layout">
+      <div class="wastelander-loot-cap-curve-main">
+        <p class="wastelander-scavenger-hint wastelander-loot-cap-formula-hint">{{localize "WASTELANDER.Scavenging.Settings.LootRarityFormulaHint"}}</p>
+        <div class="wastelander-loot-cap-formula-grid">
+          <div class="wastelander-form-row">
+            <label for="loot-rarity-formula-per-level">{{localize "WASTELANDER.Scavenging.Settings.LootRarityFormulaPerLevel"}}</label>
+            <input type="number" min="0" step="0.1" id="loot-rarity-formula-per-level" name="formulaPerLevel" value="{{formulaPerLevel}}" />
+          </div>
+          <div class="wastelander-form-row">
+            <label for="loot-rarity-formula-max">{{localize "WASTELANDER.Scavenging.Settings.LootRarityFormulaMaxRarity"}}</label>
+            <input type="number" min="0" step="1" id="loot-rarity-formula-max" name="formulaMaxRarity" value="{{formulaMaxRarity}}" />
+          </div>
+        </div>
+      </div>
+      <aside class="wastelander-loot-cap-preview-panel" aria-labelledby="loot-rarity-preview-heading">
+        <h3 id="loot-rarity-preview-heading">{{localize "WASTELANDER.Scavenging.Settings.LootRarityPreviewTitle"}}</h3>
+        <ul class="wastelander-loot-cap-preview">
+          {{#each previewRows}}
+            <li>{{localize "WASTELANDER.Scavenging.Settings.LootRarityPreviewRow" level=level maxRarity=maxRarity}}</li>
+          {{/each}}
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <section class="wastelander-scavenger-section">
+    <div class="wastelander-loot-cap-bands-toolbar">
+      <button type="button" class="wastelander-btn-secondary" data-action="recalculateBands">
+        <i class="fas fa-calculator" aria-hidden="true"></i> {{localize "WASTELANDER.Scavenging.Settings.LootRarityRecalculate"}}
+      </button>
+    </div>
+    <h3>{{localize "WASTELANDER.Scavenging.Settings.LootRarityBandsTitle"}}</h3>
+    <p class="wastelander-scavenger-hint">{{localize "WASTELANDER.Scavenging.Settings.LootRarityBandsHint"}}</p>
+    <div class="wastelander-loot-cap-table-scroll" tabindex="0">
+      <table class="wastelander-loot-cap-table">
+        <thead>
+          <tr>
+            <th>{{localize "WASTELANDER.Scavenging.Settings.LootRarityMaxLevel"}}</th>
+            <th>{{localize "WASTELANDER.Scavenging.Settings.LootRarityMaxRarity"}}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each bands}}
+            <tr data-band-index="{{@index}}">
+              <td>
+                <input type="number" min="0" step="1" name="band-maxLevel-{{@index}}" value="{{maxLevel}}" data-field="maxLevel" />
+              </td>
+              <td>
+                <input type="number" min="0" step="1" name="band-maxRarity-{{@index}}" value="{{maxRarity}}" data-field="maxRarity" />
+              </td>
+              <td>
+                <button type="button" class="wastelander-btn-secondary" data-action="removeBand" data-band-index="{{@index}}" title="{{localize "WASTELANDER.Scavenging.Settings.LootRarityRemoveBand"}}">
+                  <i class="fas fa-trash" aria-hidden="true"></i>
+                </button>
+              </td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+    <button type="button" class="wastelander-btn-secondary" data-action="addBand">
+      <i class="fas fa-plus" aria-hidden="true"></i> {{localize "WASTELANDER.Scavenging.Settings.LootRarityAddBand"}}
+    </button>
+  </section>
+
+  <footer class="wastelander-denizen-import-footer">
+    <button type="button" class="wastelander-btn-primary" data-action="saveConfig">
+      <i class="fas fa-save" aria-hidden="true"></i> {{localize "WASTELANDER.Scavenging.Settings.LootRaritySave"}}
+    </button>
+    <button type="button" class="wastelander-btn-secondary" data-action="resetDefaults">
+      {{localize "WASTELANDER.Scavenging.Settings.LootRarityReset"}}
+    </button>
+  </footer>
+</div>

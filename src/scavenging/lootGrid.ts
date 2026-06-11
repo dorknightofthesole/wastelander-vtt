@@ -5,7 +5,7 @@ import type {
   LootCategoryKey,
   ScavengerLocation,
 } from "./ScavengerLocation.js";
-import { getLootRowCounts, isLootValueFilterEnabled } from "./lootValueCap.js";
+import { getLootRowCounts, isLootFilterActive } from "./lootFilter.js";
 import { findSceneRollTableForCategory } from "./sceneLootTables.js";
 import {
   getRollTableDisplayName,
@@ -37,7 +37,7 @@ export async function buildPlayerLootRows(
 ): Promise<LootGridRow[]> {
   const slots = getActiveLootSlots(location).filter((s) => s.category !== "junk");
   const keys = slots
-    .map((slot) => resolveRollTableKey(slot.category))
+    .map((slot) => slot.tableKey ?? resolveRollTableKey(slot.category))
     .filter((k): k is NonNullable<typeof k> => Boolean(k));
   const status = await getScavengingRollTableStatus([...new Set(keys)]);
   const statusByKey = new Map(status.tables.map((row) => [row.tableKey, row] as const));
@@ -56,13 +56,14 @@ async function lootGridRowFromSlot(
   const tableKey = slot.tableKey ?? resolveRollTableKey(slot.category);
   const label = slot.label ?? formatLootCategoryLabel(slot.category);
   const status = tableKey ? statusByKey.get(tableKey) : undefined;
-  const sceneTable = slot.tableId
-    ? undefined
-    : findSceneRollTableForCategory(location, slot.category);
+  const sceneTable =
+    slot.tableId
+      ? undefined
+      : findSceneRollTableForCategory(location, slot.category);
   const tableId = slot.tableId ?? sceneTable?.id;
 
   let rowCountHint: string | undefined;
-  if (isLootValueFilterEnabled()) {
+  if (isLootFilterActive()) {
     const counts = await getLootRowCounts(location, slot.category);
     if (counts && counts.total > 0) {
       rowCountHint = t("WASTELANDER.Scavenging.Loot.RowCountHint", {

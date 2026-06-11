@@ -1,0 +1,16 @@
+{
+  "formula": {
+    "perLevel": 0.4,
+    "maxRarity": 6
+  },
+  "bands": [
+    { "maxLevel": 2, "maxRarity": 0 },
+    { "maxLevel": 4, "maxRarity": 1 },
+    { "maxLevel": 6, "maxRarity": 2 },
+    { "maxLevel": 8, "maxRarity": 3 },
+    { "maxLevel": 12, "maxRarity": 4 },
+    { "maxLevel": 14, "maxRarity": 5 },
+    { "maxLevel": 16, "maxRarity": 6 }
+  ],
+  "defaultMaxRarity": 6
+}

@@ -12,11 +12,9 @@ import {
 } from "../integrations/rollTableDocuments.js";
 import type { LootCategoryKey, ScavengerLocation } from "./ScavengerLocation.js";
 import { suggestRollFormula, type LootTableRow } from "./lootTableRanges.js";
-import {
-  getItemCapsFromUuid,
-  getMaxCapsForLocationLevel,
-  isLootValueFilterEnabled,
-} from "./lootValueCap.js";
+import { filterLootRowsForLocation } from "./lootFilter.js";
+import { getItemCapsFromUuid } from "./lootValueCap.js";
+import { getItemRarityFromUuid } from "./lootRarity.js";
 import {
   loadRollTableResultRows,
   type TableResultRow,
@@ -96,6 +94,7 @@ export function resolveSceneLootTableKeys(location: ScavengerLocation): {
 function rowFromTableResult(
   row: TableResultRow,
   caps: number | null,
+  rarity: number | null,
 ): LootTableRow | null {
   const range = row.range;
   if (!range || range.length < 2) return null;
@@ -108,6 +107,7 @@ function rowFromTableResult(
     name,
     documentUuid,
     caps,
+    rarity,
   };
 }
 
@@ -121,26 +121,22 @@ async function snapshotCategoryRows(
   for (const row of tableRows) {
     const uuid = row.documentUuid?.trim();
     const caps = uuid ? await getItemCapsFromUuid(uuid) : null;
-    const mapped = rowFromTableResult(row, caps);
+    const rarity = uuid ? await getItemRarityFromUuid(uuid) : null;
+    const mapped = rowFromTableResult(row, caps, rarity);
     if (mapped) out.push(mapped);
   }
   return out;
 }
 
-async function filterRowsForLocation(
+async function buildRowsForSceneTable(
   location: ScavengerLocation,
-  rows: LootTableRow[],
-): Promise<LootTableRow[]> {
-  if (!isLootValueFilterEnabled()) return rows;
-  const maxCaps = getMaxCapsForLocationLevel(location.level);
-  const eligible: LootTableRow[] = [];
-  for (const row of rows) {
-    const caps = row.caps ?? (row.documentUuid ? await getItemCapsFromUuid(row.documentUuid) : null);
-    if (caps == null || caps <= maxCaps) {
-      eligible.push({ ...row, caps });
-    }
-  }
-  return eligible;
+  tableKey: ScavengingRollTableKey,
+): Promise<{ rows: LootTableRow[]; formula: string }> {
+  const sourceRows = await snapshotCategoryRows(tableKey);
+  const filtered = await filterLootRowsForLocation(location, sourceRows);
+  const formula = await compendiumFormulaForKey(tableKey);
+  // Keep compendium row ranges; filtered-out items leave gaps on the table.
+  return { rows: filtered, formula };
 }
 
 async function compendiumFormulaForKey(
@@ -162,17 +158,6 @@ function lootRowsToResultPayload(rows: LootTableRow[]): RollTableResultPayload[]
     range: row.range,
     documentUuid: row.documentUuid ?? null,
   }));
-}
-
-async function buildRowsForSceneTable(
-  location: ScavengerLocation,
-  tableKey: ScavengingRollTableKey,
-): Promise<{ rows: LootTableRow[]; formula: string }> {
-  const sourceRows = await snapshotCategoryRows(tableKey);
-  const filtered = await filterRowsForLocation(location, sourceRows);
-  const formula = await compendiumFormulaForKey(tableKey);
-  // Keep compendium row ranges; filtered-out items leave gaps on the table.
-  return { rows: filtered, formula };
 }
 
 async function ensurePlayerCanDraw(table: RollTable): Promise<void> {

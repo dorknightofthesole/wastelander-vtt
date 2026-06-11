@@ -1,19 +1,7 @@
 import bundledCapConfig from "../data/scavenging/loot/value-cap-by-level.json";
 import { MODULE_ID } from "../constants.js";
-import type { LootCategoryKey, ScavengerLocation } from "./ScavengerLocation.js";
 import type { LootTableRow } from "./lootTableRanges.js";
-import {
-  getScavengingSettingBoolean,
-  SCAVENGING_SETTINGS,
-} from "./scavengingSettings.js";
-import { collectTableResultRows } from "./rollTableLookup.js";
-import {
-  findRollTableByKey,
-  resolveRollTableDocument,
-  resolveRollTableKey,
-  resolveWeaponSubcategory,
-} from "./rollTableRegistry.js";
-import { findSceneRollTableForCategory } from "./sceneLootTables.js";
+import { SCAVENGING_SETTINGS } from "./scavengingSettings.js";
 
 export type LootValueCapBand = {
   maxLevel: number;
@@ -152,10 +140,6 @@ export function getLootValueCapConfig(): LootValueCapConfig {
   return normalized;
 }
 
-export function isLootValueFilterEnabled(): boolean {
-  return getScavengingSettingBoolean(SCAVENGING_SETTINGS.lootValueFilterEnabled);
-}
-
 export function getMaxCapsForLocationLevel(level: number): number {
   return capsForLocationLevelFromConfig(level, getLootValueCapConfig());
 }
@@ -215,85 +199,13 @@ export async function resolveRowCaps(row: LootTableRow): Promise<number | null> 
   return getItemCapsFromUuid(uuid);
 }
 
-export function isRowEligible(row: LootTableRow, maxCaps: number): boolean {
+export function isRowEligibleByCaps(row: LootTableRow, maxCaps: number): boolean {
   if (row.caps == null) return true;
   return row.caps <= maxCaps;
 }
 
-async function isRowEligibleForFilter(
-  row: LootTableRow,
-  maxCaps: number,
-): Promise<boolean> {
-  const caps = await resolveRowCaps(row);
-  if (caps == null) return true;
-  return caps <= maxCaps;
-}
-
-const WEAPON_TABLE_KEYS = [
-  "weaponsRanged",
-  "weaponsMelee",
-  "weaponsThrown",
-] as const satisfies readonly LootCategoryKey[];
-
-function resolveTableCategory(category: LootCategoryKey): LootCategoryKey {
-  return category === "weapons" ? resolveWeaponSubcategory() : category;
-}
-
-async function compendiumRowCount(tableKey: LootCategoryKey): Promise<number> {
-  const found = findRollTableByKey(tableKey as never);
-  if (!found) return 0;
-  const table = await resolveRollTableDocument(found.ref);
-  return table ? collectTableResultRows(table).length : 0;
-}
-
-export async function getLootRowCounts(
-  location: ScavengerLocation,
-  category: LootCategoryKey,
-): Promise<{ total: number; eligible: number } | null> {
-  if (category === "junk") return null;
-
-  const rollCategory = resolveTableCategory(category);
-  const sceneTable = findSceneRollTableForCategory(location, rollCategory);
-  const total = sceneTable
-    ? collectTableResultRows(sceneTable).length
-    : await compendiumRowCount(rollCategory);
-
-  if (!total) return null;
-  if (!isLootValueFilterEnabled()) {
-    return { total, eligible: total };
-  }
-
-  const maxCaps = getMaxCapsForLocationLevel(location.level);
-  if (category === "weapons") {
-    let eligible = 0;
-    for (const key of WEAPON_TABLE_KEYS) {
-      const table = findSceneRollTableForCategory(location, key);
-      const rows = table ? collectTableResultRows(table) : [];
-      for (const row of rows) {
-        const uuid = row.documentUuid?.trim();
-        const caps = uuid ? await getItemCapsFromUuid(uuid) : null;
-        if (caps == null || caps <= maxCaps) eligible += 1;
-      }
-    }
-    const weaponTotal = await Promise.all(
-      WEAPON_TABLE_KEYS.map((key) => compendiumRowCount(key)),
-    ).then((counts) => counts.reduce((sum, n) => sum + n, 0));
-    return { total: weaponTotal || total, eligible };
-  }
-
-  const rows = sceneTable ? collectTableResultRows(sceneTable) : [];
-  let eligible = 0;
-  for (const row of rows) {
-    const lootRow: LootTableRow = {
-      range: row.range ?? [0, 0],
-      name: row.name ?? "—",
-      documentUuid: row.documentUuid,
-      caps: null,
-    };
-    if (await isRowEligibleForFilter(lootRow, maxCaps)) eligible += 1;
-  }
-  return { total, eligible };
-}
+/** @deprecated Use isRowEligibleByCaps */
+export const isRowEligible = isRowEligibleByCaps;
 
 /** Clear cached item prices (e.g. after compendium reload). */
 export function clearItemCapsCache(): void {

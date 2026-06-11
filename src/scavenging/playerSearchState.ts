@@ -88,25 +88,79 @@ export function emptyPlayerSearchState(): ScavengerPlayerSearchState {
 export function initPlayerSearchOnSuccess(
   location: ScavengerLocation,
 ): ScavengerPlayerSearchState {
-  const remainingMin: Partial<Record<LootCategoryKey, number>> = {};
-  const rollsUsed: Partial<Record<LootCategoryKey, number>> = {};
+  return syncPlayerSearchLootTracking(location, {
+    ...emptyPlayerSearchState(),
+    searchSuccess: true,
+  });
+}
 
-  for (const slot of getActiveLootSlots(location)) {
-    if (slot.category === "junk") continue;
-    remainingMin[slot.category] = slot.min;
-    rollsUsed[slot.category] = 0;
+const WEAPON_SUBCATEGORIES = new Set<LootCategoryKey>([
+  "weaponsRanged",
+  "weaponsMelee",
+  "weaponsThrown",
+]);
+
+function isWeaponSubcategoryCategory(category: LootCategoryKey): boolean {
+  return WEAPON_SUBCATEGORIES.has(category);
+}
+
+/** Align remainingMin/rollsUsed with current active loot slots (e.g. weapons → melee+ranged). */
+export function syncPlayerSearchLootTracking(
+  location: ScavengerLocation,
+  state: ScavengerPlayerSearchState,
+): ScavengerPlayerSearchState {
+  if (state.searchSuccess !== true) return state;
+
+  const remainingMin = { ...state.remainingMin };
+  const rollsUsed = { ...state.rollsUsed };
+  let changed = false;
+
+  const legacyWeaponsRem = remainingMin.weapons;
+  const legacyWeaponsUsed = rollsUsed.weapons;
+  const activeSlots = getActiveLootSlots(location).filter((slot) => slot.category !== "junk");
+  const hasSplitWeaponSlots = activeSlots.some((slot) =>
+    isWeaponSubcategoryCategory(slot.category),
+  );
+
+  for (const slot of activeSlots) {
+    if (remainingMin[slot.category] === undefined) {
+      if (
+        hasSplitWeaponSlots &&
+        legacyWeaponsRem !== undefined &&
+        isWeaponSubcategoryCategory(slot.category)
+      ) {
+        remainingMin[slot.category] = legacyWeaponsRem;
+      } else {
+        remainingMin[slot.category] = slot.min;
+      }
+      changed = true;
+    }
+
+    if (rollsUsed[slot.category] === undefined) {
+      if (
+        hasSplitWeaponSlots &&
+        legacyWeaponsUsed !== undefined &&
+        isWeaponSubcategoryCategory(slot.category)
+      ) {
+        rollsUsed[slot.category] = legacyWeaponsUsed;
+      } else {
+        rollsUsed[slot.category] = 0;
+      }
+      changed = true;
+    }
   }
 
-  return {
-    version: 2,
-    searchSuccess: true,
-    teamRoles: {},
-    assistRolls: {},
-    remainingMin,
-    rollsUsed,
-    entries: [],
-    updatedAt: Date.now(),
-  };
+  if (hasSplitWeaponSlots && legacyWeaponsRem !== undefined) {
+    delete remainingMin.weapons;
+    changed = true;
+  }
+  if (hasSplitWeaponSlots && legacyWeaponsUsed !== undefined) {
+    delete rollsUsed.weapons;
+    changed = true;
+  }
+
+  if (!changed) return state;
+  return { ...state, remainingMin, rollsUsed, updatedAt: Date.now() };
 }
 
 export function normalizePlayerSearch(
@@ -172,15 +226,29 @@ export function rollsUsedFor(
 export function remainingMinFor(
   state: ScavengerPlayerSearchState,
   category: LootCategoryKey,
+  location?: ScavengerLocation,
 ): number {
-  return state.remainingMin[category] ?? 0;
+  const stored = state.remainingMin[category];
+  if (stored !== undefined) return stored;
+
+  if (location && state.searchSuccess === true) {
+    if (isWeaponSubcategoryCategory(category)) {
+      const legacy = state.remainingMin.weapons;
+      if (legacy !== undefined) return legacy;
+    }
+    const item = getActiveItemRange(location, category);
+    if (item && item.min > 0) return item.min;
+  }
+
+  return 0;
 }
 
 export function minObligationsDone(
   state: ScavengerPlayerSearchState,
   item: ItemCategoryRange,
+  location?: ScavengerLocation,
 ): boolean {
-  return remainingMinFor(state, item.category) <= 0;
+  return remainingMinFor(state, item.category, location) <= 0;
 }
 
 export function canRollMin(
@@ -191,7 +259,7 @@ export function canRollMin(
   if (state.searchSuccess !== true) return false;
   const item = getItemRange(location, category);
   if (!item || item.category === "junk") return false;
-  return remainingMinFor(state, category) > 0;
+  return remainingMinFor(state, category, location) > 0;
 }
 
 export function canSpendApOnCategory(
@@ -204,7 +272,7 @@ export function canSpendApOnCategory(
   if (!item || item.category === "junk") return false;
   if (rollsUsedFor(state, category) >= item.max) return false;
   if (item.min === 0) return true;
-  return minObligationsDone(state, item);
+  return minObligationsDone(state, item, location);
 }
 
 export function newRollEntryId(): string {

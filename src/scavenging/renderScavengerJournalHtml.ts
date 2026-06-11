@@ -24,6 +24,7 @@ import {
 import { buildLuckNeighborRows } from "./rollTableLookup.js";
 import {
   emptyPlayerSearchState,
+  remainingMinFor,
   type AssistSearchRollLog,
   type PlayerLootRollEntry,
   type PlayerSearchRollLog,
@@ -256,7 +257,7 @@ function renderPlayerLootRow(
     .map((slot) => {
       const category = slot.category;
       const label = formatLootCategoryLabel(category);
-      const rem = playerSearch.remainingMin[category] ?? 0;
+      const rem = remainingMinFor(playerSearch, category, location);
       const used = playerSearch.rollsUsed[category] ?? 0;
       return `
       <tr>

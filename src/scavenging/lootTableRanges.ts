@@ -6,6 +6,8 @@ export type LootTableRow = {
   documentUuid?: string;
   /** Resolved from item.system.cost (Fallout); null = text-only / no price */
   caps: number | null;
+  /** Resolved from item.system.rarity (Fallout); null = text-only / no rarity */
+  rarity?: number | null;
 };
 
 export function suggestRollFormula(

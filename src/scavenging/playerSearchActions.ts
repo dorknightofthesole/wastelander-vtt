@@ -23,6 +23,7 @@ import {
   normalizePlayerSearch,
   remainingMinFor,
   rollsUsedFor,
+  syncPlayerSearchLootTracking,
   type PlayerLootRollEntry,
   type ScavengerPlayerSearchState,
   type SearchTeamRole,
@@ -163,7 +164,8 @@ function preparePlayerSearch(
 ): ScavengerPlayerSearchState {
   const base =
     normalizePlayerSearch(state.playerSearch) ?? emptyPlayerSearchState();
-  return ensureSearchTeam(base, partyActorIdsForScene(state.sceneId));
+  const withTeam = ensureSearchTeam(base, partyActorIdsForScene(state.sceneId));
+  return syncPlayerSearchLootTracking(state.location, withTeam);
 }
 
 function getOrInitPlayerSearch(
@@ -503,7 +505,7 @@ async function executePlayerSearchActionInner(
     };
 
     if (data.action === "lootRollMin") {
-      const rem = remainingMinFor(playerSearch, category);
+      const rem = remainingMinFor(playerSearch, category, location);
       playerSearch.remainingMin[category] = Math.max(0, rem - 1);
     }
     playerSearch.rollsUsed[category] = rollsUsedFor(playerSearch, category) + 1;
