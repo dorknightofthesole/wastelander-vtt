@@ -1,5 +1,7 @@
-import type { ItemCategoryRange, ScavengerLocation } from "./ScavengerLocation.js";
+import { getActiveLootSlots } from "./sceneLoot.js";
 import { formatLootCategoryLabel } from "./lootGrid.js";
+import { findSceneRollTableForCategory } from "./sceneLootTables.js";
+import type { ScavengerLocation } from "./ScavengerLocation.js";
 import {
   resolveRollTableKey,
   type ScavengingRollTableStatusRow,
@@ -33,25 +35,27 @@ export function buildScavengerLootGridRows(
     }));
   }
 
-  return location.items
-    .map((item) => lootGridRowFromItem(item, statusByKey))
+  return getActiveLootSlots(location)
+    .map((slot) => {
+      const tableKey = slot.tableKey ?? resolveRollTableKey(slot.category);
+      const label = slot.label ?? formatLootCategoryLabel(slot.category);
+      const sceneTable =
+        slot.tableId
+          ? undefined
+          : tableKey
+            ? findSceneRollTableForCategory(location, slot.category)
+            : undefined;
+      const tableId = slot.tableId ?? sceneTable?.id;
+      const status = tableKey ? statusByKey.get(tableKey) : undefined;
+
+      return {
+        label,
+        min: String(slot.min),
+        max: String(slot.max),
+        installed: Boolean(tableId ?? status?.installed),
+        tableId: tableId ?? status?.tableId,
+        resultCount: sceneTable?.results?.length ?? status?.resultCount,
+      };
+    })
     .sort((a, b) => a.label.localeCompare(b.label));
-}
-
-function lootGridRowFromItem(
-  item: ItemCategoryRange,
-  statusByKey: Map<string, ScavengingRollTableStatusRow>,
-): ScavengerLootGridRow {
-  const tableKey = resolveRollTableKey(item.category);
-  const label = formatLootCategoryLabel(item.category);
-  const status = tableKey ? statusByKey.get(tableKey) : undefined;
-
-  return {
-    label,
-    min: String(item.min),
-    max: String(item.max),
-    installed: status?.installed ?? false,
-    tableId: status?.tableId,
-    resultCount: status?.resultCount,
-  };
 }

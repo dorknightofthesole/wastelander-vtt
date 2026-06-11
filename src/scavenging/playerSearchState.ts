@@ -1,3 +1,4 @@
+import { getActiveItemRange, getActiveLootSlots } from "./sceneLoot.js";
 import type {
   ItemCategoryRange,
   LootCategoryKey,
@@ -7,6 +8,8 @@ import type {
 export type PlayerLootRollEntry = {
   id: string;
   category: LootCategoryKey;
+  /** Resolved loot table when category is abstract (e.g. weapons → weaponsRanged). */
+  resolvedTableCategory?: LootCategoryKey;
   source: "min" | "ap";
   actorId: string;
   userId: string;
@@ -88,10 +91,10 @@ export function initPlayerSearchOnSuccess(
   const remainingMin: Partial<Record<LootCategoryKey, number>> = {};
   const rollsUsed: Partial<Record<LootCategoryKey, number>> = {};
 
-  for (const item of location.items) {
-    if (item.category === "junk") continue;
-    remainingMin[item.category] = item.min;
-    rollsUsed[item.category] = 0;
+  for (const slot of getActiveLootSlots(location)) {
+    if (slot.category === "junk") continue;
+    remainingMin[slot.category] = slot.min;
+    rollsUsed[slot.category] = 0;
   }
 
   return {
@@ -156,7 +159,7 @@ export function getItemRange(
   location: ScavengerLocation,
   category: LootCategoryKey,
 ): ItemCategoryRange | undefined {
-  return location.items.find((i) => i.category === category);
+  return getActiveItemRange(location, category);
 }
 
 export function rollsUsedFor(

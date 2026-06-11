@@ -19,6 +19,8 @@ import {
 } from "./locationRules.js";
 import { buildLocationInhabitants, canHaveInhabitants } from "./inhabitantRules.js";
 import { resolveLocationProblems } from "./problemRules.js";
+import { syncSceneLootTables } from "./sceneLootTables.js";
+import { getSceneDocument } from "./scenePersist.js";
 import { rollOtherFoundCategoryDetailed } from "./lootRoller.js";
 import { rollLocationLevel } from "./locationRules.js";
 import type { InhabitantType } from "./ScavengerLocation.js";
@@ -239,7 +241,7 @@ export async function generateScavengerLocation(params: {
     }
   }
 
-  return {
+  const location: ScavengerLocation = {
     id: randomId(),
     name: params.name,
     concept: params.concept,
@@ -259,6 +261,14 @@ export async function generateScavengerLocation(params: {
     createdAt: Date.now(),
     warnings: warnings.length ? warnings : undefined,
   };
+
+  if (params.sceneId && game.user?.isGM) {
+    const scene = getSceneDocument(params.sceneId);
+    const sceneName = scene?.name?.trim() || params.name;
+    return syncSceneLootTables(location, params.sceneId, sceneName, "generate");
+  }
+
+  return location;
 }
 
 export function getCategoryOptions(): Array<{ id: LocationCategoryId; label: string }> {

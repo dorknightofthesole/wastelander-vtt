@@ -1,0 +1,69 @@
+<div class="wastelander-loot-cap-settings">
+  <p class="wastelander-scavenger-hint">{{localize "WASTELANDER.Scavenging.Settings.LootValueCapIntro"}}</p>
+  <p class="wastelander-scavenger-hint">{{localize "WASTELANDER.Scavenging.Settings.LootValueCapFilterNote"}}</p>
+
+  <section class="wastelander-scavenger-section">
+    <h3>{{localize "WASTELANDER.Scavenging.Settings.LootValueCapBandsTitle"}}</h3>
+    <div class="wastelander-loot-cap-table-scroll" tabindex="0">
+      <table class="wastelander-loot-cap-table">
+        <thead>
+          <tr>
+            <th>{{localize "WASTELANDER.Scavenging.Settings.LootValueCapMaxLevel"}}</th>
+            <th>{{localize "WASTELANDER.Scavenging.Settings.LootValueCapMaxCaps"}}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each bands}}
+            <tr data-band-index="{{@index}}">
+              <td>
+                <input type="number" min="0" step="1" name="band-maxLevel-{{@index}}" value="{{maxLevel}}" data-field="maxLevel" />
+              </td>
+              <td>
+                <input type="number" min="0" step="1" name="band-maxCaps-{{@index}}" value="{{maxCaps}}" data-field="maxCaps" />
+              </td>
+              <td>
+                <button type="button" class="wastelander-btn-secondary" data-action="removeBand" data-band-index="{{@index}}" title="{{localize "WASTELANDER.Scavenging.Settings.LootValueCapRemoveBand"}}">
+                  <i class="fas fa-trash" aria-hidden="true"></i>
+                </button>
+              </td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+    <button type="button" class="wastelander-btn-secondary" data-action="addBand">
+      <i class="fas fa-plus" aria-hidden="true"></i> {{localize "WASTELANDER.Scavenging.Settings.LootValueCapAddBand"}}
+    </button>
+  </section>
+
+  <section class="wastelander-scavenger-section">
+    <h3>{{localize "WASTELANDER.Scavenging.Settings.LootValueCapAdvancedTitle"}}</h3>
+    <div class="wastelander-form-row">
+      <label for="loot-cap-default">{{localize "WASTELANDER.Scavenging.Settings.LootValueCapDefaultMax"}}</label>
+      <input type="number" min="0" step="1" id="loot-cap-default" name="defaultMaxCaps" value="{{defaultMaxCaps}}" />
+    </div>
+    <div class="wastelander-form-row">
+      <label for="loot-cap-reroll">{{localize "WASTELANDER.Scavenging.Settings.LootValueCapRerollAttempts"}}</label>
+      <input type="number" min="1" step="1" id="loot-cap-reroll" name="drawRerollMaxAttempts" value="{{drawRerollMaxAttempts}}" />
+    </div>
+  </section>
+
+  <section class="wastelander-scavenger-section">
+    <h3>{{localize "WASTELANDER.Scavenging.Settings.LootValueCapPreviewTitle"}}</h3>
+    <ul class="wastelander-loot-cap-preview">
+      {{#each previewRows}}
+        <li>{{localize "WASTELANDER.Scavenging.Settings.LootValueCapPreviewRow" level=level maxCaps=maxCaps}}</li>
+      {{/each}}
+    </ul>
+  </section>
+
+  <footer class="wastelander-denizen-import-footer">
+    <button type="button" class="wastelander-btn-primary" data-action="saveConfig">
+      <i class="fas fa-save" aria-hidden="true"></i> {{localize "WASTELANDER.Scavenging.Settings.LootValueCapSave"}}
+    </button>
+    <button type="button" class="wastelander-btn-secondary" data-action="resetDefaults">
+      {{localize "WASTELANDER.Scavenging.Settings.LootValueCapReset"}}
+    </button>
+  </footer>
+</div>

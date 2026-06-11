@@ -2956,6 +2956,271 @@
   cursor: not-allowed;
 }
 
+.wastelander-loot-cap-settings-app {
+  color: lightyellow;
+}
+
+.wastelander-loot-cap-settings-app .wastelander-loot-cap-settings {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  height: 100%;
+  padding: 0.75rem 1rem;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.wastelander-loot-cap-settings-app .wastelander-loot-cap-settings > .wastelander-scavenger-section:first-of-type {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.wastelander-loot-cap-settings-app .wastelander-loot-cap-table-scroll {
+  flex: 1 1 auto;
+  min-height: 12rem;
+  max-height: 22rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overflow-anchor: none;
+  margin-bottom: 0.5rem;
+  border: 1px solid var(--wstl-amber-muted, #6b5a2a);
+  border-radius: 3px;
+  background: var(--wstl-bg-panel, #0b0d07);
+}
+
+.wastelander-loot-cap-settings-app .wastelander-loot-cap-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.wastelander-loot-cap-settings-app .wastelander-loot-cap-table th,
+.wastelander-loot-cap-settings-app .wastelander-loot-cap-table td {
+  padding: 0.35rem 0.5rem;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.wastelander-loot-cap-settings-app .wastelander-loot-cap-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--wstl-bg-panel, #0b0d07);
+  border-bottom: 1px solid var(--wstl-amber-muted, #6b5a2a);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.wastelander-loot-cap-settings-app .wastelander-loot-cap-table tbody tr:nth-child(even) {
+  background: rgba(255, 255, 224, 0.04);
+}
+
+.wastelander-loot-cap-settings-app .wastelander-loot-cap-table input[type="number"] {
+  width: 100%;
+  min-width: 4.5rem;
+  box-sizing: border-box;
+}
+
+.wastelander-loot-cap-settings-app .wastelander-loot-cap-preview {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.wastelander-loot-cap-settings-app .wastelander-denizen-import-footer {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--wstl-amber-muted, #6b5a2a);
+}
+
+.wastelander-loot-cap-settings-app .wastelander-denizen-import-footer button {
+  width: auto;
+}
+
+/* Scavenger — custom loot tables tab */
+.wastelander-loot-tables-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.wastelander-loot-tables-banner {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--wstl-amber-muted, #6b5a2a);
+  background: rgba(0, 0, 0, 0.2);
+  font-size: 0.9rem;
+}
+
+.wastelander-loot-tables-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.wastelander-loot-tables-scene-list {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.wastelander-loot-tables-scene-list th,
+.wastelander-loot-tables-scene-list td {
+  border: 1px solid var(--wstl-amber-muted, #6b5a2a);
+  padding: 0.35rem 0.5rem;
+  vertical-align: middle;
+}
+
+.wastelander-loot-tables-scene-list thead th {
+  background: rgba(0, 0, 0, 0.2);
+  text-align: left;
+}
+
+.wastelander-loot-tables-scene-list input[type="number"] {
+  width: 4rem;
+}
+
+.wastelander-loot-tables-toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.wastelander-loot-tables-add {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1 1 12rem;
+}
+
+.wastelander-loot-tables-add select {
+  min-width: 10rem;
+}
+
+.wastelander-loot-tables-panel {
+  border: 1px solid var(--wstl-amber-muted, #6b5a2a);
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.wastelander-loot-tables-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.wastelander-loot-tables-panel-header h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.wastelander-loot-tables-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+}
+
+.wastelander-loot-tables-meta label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.85rem;
+}
+
+.wastelander-loot-tables-meta input[type="number"],
+.wastelander-loot-tables-meta input[type="text"] {
+  width: 5rem;
+  box-sizing: border-box;
+}
+
+.wastelander-loot-tables-meta input[type="text"] {
+  width: 6rem;
+}
+
+.wastelander-loot-tables-rows-scroll {
+  max-height: 12rem;
+  overflow-y: auto;
+  border: 1px solid rgba(107, 90, 42, 0.45);
+}
+
+.wastelander-loot-tables-rows {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.wastelander-loot-tables-rows th,
+.wastelander-loot-tables-rows td {
+  padding: 0.35rem 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(107, 90, 42, 0.35);
+}
+
+.wastelander-loot-tables-rows thead th {
+  position: sticky;
+  top: 0;
+  background: var(--wstl-panel-bg, #1a1510);
+  z-index: 1;
+}
+
+.wastelander-loot-tables-empty-rows {
+  color: var(--wstl-text-muted, #9a8f7a);
+  font-style: italic;
+}
+
+.wastelander-loot-tables-row-actions {
+  white-space: nowrap;
+}
+
+.wastelander-loot-tables-row-actions button {
+  padding: 0.15rem 0.35rem;
+  min-width: 0;
+}
+
+.wastelander-loot-tables-range-inputs {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.wastelander-loot-tables-range-inputs input[type="number"] {
+  width: 3.25rem;
+  box-sizing: border-box;
+}
+
+.wastelander-loot-tables-dropzone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.5rem;
+  border: 2px dashed var(--wstl-amber-muted, #6b5a2a);
+  color: var(--wstl-text-muted, #9a8f7a);
+  font-size: 0.85rem;
+}
+
+.wastelander-loot-tables-dropzone.is-dragover {
+  border-color: var(--wstl-amber, #c9a227);
+  background: rgba(201, 162, 39, 0.08);
+}
+
 /* Fallout combat die effect face (chat button + dialog) */
 .wastelander-combat-dice-effect-icon {
   display: inline-block;

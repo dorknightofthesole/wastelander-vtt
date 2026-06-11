@@ -238,7 +238,24 @@
       "Hint": "Creates a location using the GM Screen booklet rules (category, scale, degree, level). A Scavenger journal page for this scene updates automatically for Overseers.",
       "Tabs": {
         "Current": "Current scavenge location",
-        "Create": "Create"
+        "Create": "Create",
+        "LootTables": "Loot tables"
+      },
+      "LootTables": {
+        "NoLocation": "Generate a location first to view or edit loot tables.",
+        "Hint": "Enable “Limit loot by item value” in module settings to preview filtered loot here, or add custom tables below.",
+        "FoundryEditHint": "Loot tables live under Roll Tables → Wastelander → Scenes → this scene. Edit rows there; set min/max below.",
+        "LegacyUpgrade": "This location uses the old in-memory loot tables. Reset loot tables to create scene RollTable documents.",
+        "FilterBanner": "Value filter active — max {maxCaps} caps at this level. Reset loot tables after level or filter changes.",
+        "ResetToLocation": "Reset loot tables",
+        "ResetConfirmTitle": "Reset loot tables?",
+        "ResetConfirmBody": "Delete all RollTables in this scene’s folder and rebuild them from the location booklet and value-cap filter? Min/max overrides will be reset.",
+        "ResetDone": "Scene loot tables rebuilt from the location.",
+        "RollFormula": "Roll formula",
+        "ColumnTable": "Table",
+        "ColumnRows": "Rows",
+        "OpenTable": "Open",
+        "NoSceneTables": "No loot tables in this scene folder yet. Generate a location or reset loot tables."
       },
       "Current": {
         "Empty": "No location generated yet. Use the Create tab to configure party and options, then generate.",
@@ -424,7 +441,39 @@
         "AdvanceWorldClockOnSearch": "Advance world clock after search",
         "AdvanceWorldClockOnSearchHint": "When a search attempt completes, advance Simple Calendar by the location's Time Taken (requires the Simple Calendar module).",
         "AutoDegreeReduction": "Auto-allocate degree reductions",
-        "AutoDegreeReductionHint": "Randomly apply minimum reductions when generating a location."
+        "AutoDegreeReductionHint": "Randomly apply minimum reductions when generating a location.",
+        "LootValueFilterEnabled": "Limit loot by item value",
+        "LootValueFilterEnabledHint": "When enabled, scavenging loot lists only include items at or below the max caps for the location level (see Loot value cap table).",
+        "LootValueCapMenuName": "Loot value cap table",
+        "LootValueCapMenuLabel": "Configure loot value caps",
+        "LootValueCapMenuHint": "Edit location level → max item caps bands used when value filtering is enabled.",
+        "LootValueCapMenuTitle": "Loot value cap table",
+        "LootValueCapIntro": "Maps location level to the maximum item value (caps) allowed on scavenging loot rolls.",
+        "LootValueCapFilterNote": "Used only when “Limit loot by item value” is enabled in module settings.",
+        "LootValueCapBandsTitle": "Level bands",
+        "LootValueCapMaxLevel": "Max location level",
+        "LootValueCapMaxCaps": "Max item caps",
+        "LootValueCapAddBand": "Add band",
+        "LootValueCapRemoveBand": "Remove band",
+        "LootValueCapAdvancedTitle": "Advanced",
+        "LootValueCapDefaultMax": "Default max caps (above highest band)",
+        "LootValueCapRerollAttempts": "2d20 re-roll attempts (range gaps)",
+        "LootValueCapPreviewTitle": "Preview",
+        "LootValueCapPreviewRow": "Level {level} → {maxCaps} caps",
+        "LootValueCapSave": "Save",
+        "LootValueCapReset": "Reset to module defaults",
+        "LootValueCapSaved": "Loot value cap table saved.",
+        "LootValueCapResetDone": "Loot value cap table reset to module defaults.",
+        "LootValueCapNoBands": "Add at least one level band before saving."
+      },
+      "Loot": {
+        "ValueCapLabel": "Loot value cap",
+        "ValueFilterDisabled": "Off (module setting)",
+        "ValueFilterEnabled": "Max {maxCaps} caps at this level",
+        "NoEligibleLoot": "No loot within value limit for this category",
+        "NoSceneTable": "Scene loot table \"{name}\" not found",
+        "NoTableRow": "No eligible table row for roll {sum}",
+        "RowCountHint": "{eligible}/{total} rows"
       },
       "PlayerSearch": {
         "Title": "Scavenge location",

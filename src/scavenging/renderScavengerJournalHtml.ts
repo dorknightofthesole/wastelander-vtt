@@ -5,6 +5,7 @@ import {
   buildCurrentTabContext,
   type CurrentTabContext,
 } from "./currentTabContext.js";
+import { getActiveLootSlots } from "./sceneLoot.js";
 import { formatLootCategoryLabel } from "./lootGrid.js";
 import type {
   PartyActorRow,
@@ -237,12 +238,8 @@ function renderPlayerLootRow(
   location: ScavengerLocation,
   playerSearch: ScavengerPlayerSearchState,
 ): string {
-  const keys = new Set(
-    location.items
-      .filter((i) => i.category !== "junk")
-      .map((i) => i.category),
-  );
-  if (!keys.size) return "";
+  const slots = getActiveLootSlots(location).filter((s) => s.category !== "junk");
+  if (!slots.length) return "";
 
   const header = `
     <thead>
@@ -255,18 +252,17 @@ function renderPlayerLootRow(
       </tr>
     </thead>`;
 
-  const rows = location.items
-    .filter((item) => item.category !== "junk")
-    .map((item) => {
-      const category = item.category;
+  const rows = slots
+    .map((slot) => {
+      const category = slot.category;
       const label = formatLootCategoryLabel(category);
       const rem = playerSearch.remainingMin[category] ?? 0;
       const used = playerSearch.rollsUsed[category] ?? 0;
       return `
       <tr>
         <td>${escapeHtml(label)}</td>
-        <td>${item.min}</td>
-        <td>${item.max}</td>
+        <td>${slot.min}</td>
+        <td>${slot.max}</td>
         <td>${rem}</td>
         <td>${used}</td>
       </tr>`;
@@ -332,7 +328,7 @@ function renderAssistRollLog(log: AssistSearchRollLog): string {
 
 async function renderLuckLadder(
   entry: PlayerLootRollEntry,
-  locationLevel: number,
+  location: ScavengerLocation,
 ): Promise<string> {
   if (entry.rollSum <= 0 || entry.category === "junk" || entry.luckSpent > 0) {
     return "";
@@ -340,7 +336,7 @@ async function renderLuckLadder(
 
   const rows = await buildLuckNeighborRows(
     entry,
-    locationLevel,
+    location,
     (cost) => t("WASTELANDER.Scavenging.PlayerSearch.LuckSpend", { cost }),
   );
   if (!rows.length) return "";
@@ -398,7 +394,7 @@ async function renderLootRollEntry(
     ? `<p class="wastelander-scavenger-hint">${escapeHtml(entry.quantityFormula)}</p>`
     : "";
 
-  const ladder = await renderLuckLadder(entry, location.level);
+  const ladder = await renderLuckLadder(entry, location);
   const unlocked = entry.rollSum > 0 ? renderUnlockedLoot(entry) : "";
 
   return `

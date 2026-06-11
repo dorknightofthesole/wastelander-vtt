@@ -5,6 +5,10 @@ import {
   buildCurrentTabContext,
   problemSummaryLabelBase,
 } from "./currentTabContext.js";
+import { getRollTableDocument } from "../integrations/rollTableDocuments.js";
+import { buildLootTablesTabContext } from "./lootTablesTabContext.js";
+import { refreshSceneLootSlotsFromFolder, resetSceneLootTables, updateSceneLootSlotMinMax } from "./sceneLootTables.js";
+import { hasSceneLootFolder } from "./sceneLoot.js";
 import { buildScavengerLootGridRows } from "./scavengerLootGrid.js";
 import { t } from "../integrations/i18n.js";
 import type {
@@ -46,6 +50,7 @@ import {
   getSceneDocument,
   loadScavengerSceneState,
   persistScavengerSceneState,
+  resolveOverseerOpeningTab,
   type ScavengerFormState,
   type ScavengerTab,
 } from "./scenePersist.js";
@@ -64,6 +69,7 @@ import {
   problemsForProblemUi,
 } from "./problemRules.js";
 import { executePlayerSearchAction } from "./playerSearchActions.js";
+import { scavengerConfirmDialog } from "./scavengerConfirm.js";
 import { scheduleScavengerJournalSync } from "./scavengerJournalSync.js";
 import ScavengerSearchApp from "./ScavengerSearchApp.js";
 import { getScavengingSettingBoolean, SCAVENGING_SETTINGS } from "./scavengingSettings.js";
@@ -71,6 +77,13 @@ import { getScavengingSettingBoolean, SCAVENGING_SETTINGS } from "./scavengingSe
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 type FormState = ScavengerFormState;
+
+const LOOT_CHANGE_ACTIONS = new Set(["updateSceneLootSlot"]);
+
+const LOOT_CLICK_ACTIONS = new Set([
+  "openSceneLootTable",
+  "resetLootTablesToLocation",
+]);
 
 export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
   ApplicationV2,
@@ -111,6 +124,9 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
       markSearchFail: ScavengerLocationApp.onMarkSearchFail,
       resetPlayerSearch: ScavengerLocationApp.onResetPlayerSearch,
       applyHazardDamage: ScavengerLocationApp.onApplyHazardDamage,
+      openSceneLootTable: ScavengerLocationApp.onOpenSceneLootTable,
+      updateSceneLootSlot: ScavengerLocationApp.onUpdateSceneLootSlot,
+      resetLootTablesToLocation: ScavengerLocationApp.onResetLootTablesToLocation,
     },
   };
 
@@ -132,6 +148,9 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
   static async onActivateScene(sceneId: string): Promise<void> {
     const app = ScavengerLocationApp.#open;
     if (!app?.rendered) return;
+    // Persisting tab/form edits fires updateScene on this scene; do not re-bind or the
+    // opening-tab default would override the tab the user just selected.
+    if (app.#sceneId === sceneId) return;
     await app.#bindScene(sceneId);
     void app.render();
   }
@@ -193,7 +212,7 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
     const applied = applyScavengerSceneState(saved, sceneId);
     this.#form = applied.form;
     this.location = applied.location;
-    this.#activeTab = applied.activeTab;
+    this.#activeTab = resolveOverseerOpeningTab(applied.location);
     this.party = applied.party;
     this.#sceneId = sceneId;
     if (sceneId && game.user?.isGM) {
@@ -240,7 +259,12 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
     root.addEventListener("change", (event) => {
       const target = event.target;
       if (!(target instanceof HTMLElement)) return;
-      const action = target.dataset.action;
+      const actionEl = target.closest<HTMLElement>("[data-action]") ?? target;
+      const action = actionEl.dataset.action;
+      if (action && LOOT_CHANGE_ACTIONS.has(action)) {
+        ScavengerLocationApp.#dispatchLootAction.call(this, action, event, actionEl);
+        return;
+      }
       if (action === "updateField") {
         ScavengerLocationApp.#onUpdateField.call(this, event, target);
       } else if (action === "toggleParty") {
@@ -249,6 +273,20 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
         ScavengerLocationApp.#onToggleProblem.call(this, event, target);
       }
     });
+    root.addEventListener(
+      "click",
+      (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) return;
+        const actionEl = target.closest<HTMLElement>("[data-action]");
+        const action = actionEl?.dataset.action;
+        if (!actionEl || !action || !LOOT_CLICK_ACTIONS.has(action)) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        void ScavengerLocationApp.#dispatchLootAction.call(this, action, event, actionEl);
+      },
+      true,
+    );
     root.addEventListener("dragstart", (event) => {
       const target = event.target;
       if (!(target instanceof HTMLElement)) return;
@@ -258,6 +296,74 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
       if (!actorUuid) return;
       void startActorDrag(event, actorUuid);
     });
+  }
+
+  static #dispatchLootAction(
+    this: ScavengerLocationApp,
+    action: string,
+    event: Event,
+    target: HTMLElement,
+  ): void | Promise<void> {
+    switch (action) {
+      case "updateSceneLootSlot":
+        return ScavengerLocationApp.onUpdateSceneLootSlot.call(this, event, target);
+      case "openSceneLootTable":
+        return ScavengerLocationApp.onOpenSceneLootTable.call(this, event, target);
+      case "resetLootTablesToLocation":
+        return ScavengerLocationApp.onResetLootTablesToLocation.call(this, event, target);
+      default:
+        return undefined;
+    }
+  }
+
+  async #generateLocationFromForm(options?: {
+    clearPlayerSearch?: boolean;
+    activeTab?: ScavengerTab;
+  }): Promise<void> {
+    if (ScavengerLocationApp.#generating) return;
+
+    const sceneId = getActiveSceneId() ?? this.#sceneId ?? undefined;
+    if (sceneId) this.#sceneId = sceneId;
+    const problemsForGenerate = problemsForGeneration(this.#form.problems);
+    const hadSceneLoot = hasSceneLootFolder(this.location);
+
+    ScavengerLocationApp.#generating = true;
+    try {
+      this.location = await generateScavengerLocation({
+        name: this.#form.name.trim() || "Scavenger location",
+        concept: this.#form.concept.trim() || undefined,
+        scale: this.#form.scale,
+        categoryId: this.#form.categoryId,
+        degree: this.#form.degree,
+        party: this.party,
+        problems: {
+          ...problemsForGenerate,
+          inhabitantType: this.#form.inhabitantType,
+        },
+        levelOverride: null,
+        autoAllocateDegree: getScavengingSettingBoolean(
+          SCAVENGING_SETTINGS.autoAllocateDegreeReduction,
+        ),
+        sceneId,
+        animateLevelRoll: hadSceneLoot ? false : true,
+        animateInhabitantRoll:
+          hadSceneLoot ? false : problemsForGenerate.inhabitants,
+      });
+
+      if (options?.activeTab) {
+        this.#activeTab = options.activeTab;
+      }
+      this.#form.problems = { ...this.location.problems };
+      if (this.location.inhabitants?.type) {
+        this.#form.inhabitantType = this.location.inhabitants.type;
+      }
+      await this.#persistSceneState({
+        clearPlayerSearch: options?.clearPlayerSearch,
+      });
+    } finally {
+      ScavengerLocationApp.#generating = false;
+      void this.render();
+    }
   }
 
   #rootElement(): HTMLElement | null {
@@ -385,6 +491,11 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
 
     const tabCurrent = this.#activeTab === "current";
     const tabCreate = this.#activeTab === "create";
+    const tabLootTables = this.#activeTab === "lootTables";
+    if (this.location?.sceneLoot?.folderId) {
+      this.location = refreshSceneLootSlotsFromFolder(this.location);
+    }
+    const lootTables = await buildLootTablesTabContext(this.location, this.#sceneId);
     const problemsUi = buildProblemsUiContext(this.#form.problems, this.location);
     const current = buildCurrentTabContext(this.location, this.#form.problems, {
       sceneId: this.#sceneId,
@@ -406,6 +517,8 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
     return {
       tabCurrent,
       tabCreate,
+      tabLootTables,
+      lootTables,
       generating: ScavengerLocationApp.#generating,
       sceneScope: sceneDoc?.name
         ? t("WASTELANDER.Scavenging.SceneScope", { scene: sceneDoc.name })
@@ -440,7 +553,7 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
     target: HTMLElement,
   ): void {
     const tab = target.dataset.tab as ScavengerTab | undefined;
-    if (tab !== "current" && tab !== "create") return;
+    if (tab !== "current" && tab !== "create" && tab !== "lootTables") return;
     if (this.#activeTab === tab) return;
     this.#activeTab = tab;
     void this.#persistSceneState();
@@ -580,61 +693,32 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
     _event: Event,
     _target: HTMLElement,
   ): Promise<void> {
-    if (ScavengerLocationApp.#generating) return;
-
-    const sceneId = getActiveSceneId() ?? this.#sceneId ?? undefined;
-    if (sceneId) this.#sceneId = sceneId;
-    const problemsForGenerate = problemsForGeneration(this.#form.problems);
-
-    ScavengerLocationApp.#generating = true;
     const generateBtn =
       _target instanceof HTMLButtonElement ? _target : null;
     if (generateBtn) generateBtn.disabled = true;
 
     try {
-      this.location = await generateScavengerLocation({
-        name: this.#form.name.trim() || "Scavenger location",
-        concept: this.#form.concept.trim() || undefined,
-        scale: this.#form.scale,
-        categoryId: this.#form.categoryId,
-        degree: this.#form.degree,
-        party: this.party,
-        problems: {
-          ...problemsForGenerate,
-          inhabitantType: this.#form.inhabitantType,
-        },
-        levelOverride: null,
-        autoAllocateDegree: getScavengingSettingBoolean(
-          SCAVENGING_SETTINGS.autoAllocateDegreeReduction,
-        ),
-        sceneId,
-        animateLevelRoll: true,
-        animateInhabitantRoll: problemsForGenerate.inhabitants,
+      await this.#generateLocationFromForm({
+        clearPlayerSearch: true,
+        activeTab: "current",
       });
-
-      this.#activeTab = "current";
-      this.#form.problems = { ...this.location.problems };
-      if (this.location.inhabitants?.type) {
-        this.#form.inhabitantType = this.location.inhabitants.type;
+      if (this.location) {
+        ui.notifications.info(
+          t("WASTELANDER.Scavenging.Notify.Generated", {
+            level: this.location.level,
+          }),
+        );
+        for (const warning of this.location.warnings ?? []) {
+          ui.notifications.warn(warning);
+        }
       }
-      ui.notifications.info(
-        t("WASTELANDER.Scavenging.Notify.Generated", {
-          level: this.location.level,
-        }),
-      );
-      for (const warning of this.location.warnings ?? []) {
-        ui.notifications.warn(warning);
-      }
-      await this.#persistSceneState({ clearPlayerSearch: true });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       ui.notifications.error(
         t("WASTELANDER.Scavenging.Notify.GenerateError", { error: message }),
       );
     } finally {
-      ScavengerLocationApp.#generating = false;
       if (generateBtn) generateBtn.disabled = false;
-      void this.render();
     }
   }
 
@@ -680,6 +764,72 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
     _target: HTMLElement,
   ): void {
     void this.#gmSetSearchOutcome("reset");
+  }
+
+  static onOpenSceneLootTable(
+    this: ScavengerLocationApp,
+    _event: Event,
+    target: HTMLElement,
+  ): void {
+    const tableId =
+      target.closest<HTMLElement>("[data-table-id]")?.dataset.tableId?.trim() ??
+      target.dataset.tableId?.trim();
+    if (!tableId) return;
+    const table = getRollTableDocument(tableId);
+    table?.sheet?.render(true);
+  }
+
+  static onUpdateSceneLootSlot(
+    this: ScavengerLocationApp,
+    _event: Event,
+    target: HTMLElement,
+  ): void {
+    if (!this.location) return;
+    const fieldEl =
+      target.closest<HTMLElement>("[data-table-id][data-field]") ?? target;
+    const tableId = fieldEl.dataset.tableId?.trim();
+    const field = fieldEl.dataset.field;
+    if (!tableId || (field !== "min" && field !== "max")) return;
+
+    const value = Math.max(0, Math.floor(Number((fieldEl as HTMLInputElement).value) || 0));
+    this.location = updateSceneLootSlotMinMax(this.location, tableId, field, value);
+    this.#schedulePersistSceneState();
+  }
+
+  static onResetLootTablesToLocation(
+    this: ScavengerLocationApp,
+    _event: Event,
+    _target: HTMLElement,
+  ): void {
+    void this.#confirmResetLootTablesToLocation();
+  }
+
+  async #confirmResetLootTablesToLocation(): Promise<void> {
+    if (!this.location) return;
+    const sceneId = this.#sceneId ?? getActiveSceneId();
+    if (!sceneId) return;
+
+    const confirmed = await scavengerConfirmDialog(
+      t("WASTELANDER.Scavenging.LootTables.ResetConfirmTitle"),
+      t("WASTELANDER.Scavenging.LootTables.ResetConfirmBody"),
+    );
+    if (!confirmed) return;
+
+    try {
+      const scene = getSceneDocument(sceneId);
+      const sceneName = scene?.name?.trim() || this.location.name;
+      this.location = await resetSceneLootTables(this.location, sceneId, sceneName);
+      this.location = refreshSceneLootSlotsFromFolder(this.location);
+      this.#activeTab = "lootTables";
+      await this.#persistSceneState({ clearPlayerSearch: true });
+      void this.render();
+      ui.notifications.info(t("WASTELANDER.Scavenging.LootTables.ResetDone"));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      ui.notifications.error(
+        t("WASTELANDER.Scavenging.Notify.GenerateError", { error: message }),
+      );
+    }
   }
 
   async #gmSetSearchOutcome(

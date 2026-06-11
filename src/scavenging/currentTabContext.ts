@@ -15,6 +15,10 @@ import type {
   ScavengerLocationProblems,
 } from "./ScavengerLocation.js";
 import {
+  getMaxCapsForLocationLevel,
+  isLootValueFilterEnabled,
+} from "./lootValueCap.js";
+import {
   formatHazardSummary,
   formatObstacleSummary,
   normalizeHazardKind,
@@ -58,6 +62,12 @@ export type CurrentTabContext = {
     summary?: string;
     showOvercome: boolean;
     overcome: boolean;
+  };
+  lootValueCap?: {
+    enabled: boolean;
+    maxCaps?: number;
+    disabledLabel: string;
+    enabledLabel: string;
   };
 };
 
@@ -154,6 +164,16 @@ export function buildCurrentTabContext(
     };
   }
 
+  const filterEnabled = isLootValueFilterEnabled();
+  const lootValueCap = {
+    enabled: filterEnabled,
+    maxCaps: filterEnabled ? getMaxCapsForLocationLevel(location.level) : undefined,
+    disabledLabel: t("WASTELANDER.Scavenging.Loot.ValueFilterDisabled"),
+    enabledLabel: t("WASTELANDER.Scavenging.Loot.ValueFilterEnabled", {
+      maxCaps: getMaxCapsForLocationLevel(location.level),
+    }),
+  };
+
   return {
     empty: false,
     name: location.name,
@@ -170,5 +190,6 @@ export function buildCurrentTabContext(
     inhabitants,
     hazard,
     obstacle,
+    lootValueCap,
   };
 }

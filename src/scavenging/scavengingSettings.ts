@@ -1,5 +1,6 @@
 import { MODULE_ID } from "../constants.js";
 import DenizenImportMenuApp from "./DenizenImportMenuApp.js";
+import LootValueCapSettingsApp from "./LootValueCapSettingsApp.js";
 
 export const SCAVENGING_SETTINGS = {
   preferFoundryTables: "preferFoundryTables",
@@ -8,6 +9,10 @@ export const SCAVENGING_SETTINGS = {
   autoAllocateDegreeReduction: "autoAllocateDegreeReduction",
   /** World id of the shared Overseer Scavenger journal. */
   scavengerJournalId: "scavengerJournalId",
+  /** When true, filter scavenging loot rows by location level → max caps table. */
+  lootValueFilterEnabled: "lootValueFilterEnabled",
+  /** GM override for level → max caps bands (empty uses bundled defaults). */
+  lootValueCapConfig: "lootValueCapConfig",
 } as const;
 
 export function registerScavengingSettings(): void {
@@ -56,6 +61,31 @@ export function registerScavengingSettings(): void {
     type: String,
     default: "",
     config: false,
+  });
+
+  settings.register(MODULE_ID, SCAVENGING_SETTINGS.lootValueFilterEnabled, {
+    name: "WASTELANDER.Scavenging.Settings.LootValueFilterEnabled",
+    hint: "WASTELANDER.Scavenging.Settings.LootValueFilterEnabledHint",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: false,
+  });
+
+  settings.register(MODULE_ID, SCAVENGING_SETTINGS.lootValueCapConfig, {
+    scope: "world",
+    type: Object,
+    default: {},
+    config: false,
+  });
+
+  settings.registerMenu(MODULE_ID, "lootValueCapTable", {
+    name: "WASTELANDER.Scavenging.Settings.LootValueCapMenuName",
+    label: "WASTELANDER.Scavenging.Settings.LootValueCapMenuLabel",
+    hint: "WASTELANDER.Scavenging.Settings.LootValueCapMenuHint",
+    icon: "fas fa-coins",
+    type: LootValueCapSettingsApp,
+    restricted: true,
   });
 
   settings.registerMenu(MODULE_ID, "importDenizens", {

@@ -1,9 +1,11 @@
 import otherFound from "../data/scavenging/creation/other-found-items.json";
-import type { LootCategoryKey } from "./ScavengerLocation.js";
+import { t } from "../integrations/i18n.js";
 import { roll2d20, rollD20 } from "./dice.js";
+import type { LootCategoryKey, ScavengerLocation } from "./ScavengerLocation.js";
 import { itemUuidFromTableRow } from "./lootItemInteract.js";
 import {
   clampLootRollSum,
+  collectTableResultRows,
   lookupLootAtRollSum,
   type TableResultRow,
 } from "./rollTableLookup.js";
@@ -14,6 +16,7 @@ import {
   resolveRollTableKey,
   resolveWeaponSubcategory,
 } from "./rollTableRegistry.js";
+import { findSceneRollTableForCategory } from "./sceneLootTables.js";
 import { getScavengingSettingBoolean, SCAVENGING_SETTINGS } from "./scavengingSettings.js";
 
 const WEAPON_SUBCATEGORIES: LootCategoryKey[] = [
@@ -53,19 +56,13 @@ export type DrawnLoot = {
   itemUuid?: string;
   quantity?: number;
   formula?: string;
+  /** Concrete table category used for the draw. */
+  tableCategory?: LootCategoryKey;
   /** Foundry posted the table draw to chat (skip duplicate module message). */
   drewToChat?: boolean;
 };
 
-type TableResultRow = {
-  type?: string;
-  documentUuid?: string;
-  name?: string;
-  text?: string;
-  range?: [number, number];
-};
-
-function normalizeRollTableDraw(raw: unknown): { results: TableResultRow[] } {
+function normalizeRollTableDraw(raw: unknown): { results: TableResultRow[]; rollTotal?: number } {
   if (!raw || typeof raw !== "object") return { results: [] };
   const obj = raw as Record<string, unknown>;
   const inner =
@@ -73,7 +70,9 @@ function normalizeRollTableDraw(raw: unknown): { results: TableResultRow[] } {
       ? (obj.RollTableDraw as Record<string, unknown>)
       : obj;
   const results = Array.isArray(inner.results) ? (inner.results as TableResultRow[]) : [];
-  return { results };
+  const rollTotal =
+    typeof inner.rollTotal === "number" ? inner.rollTotal : undefined;
+  return { results, rollTotal };
 }
 
 function resultLabelFromDraw(
@@ -88,16 +87,12 @@ function resultLabelFromDraw(
   return key ? getRollTableDisplayName(key) : tableKey;
 }
 
-async function drawFromFoundryTable(
+async function drawFromRollTableDocument(
+  table: RollTable,
   category: LootCategoryKey,
-  displayChat = true,
-): Promise<DrawnLoot | null> {
-  const found = await findRollTableForCategory(category);
-  if (!found) return null;
-
-  const table = await resolveRollTableDocument(found.ref);
-  if (!table?.draw) return null;
-
+  displayChat: boolean,
+  luckShift: number,
+): Promise<DrawnLoot> {
   const whisper = getScavengingSettingBoolean(SCAVENGING_SETTINGS.searchRollWhisper);
   const drawRaw = await table.draw({
     displayChat,
@@ -106,55 +101,131 @@ async function drawFromFoundryTable(
   const { results, rollTotal } = normalizeRollTableDraw(drawRaw);
   const picked =
     results.find((r) => r.type === "document" || r.documentUuid) ?? results[0];
+
   if (!picked) {
     return {
-      label: `(No result on ${found.name})`,
+      label: `(No result on ${table.name})`,
       rollSum: 0,
       drewToChat: displayChat,
+      tableCategory: category,
     };
   }
 
   const range = picked.range;
-  const rollSum =
+  let rollSum =
     rollTotal ??
     (range
       ? Math.round((Math.min(range[0]!, range[1]!) + Math.max(range[0]!, range[1]!)) / 2)
       : 0);
+  rollSum = clampLootRollSum(category, rollSum);
+
+  const tableRows = collectTableResultRows(table);
+  let label = resultLabelFromDraw(picked, category);
+  let itemUuid = itemUuidFromTableRow(picked);
+  let resolvedSum = rollSum;
+
+  if (luckShift !== 0) {
+    const shifted = await lookupLootAtRollSum(
+      category,
+      rollSum + luckShift,
+      tableRows,
+    );
+    label = shifted.label;
+    itemUuid = shifted.itemUuid;
+    resolvedSum = shifted.rollSum;
+  }
 
   return {
-    label: resultLabelFromDraw(picked, found.tableKey),
-    rollSum: clampLootRollSum(category, rollSum),
-    itemUuid: itemUuidFromTableRow(picked),
+    label,
+    rollSum: resolvedSum,
+    itemUuid,
+    tableCategory: category,
     drewToChat: displayChat,
   };
+}
+
+async function drawFromSceneTable(
+  location: ScavengerLocation,
+  category: LootCategoryKey,
+  luckShift: number,
+  displayChat: boolean,
+): Promise<DrawnLoot | null> {
+  if (category === "junk") return null;
+
+  const rollCategory: LootCategoryKey =
+    category === "weapons"
+      ? location.sceneLoot?.weaponsTableKey ?? resolveWeaponSubcategory()
+      : category;
+
+  const table = findSceneRollTableForCategory(location, category);
+  if (!table?.draw) {
+    const tableKey = resolveRollTableKey(rollCategory);
+    const displayName = tableKey
+      ? getRollTableDisplayName(tableKey)
+      : rollCategory;
+    return {
+      label: t("WASTELANDER.Scavenging.Loot.NoSceneTable", { name: displayName }),
+      rollSum: 0,
+    };
+  }
+
+  return drawFromRollTableDocument(table, rollCategory, displayChat, luckShift);
+}
+
+async function drawFromFoundryTable(
+  category: LootCategoryKey,
+  displayChat = true,
+  luckShift = 0,
+): Promise<DrawnLoot | null> {
+  const found = await findRollTableForCategory(category);
+  if (!found) return null;
+
+  const table = await resolveRollTableDocument(found.ref);
+  if (!table?.draw) return null;
+
+  return drawFromRollTableDocument(table, category, displayChat, luckShift);
 }
 
 export async function rollLootCategory(
   category: LootCategoryKey,
   luckShift = 0,
-  options?: { displayChat?: boolean },
+  options?: { displayChat?: boolean; location?: ScavengerLocation },
 ): Promise<DrawnLoot> {
+  const pinnedWeaponKey = options?.location?.sceneLoot?.weaponsTableKey;
   const tableCategory: LootCategoryKey =
-    category === "weapons" ? resolveWeaponSubcategory() : category;
+    category === "weapons"
+      ? pinnedWeaponKey ?? resolveWeaponSubcategory()
+      : category;
+  const displayChat = options?.displayChat !== false;
+
+  if (options?.location) {
+    if (tableCategory === "junk") {
+      let rollSum = roll2d20().sum;
+      rollSum = Math.max(2, Math.min(40, rollSum + luckShift));
+      return {
+        label: `${rollSum} junk items`,
+        rollSum,
+        quantity: rollSum,
+      };
+    }
+
+    if (
+      options.location.sceneLoot?.folderId ||
+      (options.location.sceneLoot?.slots?.length ?? 0) > 0
+    ) {
+      const drawn = await drawFromSceneTable(
+        options.location,
+        category,
+        luckShift,
+        displayChat,
+      );
+      if (drawn) return drawn;
+    }
+  }
 
   if (getScavengingSettingBoolean(SCAVENGING_SETTINGS.preferFoundryTables)) {
-    const drawn = await drawFromFoundryTable(
-      tableCategory,
-      options?.displayChat !== false,
-    );
-    if (drawn && drawn.rollSum > 0) {
-      if (luckShift !== 0) {
-        const base = drawn.rollSum;
-        const shifted = await lookupLootAtRollSum(tableCategory, base + luckShift);
-        return {
-          label: shifted.label,
-          rollSum: shifted.rollSum,
-          itemUuid: shifted.itemUuid,
-          drewToChat: drawn.drewToChat,
-        };
-      }
-      return drawn;
-    }
+    const drawn = await drawFromFoundryTable(tableCategory, displayChat, luckShift);
+    if (drawn && drawn.rollSum > 0) return drawn;
   }
 
   if (tableCategory === "junk") {

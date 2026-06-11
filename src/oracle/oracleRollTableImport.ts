@@ -1,6 +1,13 @@
 import { MODULE_ID } from "../constants.js";
 import { t } from "../integrations/i18n.js";
 import {
+  clearRollTableFolderCache,
+  ensureRollTableFolder,
+  findWorldRollTableByName,
+  getRollTableDocument,
+  ROLL_TABLE_CREATE_OPTIONS,
+} from "../integrations/rollTableDocuments.js";
+import {
   getBundledOracleRollTables,
   type OracleRollTableJson,
 } from "./oracleImportSources.js";
@@ -10,7 +17,7 @@ import {
 } from "./oracleRollTableFolders.js";
 
 const SILENT = { render: false } as const;
-const CREATE_OPTIONS = { render: false, keepId: false } as const;
+const CREATE_OPTIONS = ROLL_TABLE_CREATE_OPTIONS;
 
 const TABLE_STRIP_KEYS = new Set([
   "_id",
@@ -45,127 +52,13 @@ function deepClone<T>(value: T): T {
   return (foundry.utils as { deepClone: <U>(v: U) => U }).deepClone(value);
 }
 
-function folderParentId(folder: Folder): string | null {
-  const id = folder.folder;
-  return id == null || id === "" ? null : id;
-}
-
-function folderCacheKey(name: string, parentId: string | null): string {
-  return `${parentId ?? ""}\0${name}`;
-}
-
-const folderIdCache = new Map<string, string>();
-
-function listRollTableFolders(): Folder[] {
-  const folders = (game as { folders?: Iterable<Folder> }).folders;
-  if (!folders) return [];
-  return Array.from(folders).filter((folder) => folder.type === "RollTable");
-}
-
-function findRollTableFolder(
-  name: string,
-  parentId: string | null,
-): Folder | undefined {
-  const targetParent = parentId ?? null;
-  for (const folder of listRollTableFolders()) {
-    if (folder.name !== name) continue;
-    if (folderParentId(folder) === targetParent) return folder;
-  }
-  return undefined;
-}
-
-async function ensureRollTableFolder(
-  name: string,
-  parentId: string | null,
-): Promise<string | undefined> {
-  const cacheKey = folderCacheKey(name, parentId);
-  const cached = folderIdCache.get(cacheKey);
-  if (cached) return cached;
-
-  const existing = findRollTableFolder(name, parentId);
-  if (existing) {
-    folderIdCache.set(cacheKey, existing.id);
-    return existing.id;
-  }
-
-  const created = await Folder.implementation.createDocuments(
-    [{ name, type: "RollTable", folder: parentId }],
-    CREATE_OPTIONS,
-  );
-  const folder = created[0];
-  if (!folder) return undefined;
-
-  folderIdCache.set(cacheKey, folder.id);
-  return folder.id;
-}
-
 async function ensureOracleFolderTree(): Promise<string | undefined> {
-  folderIdCache.clear();
+  clearRollTableFolderCache();
 
   const rootId = await ensureRollTableFolder(ORACLE_ROOT_FOLDER, null);
   if (!rootId) return undefined;
 
   return ensureRollTableFolder(ORACLE_SUBFOLDER, rootId);
-}
-
-type RollTableSummary = {
-  id: string;
-  name: string;
-  folder?: string | null;
-};
-
-function listWorldRollTables(): RollTableSummary[] {
-  const out: RollTableSummary[] = [];
-  const tables = (game as { tables?: { contents?: RollTableSummary[] } }).tables;
-  if (tables?.contents?.length) {
-    out.push(...tables.contents);
-  }
-
-  const collection = (
-    game as { collections?: { get?: (name: string) => { contents?: RollTableSummary[] } } }
-  ).collections?.get?.("RollTable");
-  if (collection?.contents?.length) {
-    for (const table of collection.contents) {
-      if (!out.some((row) => row.id === table.id)) out.push(table);
-    }
-  }
-
-  return out;
-}
-
-function normalizeTableName(name: string): string {
-  return name.trim().toLowerCase();
-}
-
-function getRollTableDocument(tableId: string): RollTable | undefined {
-  const fromTables = (game as { tables?: { get?: (id: string) => RollTable } }).tables?.get?.(
-    tableId,
-  );
-  if (fromTables) return fromTables;
-
-  const fromCollection = (
-    game as { collections?: { get?: (name: string) => { get?: (id: string) => RollTable } } }
-  ).collections?.get?.("RollTable")?.get?.(tableId);
-  return fromCollection ?? undefined;
-}
-
-function findWorldRollTableByName(
-  name: string,
-  folderId?: string,
-): RollTable | undefined {
-  const target = normalizeTableName(name);
-  const summaries = listWorldRollTables();
-
-  if (folderId) {
-    const inFolder = summaries.find(
-      (row) =>
-        normalizeTableName(row.name) === target && (row.folder ?? null) === folderId,
-    );
-    if (inFolder) return getRollTableDocument(inFolder.id);
-  }
-
-  const anywhere = summaries.find((row) => normalizeTableName(row.name) === target);
-  return anywhere ? getRollTableDocument(anywhere.id) : undefined;
 }
 
 function prepareEmbeddedResults(results: unknown[]): Record<string, unknown>[] {

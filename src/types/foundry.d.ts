@@ -119,15 +119,20 @@ interface FalloutGlobal {
   };
 }
 
-declare const Dialog: {
-  confirm: (options: {
+declare class Dialog {
+  constructor(data: Record<string, unknown>, options?: { width?: number });
+  render(force?: boolean): this;
+}
+
+declare namespace Dialog {
+  function confirm(options: {
     title?: string;
     content?: string;
     yes?: () => void;
     no?: () => void;
     defaultYes?: boolean;
-  }) => void;
-};
+  }): void;
+}
 
 declare const ContextMenu: new (
   element: HTMLElement,

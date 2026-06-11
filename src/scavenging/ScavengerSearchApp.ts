@@ -72,6 +72,7 @@ type LootRowContext = {
   canSpendAp: boolean;
   installed: boolean;
   tableId?: string;
+  rowCountHint?: string;
 };
 
 type TeamRowContext = {
@@ -492,6 +493,7 @@ export default class ScavengerSearchApp extends HandlebarsApplicationMixin(
           canSpendApOnCategory(playerSearch, location, row.category),
         installed: row.installed,
         tableId: row.tableId,
+        rowCountHint: row.rowCountHint,
       }));
 
       const luckSpendLabel = (cost: number) =>
@@ -506,7 +508,7 @@ export default class ScavengerSearchApp extends HandlebarsApplicationMixin(
           const neighborRows = luckLocked
             ? []
             : (
-                await buildLuckNeighborRows(entry, luckMax, luckSpendLabel)
+                await buildLuckNeighborRows(entry, location, luckSpendLabel)
               ).map((row) => ({
                 ...row,
                 canJump:

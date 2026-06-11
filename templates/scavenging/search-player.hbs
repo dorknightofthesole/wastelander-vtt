@@ -131,6 +131,7 @@
                     {{label}}
                   {{/if}}
                   {{#unless installed}} <span class="wastelander-scavenger-hint">({{localize "WASTELANDER.Scavenging.Tables.NotInstalled"}})</span>{{/unless}}
+                  {{#if rowCountHint}} <span class="wastelander-scavenger-hint">({{rowCountHint}})</span>{{/if}}
                 </td>
                 <td>{{min}}</td>
                 <td>{{max}}</td>

@@ -1,5 +1,6 @@
-import type { LootCategoryKey } from "./ScavengerLocation.js";
+import type { LootCategoryKey, ScavengerLocation } from "./ScavengerLocation.js";
 import { itemUuidFromTableRow } from "./lootItemInteract.js";
+import { findSceneRollTableForCategory } from "./sceneLootTables.js";
 import {
   findRollTableForCategory,
   getRollTableDisplayName,
@@ -23,7 +24,7 @@ export function clampLootRollSum(category: LootCategoryKey, rollSum: number): nu
   return Math.max(2, Math.min(40, rollSum));
 }
 
-function collectTableResultRows(table: unknown): TableResultRow[] {
+export function collectTableResultRows(table: unknown): TableResultRow[] {
   const results = (table as { results?: unknown }).results;
   if (!results) return [];
   if (Array.isArray(results)) return results as TableResultRow[];
@@ -39,7 +40,7 @@ function collectTableResultRows(table: unknown): TableResultRow[] {
   return [];
 }
 
-function resultMatchesRollSum(row: TableResultRow, rollSum: number): boolean {
+export function resultMatchesRollSum(row: TableResultRow, rollSum: number): boolean {
   const range = row.range;
   if (!range || range.length < 2) return false;
   const min = Math.min(range[0]!, range[1]!);
@@ -100,7 +101,7 @@ export async function lookupLootAtRollSum(
   category: LootCategoryKey,
   rollSum: number,
   rows?: TableResultRow[] | null,
-): Promise<{ label: string; rollSum: number }> {
+): Promise<{ label: string; rollSum: number; itemUuid?: string }> {
   const sum = clampLootRollSum(category, rollSum);
 
   if (category === "junk") {
@@ -161,18 +162,25 @@ export function entryBaseRollSum(entry: {
 export async function buildLuckNeighborRows(
   entry: {
     category: LootCategoryKey;
+    resolvedTableCategory?: LootCategoryKey;
     baseRollSum?: number;
     rollSum: number;
     luckShift: number;
   },
-  locationLevel: number,
+  location: ScavengerLocation,
   formatLuckSpend: (jumpCost: number) => string,
 ): Promise<LuckNeighborRow[]> {
   if (entry.category === "junk" || entry.rollSum <= 0) return [];
 
+  const rollCategory = entry.resolvedTableCategory ?? entry.category;
   const base = entryBaseRollSum(entry);
-  const level = Math.max(0, Math.floor(locationLevel));
-  const rows = await loadRollTableResultRows(entry.category);
+  const level = Math.max(0, Math.floor(location.level));
+
+  const sceneTable = findSceneRollTableForCategory(location, rollCategory);
+  const rows = sceneTable
+    ? collectTableResultRows(sceneTable)
+    : ((await loadRollTableResultRows(rollCategory)) ?? []);
+
   const out: LuckNeighborRow[] = [];
 
   for (let delta = -level; delta <= level; delta += 1) {
@@ -180,8 +188,8 @@ export async function buildLuckNeighborRows(
     const isCurrent = delta === entry.luckShift;
     const jumpCost = Math.abs(delta - entry.luckShift);
 
-    const rollSum = clampLootRollSum(entry.category, base + delta);
-    const looked = await lookupLootAtRollSum(entry.category, rollSum, rows);
+    const rollSum = clampLootRollSum(rollCategory, base + delta);
+    const looked = await lookupLootAtRollSum(rollCategory, rollSum, rows);
 
     out.push({
       rollSum,

@@ -8,6 +8,7 @@ import type {
   ScavengerLocation,
   ScavengerLocationProblems,
 } from "./ScavengerLocation.js";
+import { normalizeSceneLoot } from "./sceneLoot.js";
 import { normalizeInhabitantType } from "./inhabitantRules.js";
 import { getPartyActorsOnScene } from "./partyContext.js";
 import { scheduleScavengerJournalSync } from "./scavengerJournalSync.js";
@@ -21,7 +22,7 @@ export const SCENE_STATE_FLAG = "scavengerSceneState";
 /** Player scavenge progress — separate flag so reset can use unsetFlag reliably. */
 export const SCENE_PLAYER_SEARCH_FLAG = "scavengerPlayerSearch";
 
-export type ScavengerTab = "current" | "create";
+export type ScavengerTab = "current" | "create" | "lootTables";
 
 export type ScavengerFormState = {
   name: string;
@@ -175,7 +176,16 @@ export function mergePartySelections(
 }
 
 function normalizeTab(value: unknown): ScavengerTab {
-  return value === "create" ? "create" : "current";
+  if (value === "create") return "create";
+  if (value === "lootTables") return "lootTables";
+  return "current";
+}
+
+/** Tab shown when the Overseer window opens or binds a scene (not mid-session actions). */
+export function resolveOverseerOpeningTab(
+  location: ScavengerLocation | null,
+): ScavengerTab {
+  return location ? "current" : "create";
 }
 
 function normalizeForm(raw: unknown): ScavengerFormState {
@@ -253,7 +263,24 @@ function normalizeLocation(
           : loc.problems.inhabitantType,
       }
     : loc.problems;
-  return { ...loc, sceneId, inhabitants, problems };
+  const sceneLoot = normalizeSceneLoot(loc.sceneLoot);
+  const legacy = loc as ScavengerLocation & {
+    lootTableIndex?: unknown;
+    customLoot?: unknown;
+  };
+  const normalized: ScavengerLocation & {
+    lootTableIndex?: unknown;
+    customLoot?: unknown;
+  } = {
+    ...loc,
+    sceneId,
+    inhabitants,
+    problems,
+    sceneLoot,
+  };
+  if (legacy.lootTableIndex) normalized.lootTableIndex = legacy.lootTableIndex;
+  if (legacy.customLoot) normalized.customLoot = legacy.customLoot;
+  return normalized;
 }
 
 export function loadScavengerSceneState(
@@ -293,9 +320,19 @@ export function buildPersistedSceneState(params: {
   activeTab: ScavengerTab;
   party: PartyActorRow[];
 }): ScavengerScenePersistedState {
-  const location = params.location
+  let location = params.location
     ? { ...params.location, sceneId: params.sceneId }
     : null;
+  if (location) {
+    const legacy = location as ScavengerLocation & {
+      lootTableIndex?: unknown;
+      customLoot?: unknown;
+    };
+    const { lootTableIndex, customLoot, ...rest } = legacy;
+    void lootTableIndex;
+    void customLoot;
+    location = rest;
+  }
 
   const base: ScavengerScenePersistedState = {
     version: 2,
@@ -362,7 +399,7 @@ export function applyScavengerSceneState(
     return {
       form: defaultFormState(),
       location: null,
-      activeTab: "current",
+      activeTab: resolveOverseerOpeningTab(null),
       party: freshParty,
     };
   }

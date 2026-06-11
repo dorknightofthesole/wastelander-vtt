@@ -8,9 +8,11 @@ import { evaluateFoundryRoll } from "../integrations/foundryRoll.js";
 import { rollLootCategory } from "./lootRoller.js";
 import {
   clampLootRollSum,
+  collectTableResultRows,
   entryBaseRollSum,
   lookupLootAtRollSum,
 } from "./rollTableLookup.js";
+import { findSceneRollTableForCategory } from "./sceneLootTables.js";
 import {
   canRollMin,
   canSpendApOnCategory,
@@ -39,6 +41,7 @@ import {
 import {
   loadScavengerSceneState,
   savePlayerSearchForScene,
+  saveScavengerSceneState,
   type ScavengerScenePersistedState,
 } from "./scenePersist.js";
 import {
@@ -133,6 +136,14 @@ function requireSceneState(
     return { error: t("WASTELANDER.Scavenging.PlayerSearch.NoLocation") };
   }
   return { state, location: state.location };
+}
+
+function tableRowsForLuck(
+  location: ScavengerLocation,
+  rollCategory: LootCategoryKey,
+) {
+  const sceneTable = findSceneRollTableForCategory(location, rollCategory);
+  return sceneTable ? collectTableResultRows(sceneTable) : null;
 }
 
 function partyActorIdsForScene(sceneId: string): string[] {
@@ -469,11 +480,12 @@ async function executePlayerSearchActionInner(
       }
     }
 
-    const drawn = await rollLootCategory(category, 0);
+    const drawn = await rollLootCategory(category, 0, { location });
     const skipLootChat = drawn.drewToChat === true;
     const entry: PlayerLootRollEntry = {
       id: newRollEntryId(),
       category,
+      resolvedTableCategory: drawn.tableCategory,
       source: data.action === "lootRollMin" ? "min" : "ap",
       actorId: data.actorId,
       userId,
@@ -529,9 +541,14 @@ async function executePlayerSearchActionInner(
       return { ok: false, error: t("WASTELANDER.Scavenging.PlayerSearch.NoLuck") };
     }
 
+    const rollCategory = entry.resolvedTableCategory ?? entry.category;
     const base = entryBaseRollSum(entry);
-    const rollSum = clampLootRollSum(entry.category, base + nextShift);
-    const looked = await lookupLootAtRollSum(entry.category, rollSum);
+    const rollSum = clampLootRollSum(rollCategory, base + nextShift);
+    const looked = await lookupLootAtRollSum(
+      rollCategory,
+      rollSum,
+      tableRowsForLuck(location, rollCategory),
+    );
     entry.luckShift = nextShift;
     entry.luckSpent += 1;
     entry.rollSum = looked.rollSum;
@@ -590,9 +607,14 @@ async function executePlayerSearchActionInner(
       };
     }
 
+    const rollCategory = entry.resolvedTableCategory ?? entry.category;
     const base = entryBaseRollSum(entry);
-    const rollSum = clampLootRollSum(entry.category, base + targetShift);
-    const looked = await lookupLootAtRollSum(entry.category, rollSum);
+    const rollSum = clampLootRollSum(rollCategory, base + targetShift);
+    const looked = await lookupLootAtRollSum(
+      rollCategory,
+      rollSum,
+      tableRowsForLuck(location, rollCategory),
+    );
     entry.luckShift = targetShift;
     entry.luckSpent += jumpCost;
     entry.rollSum = looked.rollSum;

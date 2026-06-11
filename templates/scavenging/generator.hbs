@@ -15,6 +15,9 @@
     <button type="button" role="tab" class="wastelander-scavenger-tab{{#if tabCreate}} is-active{{/if}}" data-action="switchTab" data-tab="create" aria-selected="{{tabCreate}}">
       {{localize "WASTELANDER.Scavenging.Tabs.Create"}}
     </button>
+    <button type="button" role="tab" class="wastelander-scavenger-tab{{#if tabLootTables}} is-active{{/if}}" data-action="switchTab" data-tab="lootTables" aria-selected="{{tabLootTables}}">
+      {{localize "WASTELANDER.Scavenging.Tabs.LootTables"}}
+    </button>
   </nav>
 
   {{#if tabCurrent}}
@@ -50,6 +53,18 @@
           <span class="wastelander-scavenger-stat-label">{{localize "WASTELANDER.Scavenging.Generated.TimeTaken"}}</span>
           <output class="wastelander-scavenger-stat-value">{{current.generated.searchMinutes}} {{localize "WASTELANDER.Scavenging.Generated.Minutes"}} <span class="wastelander-scavenger-stat-sub">({{current.generated.searchTimeLabel}})</span></output>
         </div>
+        {{#if current.lootValueCap}}
+          <div class="wastelander-scavenger-stat wastelander-scavenger-stat-wide">
+            <span class="wastelander-scavenger-stat-label">{{localize "WASTELANDER.Scavenging.Loot.ValueCapLabel"}}</span>
+            <output class="wastelander-scavenger-stat-value">
+              {{#if current.lootValueCap.enabled}}
+                {{current.lootValueCap.enabledLabel}}
+              {{else}}
+                {{current.lootValueCap.disabledLabel}}
+              {{/if}}
+            </output>
+          </div>
+        {{/if}}
       </section>
 
       <section class="wastelander-scavenger-section wastelander-scavenger-panel">
@@ -382,6 +397,74 @@
     <p class="wastelander-scavenger-reduction-formula">{{rollTables.reduction.formulaLine}}</p>
     <p class="wastelander-scavenger-hint wastelander-scavenger-reduction-hint">{{rollTables.reduction.hint}}</p>
   </section>
+  </div>
+  {{/if}}
+
+  {{#if tabLootTables}}
+  <div class="wastelander-scavenger-tab-panel wastelander-loot-tables-tab" role="tabpanel">
+    {{#if lootTables.empty}}
+      <p class="wastelander-scavenger-hint">{{lootTables.hint}}</p>
+      <button type="button" data-action="switchTab" data-tab="create" class="wastelander-btn-secondary">
+        {{localize "WASTELANDER.Scavenging.Current.GoCreate"}}
+      </button>
+    {{else}}
+      {{#if lootTables.legacyUpgrade}}
+        <p class="wastelander-loot-tables-banner">{{lootTables.hint}}</p>
+        <button type="button" data-action="resetLootTablesToLocation" class="wastelander-btn-primary">
+          {{localize "WASTELANDER.Scavenging.LootTables.ResetToLocation"}}
+        </button>
+      {{else}}
+        {{#if lootTables.filterBanner}}
+          <p class="wastelander-loot-tables-banner">{{lootTables.filterBanner}}</p>
+        {{/if}}
+        {{#if lootTables.hint}}
+          <p class="wastelander-scavenger-hint">{{lootTables.hint}}</p>
+        {{/if}}
+
+        <div class="wastelander-loot-tables-toolbar">
+          <button type="button" data-action="resetLootTablesToLocation" class="wastelander-btn-secondary">
+            {{localize "WASTELANDER.Scavenging.LootTables.ResetToLocation"}}
+          </button>
+        </div>
+
+        <table class="wastelander-loot-tables-scene-list">
+          <thead>
+            <tr>
+              <th>{{localize "WASTELANDER.Scavenging.LootTables.ColumnTable"}}</th>
+              <th>{{localize "WASTELANDER.Scavenging.Tables.ColumnMin"}}</th>
+              <th>{{localize "WASTELANDER.Scavenging.Tables.ColumnMax"}}</th>
+              <th>{{localize "WASTELANDER.Scavenging.LootTables.RollFormula"}}</th>
+              <th>{{localize "WASTELANDER.Scavenging.LootTables.ColumnRows"}}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each lootTables.tables}}
+              <tr data-table-id="{{tableId}}">
+                <td>{{label}}</td>
+                <td>
+                  <input type="number" min="0" step="1" data-action="updateSceneLootSlot" data-table-id="{{tableId}}" data-field="min" value="{{min}}" />
+                </td>
+                <td>
+                  <input type="number" min="0" step="1" data-action="updateSceneLootSlot" data-table-id="{{tableId}}" data-field="max" value="{{max}}" />
+                </td>
+                <td><output>{{rollFormula}}</output></td>
+                <td><output>{{rowCount}}</output></td>
+                <td>
+                  <button type="button" class="wastelander-btn-secondary" data-action="openSceneLootTable" data-table-id="{{tableId}}">
+                    {{localize "WASTELANDER.Scavenging.LootTables.OpenTable"}}
+                  </button>
+                </td>
+              </tr>
+            {{else}}
+              <tr>
+                <td colspan="6" class="wastelander-loot-tables-empty-rows">{{localize "WASTELANDER.Scavenging.LootTables.NoSceneTables"}}</td>
+              </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      {{/if}}
+    {{/if}}
   </div>
   {{/if}}
   </div>

@@ -24,6 +24,7 @@ export type LocationCategoryId =
   | "military";
 
 import type { InhabitantType } from "./denizenBookFolders.js";
+import type { SceneLoot } from "./sceneLoot.js";
 
 export type { DenizenBookFolder, InhabitantType } from "./denizenBookFolders.js";
 
@@ -115,6 +116,8 @@ export interface ScavengerLocation {
   createdAt: number;
   /** Non-fatal issues from generation (e.g. empty inhabitant pool). */
   warnings?: string[];
+  /** Scene RollTable folder bindings and min/max overrides. */
+  sceneLoot?: SceneLoot;
 }
 
 export interface PartyActorRow {
