@@ -198,7 +198,15 @@ npm run extract:oracle
 npm run build:oracle
 ```
 
-Import the files from `src/data/oracle/` into Foundry (or use your usual compendium workflow).
+### Import to world
+
+**Configure Settings → Module Settings → Wastelander → Import oracle tables**
+
+- **GM only** — creates or updates roll tables in the Roll Tables sidebar.
+- **Folder** — tables go under **Wastelander → Wanderer** (folder is created if missing).
+- **Overwrite** — matching table names are updated in place; no duplicate folders or tables.
+
+Oracle JSON must be bundled first: run `npm run build:oracle`, then `npm run build`, and reload the module. The import menu shows how many JSON files were included in that build.
 
 `npm run extract:oracle` parses every appendix table profile, compares each result set against any existing manifest, then writes or skips accordingly. It never overwrites a manifest that already exists — differences go to `manifests-staging/` with a combined diff report.
 

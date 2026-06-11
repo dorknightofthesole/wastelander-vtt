@@ -1,0 +1,32 @@
+<div class="wastelander-oracle-import-layout">
+  <div class="wastelander-oracle-import">
+    <p class="wastelander-oracle-import-intro">{{localize "WASTELANDER.Oracle.Import.Intro"}}</p>
+
+    {{#unless falloutSystem}}
+      <p class="wastelander-scavenger-warning">{{localize "WASTELANDER.Oracle.Import.RequiresFallout"}}</p>
+    {{else}}
+      {{#unless isGm}}
+        <p class="wastelander-scavenger-warning">{{localize "WASTELANDER.Oracle.Import.GmOnly"}}</p>
+      {{else}}
+        {{#if hasBundled}}
+          <p>{{localize "WASTELANDER.Oracle.Import.BundledCount" count=bundledCount}}</p>
+          <p class="wastelander-scavenger-hint">{{localize "WASTELANDER.Oracle.Import.Hint"}}</p>
+          <p class="wastelander-scavenger-hint">{{localize "WASTELANDER.Oracle.Import.ReloadHint"}}</p>
+        {{else}}
+          <p class="wastelander-scavenger-warning">{{localize "WASTELANDER.Oracle.Import.NoBundledFiles"}}</p>
+          <p class="wastelander-scavenger-hint">{{localize "WASTELANDER.Oracle.Import.RebuildHint"}}</p>
+        {{/if}}
+      {{/unless}}
+    {{/unless}}
+  </div>
+
+  <footer class="wastelander-oracle-import-footer">
+    {{#if importing}}
+      <p class="wastelander-scavenger-hint"><i class="fas fa-spinner fa-spin" aria-hidden="true"></i> {{localize "WASTELANDER.Oracle.Import.InProgress"}}</p>
+    {{else}}
+      <button type="button" class="wastelander-btn-primary" data-action="runImport" {{#unless canImport}}disabled{{/unless}}>
+        <i class="fas fa-dice" aria-hidden="true"></i> {{localize "WASTELANDER.Oracle.Import.Run"}}
+      </button>
+    {{/if}}
+  </footer>
+</div>

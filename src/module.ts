@@ -4,6 +4,11 @@ import {
   registerActorSheetControls,
 } from "./integrations/actorSheetControls.js";
 import { registerTranslations } from "./integrations/i18n.js";
+import {
+  getBundledOracleRollTableCount,
+  importBundledOracleRollTables,
+} from "./oracle/oracleRollTableImport.js";
+import { registerOracleSettings } from "./oracle/oracleSettings.js";
 import { getBundledDenizenCount, importBundledDenizens } from "./scavenging/denizenImport.js";
 import { registerCombatDiceChatButton } from "./integrations/combatDiceChatButton.js";
 import { registerScavengingHooks } from "./scavenging/scavengingHooks.js";
@@ -13,6 +18,7 @@ Hooks.once("init", () => {
   registerActorSheetControlHooks();
   registerCombatDiceChatButton();
   registerScavengingHooks();
+  registerOracleSettings();
   console.log(`${MODULE_ID} | initializing`);
 });
 
@@ -22,6 +28,8 @@ Hooks.once("ready", () => {
   mod.api = {
     importDenizens: importBundledDenizens,
     bundledDenizenCount: getBundledDenizenCount,
+    importOracleRollTables: importBundledOracleRollTables,
+    bundledOracleRollTableCount: getBundledOracleRollTableCount,
   };
 });
 
