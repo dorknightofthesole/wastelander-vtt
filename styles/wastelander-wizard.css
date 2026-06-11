@@ -2960,30 +2960,43 @@
   color: lightyellow;
 }
 
-.wastelander-loot-cap-settings-app .wastelander-loot-cap-settings {
-  display: flex;
-  flex-direction: column;
-  min-height: 100%;
-  height: 100%;
-  padding: 0.75rem 1rem;
-  box-sizing: border-box;
-  overflow: hidden;
+.wastelander-loot-cap-settings-app .window-content {
+  overflow-y: auto;
 }
 
-.wastelander-loot-cap-settings-app .wastelander-loot-cap-settings > .wastelander-scavenger-section:first-of-type {
-  flex: 1 1 auto;
-  min-height: 0;
+.wastelander-loot-cap-settings-app .wastelander-loot-cap-settings {
+  padding: 0.75rem 1rem;
+  box-sizing: border-box;
+}
+
+.wastelander-loot-cap-settings-app .wastelander-scavenger-section h3 {
+  font-size: 0.95rem;
+  margin: 0 0 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.wastelander-loot-cap-settings-app .wastelander-form-row {
   display: flex;
   flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.wastelander-loot-cap-settings-app .wastelander-form-row label {
+  font-size: 0.85rem;
+}
+
+.wastelander-loot-cap-settings-app .wastelander-form-row input[type="number"] {
+  width: 100%;
+  max-width: 10rem;
+  box-sizing: border-box;
 }
 
 .wastelander-loot-cap-settings-app .wastelander-loot-cap-table-scroll {
-  flex: 1 1 auto;
-  min-height: 12rem;
-  max-height: 22rem;
+  max-height: 14rem;
   overflow-y: auto;
   overflow-x: hidden;
-  overflow-anchor: none;
   margin-bottom: 0.5rem;
   border: 1px solid var(--wstl-amber-muted, #6b5a2a);
   border-radius: 3px;
@@ -3035,8 +3048,7 @@
   justify-content: flex-end;
   align-items: center;
   gap: 0.5rem;
-  flex-shrink: 0;
-  margin-top: auto;
+  margin-top: 1rem;
   padding-top: 0.75rem;
   border-top: 1px solid var(--wstl-amber-muted, #6b5a2a);
 }

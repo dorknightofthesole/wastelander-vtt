@@ -8,7 +8,6 @@ import {
 import { getRollTableDocument } from "../integrations/rollTableDocuments.js";
 import { buildLootTablesTabContext } from "./lootTablesTabContext.js";
 import { refreshSceneLootSlotsFromFolder, resetSceneLootTables, updateSceneLootSlotMinMax } from "./sceneLootTables.js";
-import { hasSceneLootFolder } from "./sceneLoot.js";
 import { buildScavengerLootGridRows } from "./scavengerLootGrid.js";
 import { t } from "../integrations/i18n.js";
 import type {
@@ -325,7 +324,6 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
     const sceneId = getActiveSceneId() ?? this.#sceneId ?? undefined;
     if (sceneId) this.#sceneId = sceneId;
     const problemsForGenerate = problemsForGeneration(this.#form.problems);
-    const hadSceneLoot = hasSceneLootFolder(this.location);
 
     ScavengerLocationApp.#generating = true;
     try {
@@ -345,9 +343,10 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
           SCAVENGING_SETTINGS.autoAllocateDegreeReduction,
         ),
         sceneId,
-        animateLevelRoll: hadSceneLoot ? false : true,
-        animateInhabitantRoll:
-          hadSceneLoot ? false : problemsForGenerate.inhabitants,
+        // Always present the location-level CD roll; skip inhabitant dice here to
+        // avoid Dice So Nice cancelling an in-flight CD animation.
+        animateLevelRoll: true,
+        animateInhabitantRoll: false,
       });
 
       if (options?.activeTab) {

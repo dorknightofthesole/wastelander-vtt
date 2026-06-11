@@ -142,9 +142,9 @@ export async function generateScavengerLocation(params: {
   levelOverride?: number | null;
   autoAllocateDegree?: boolean;
   sceneId?: string;
-  /** Animate only the location-level CD roll (avoids Dice So Nice cancelling an in-flight roll). */
+  /** Show 3D dice + chat for the location-level CD roll (default true). */
   animateLevelRoll?: boolean;
-  /** Animate inhabitant count dice (default false during full generate). */
+  /** Show inhabitant count dice during generate (default false; opt-in). */
   animateInhabitantRoll?: boolean;
 }): Promise<ScavengerLocation> {
   const rollLog: ScavengerLocationRollLog[] = [];
@@ -229,8 +229,7 @@ export async function generateScavengerLocation(params: {
       scale: params.scale,
       locationLevel: level,
       inhabitantType,
-      animateRolls:
-        params.animateInhabitantRoll !== false && problems.inhabitants,
+      animateRolls: params.animateInhabitantRoll === true && problems.inhabitants,
     });
     rollLog.push(...builtInhabitants.rollLogs);
     warnings.push(...builtInhabitants.warnings);

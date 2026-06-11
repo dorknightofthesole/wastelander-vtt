@@ -11,11 +11,7 @@ import {
   upsertRollTableInFolder,
 } from "../integrations/rollTableDocuments.js";
 import type { LootCategoryKey, ScavengerLocation } from "./ScavengerLocation.js";
-import {
-  assignRowRanges,
-  suggestRollFormula,
-  type LootTableRow,
-} from "./lootTableRanges.js";
+import { suggestRollFormula, type LootTableRow } from "./lootTableRanges.js";
 import {
   getItemCapsFromUuid,
   getMaxCapsForLocationLevel,
@@ -175,17 +171,8 @@ async function buildRowsForSceneTable(
   const sourceRows = await snapshotCategoryRows(tableKey);
   const filtered = await filterRowsForLocation(location, sourceRows);
   const formula = await compendiumFormulaForKey(tableKey);
-
-  if (!isLootValueFilterEnabled() || filtered.length === sourceRows.length) {
-    return { rows: filtered, formula };
-  }
-
-  const normalized = assignRowRanges(
-    filtered.map((row) => ({ ...row })),
-    tableKey,
-    formula,
-  );
-  return { rows: normalized, formula };
+  // Keep compendium row ranges; filtered-out items leave gaps on the table.
+  return { rows: filtered, formula };
 }
 
 async function ensurePlayerCanDraw(table: RollTable): Promise<void> {

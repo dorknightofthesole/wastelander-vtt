@@ -92,6 +92,7 @@ Two scene tools (token controls):
 - **Obstacles** — Block the scavenge roll until overcome (mechanical / electronic / collapsed / trap types with skill hints).
 - **Hazards** — Ongoing hazard damage tied to search time; Overseer can apply CD rolls to party members from the Current tab.
 - **GM search override** — On the Current tab, mark player search as **succeeded** or **failed**, or **reset player search** to clear progress without regenerating the location.
+- **Scene loot tables** — Each generated location gets real Foundry `RollTable` documents under **Roll Tables → Wastelander → Scenes → *scene name***. The **Loot tables** tab lists those tables with min/max roll counts per category, **Open** to edit the sheet, and **Reset loot tables** to rebuild from the booklet. Overseers control exactly what players can roll: add or remove rows, change formulas, swap items, or tailor tables to the fiction — player scavenge rolls draw on these scene tables (not a hidden in-memory copy).
 - **Automated journal** — A shared Overseer journal page per scene updates with location details, problems, inhabitants, and player scavenge progress.
 
 ![Scavenger journal — location overview, inhabitants, and linked sub-pages](assets/readme/scavenger-location-journal.png)
@@ -109,10 +110,18 @@ Two scene tools (token controls):
 - **Obstacle gate** — Search is blocked until the Overseer marks the obstacle overcome.
 - **AP loot rolls** — After a successful search, spend party AP to roll on category loot tables.
 - **Luck Points** — Shift loot roll results up or down; luck spend posts to chat.
-- **Full loot tables** — Ammunition, apparel, chems, food, oddities, weapons, and more; works with **Fallout Scavenging** actors and world RollTables when enabled.
+- **Full loot tables** — Ammunition, apparel, chems, food, oddities, weapons, and more; rolls use the scene’s Foundry RollTables when a location has been generated (falls back to bundled or world compendium tables when **Prefer Foundry RollTables** is enabled and no scene tables exist).
 - **World clock** — On search completion, advances **Simple Calendar** by the location’s Time Taken (module setting; GM-only).
 
 Player actions are validated on the GM client over Foundry’s socket so players cannot spoof rolls or loot.
+
+### Loot value filtering (optional)
+
+Scavenging can **limit loot by item value** so lower-level locations are less likely to yield gear above a caps threshold. This is **off by default**; enable **Limit loot by item value** in module settings when you want it.
+
+- **How it works** — Each scavenger location has a **level** (from party levels, search degree, and problems). When scene loot tables are built or reset, Wastelander reads each row’s linked Fallout item **cost (caps)** and **drops rows** whose value exceeds the max caps for that location level. Original booklet **roll ranges are preserved** on the rows that remain (no re-packing onto a denser 2d20 spread), so the table still behaves like the GM Screen layout — Foundry only draws on results that exist on the document.
+- **Goal** — Reduce the chance that players find items far above what fits a low-level ruin, without hand-editing every table for every scene.
+- **Configuration** — **Configure Settings → Module Settings → Wastelander → Configure loot value caps** opens the level → max caps band editor (bundled defaults ship with the module). After changing the filter or regenerating a location at a new level, use **Reset loot tables** on the Loot tables tab so scene tables are rebuilt with the updated filter.
 
 ---
 
@@ -232,7 +241,7 @@ The module includes a **Wastelander** compendium folder with two packs:
 | **Items** | Custom items (consumables, gear, etc.) used when scavenging resolves loot to compendium entries |
 | **Wastelander** | RollTable loot tables for scavenging (booklet-style names such as ammunition, food, armor) |
 
-They appear automatically when the module is enabled. Scavenging looks up roll tables in `wastelander.wastelander` first, then Fallout system tables.
+They appear automatically when the module is enabled. When you **generate** a scavenger location, Wastelander copies the relevant booklet tables from `wastelander.wastelander` into that scene’s folder (see **Scene loot tables** above). Player rolls prefer those scene documents; compendium and Fallout system tables remain the source of truth for initial builds and fallbacks.
 
 To refresh pack data from your Foundry world after editing compendiums, see [packs/README.md](packs/README.md).
 
@@ -251,7 +260,9 @@ To refresh pack data from your Foundry world after editing compendiums, see [pac
 
 ## Module settings (scavenging)
 
-- **Prefer Foundry RollTables** — Player AP loot rolls use world Roll Tables when names match the GM Screen booklet (falls back to bundled tables).
+- **Prefer Foundry RollTables** — When no scene loot tables exist, player AP loot rolls use world Roll Tables when names match the GM Screen booklet (falls back to bundled tables).
+- **Limit loot by item value** — When enabled, scene loot tables are built with rows filtered by item caps vs. location level (see **Loot value filtering**).
+- **Configure loot value caps** — Menu (GM only) to edit location level → max item caps bands and related options used by value filtering.
 - **Whisper loot rolls to GM** — Loot roll chat cards visible only to the GM.
 - **Advance world clock after search** — Simple Calendar integration (default on).
 - **Auto-allocate degree reductions** — Randomly apply minimum reductions when generating a location.

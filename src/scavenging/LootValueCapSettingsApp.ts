@@ -78,7 +78,7 @@ export default class LootValueCapSettingsApp extends HandlebarsApplicationMixin(
       title: "WASTELANDER.Scavenging.Settings.LootValueCapMenuTitle",
       icon: "fa-solid fa-coins",
     },
-    position: { width: 560, height: 680 },
+    position: { width: 560, height: "auto" },
     actions: {
       addBand: LootValueCapSettingsApp.#onAddBand,
       removeBand: LootValueCapSettingsApp.#onRemoveBand,
