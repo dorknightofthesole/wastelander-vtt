@@ -2,18 +2,17 @@
   "formula": {
     "type": "quadratic",
     "base": 25,
-    "scale": 40,
+    "scale": 30,
     "capCeiling": 10000
   },
   "bands": [
-    { "maxLevel": 2, "maxCaps": 185 },
-    { "maxLevel": 4, "maxCaps": 665 },
-    { "maxLevel": 6, "maxCaps": 1465 },
-    { "maxLevel": 8, "maxCaps": 2585 },
-    { "maxLevel": 10, "maxCaps": 4025 },
-    { "maxLevel": 11, "maxCaps": 4875 },
+    { "maxLevel": 2, "maxCaps": 145 },
+    { "maxLevel": 4, "maxCaps": 505 },
+    { "maxLevel": 6, "maxCaps": 1105 },
+    { "maxLevel": 8, "maxCaps": 1945 },
+    { "maxLevel": 10, "maxCaps": 3025 },
+    { "maxLevel": 11, "maxCaps": 3655 },
     { "maxLevel": 99, "maxCaps": 10000 }
   ],
-  "defaultMaxCaps": 10000,
-  "drawRerollMaxAttempts": 8
+  "defaultMaxCaps": 10000
 }

@@ -1,10 +1,14 @@
 import { MODULE_ID, MODULE_PATH } from "../constants.js";
 import { t } from "../integrations/i18n.js";
 import {
+  capsForLocationLevelFromConfig,
   getBundledLootValueCapConfig,
+  getDefaultLootValueCapFormula,
   normalizeLootValueCapConfig,
+  recalculateBandCapsFromFormula,
   type LootValueCapBand,
   type LootValueCapConfig,
+  type LootValueCapFormula,
 } from "./lootValueCap.js";
 import { SCAVENGING_SETTINGS } from "./scavengingSettings.js";
 
@@ -12,28 +16,29 @@ const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 const PREVIEW_LEVELS = [0, 5, 10, 11, 15];
 
-function previewRowsFromBands(bands: LootValueCapBand[]): Array<{ level: number; maxCaps: number }> {
-  const config: LootValueCapConfig = {
-    bands,
-    defaultMaxCaps: bands.at(-1)?.maxCaps ?? 10000,
-    drawRerollMaxAttempts: 8,
-  };
+function previewRowsFromConfig(config: LootValueCapConfig): Array<{ level: number; maxCaps: number }> {
   return PREVIEW_LEVELS.map((level) => ({
     level,
-    maxCaps: capsForLevel(level, config),
+    maxCaps: capsForLocationLevelFromConfig(level, config),
   }));
 }
 
-function capsForLevel(level: number, config: LootValueCapConfig): number {
-  const bands = config.bands ?? [];
-  const lvl = Math.max(0, Math.floor(level));
-  for (const band of bands) {
-    if (lvl <= band.maxLevel) return band.maxCaps;
-  }
-  return config.defaultMaxCaps ?? bands.at(-1)?.maxCaps ?? 9999;
+function readFormulaFromForm(root: HTMLElement): LootValueCapFormula {
+  const base = Number(root.querySelector<HTMLInputElement>('[name="formulaBase"]')?.value ?? 25);
+  const scale = Number(root.querySelector<HTMLInputElement>('[name="formulaScale"]')?.value ?? 30);
+  const capCeiling = Number(
+    root.querySelector<HTMLInputElement>('[name="formulaCapCeiling"]')?.value ?? 10_000,
+  );
+  return normalizeLootValueCapConfig({
+    formula: {
+      base: Math.max(0, Math.floor(base)),
+      scale: Math.max(0, Math.floor(scale)),
+      capCeiling: Math.max(0, Math.floor(capCeiling)),
+    },
+  }).formula!;
 }
 
-function readConfigFromForm(root: HTMLElement): LootValueCapConfig {
+function readBandsFromForm(root: HTMLElement): LootValueCapBand[] {
   const bands: LootValueCapBand[] = [];
   const rows = root.querySelectorAll<HTMLTableRowElement>("tbody tr[data-band-index]");
   for (const row of rows) {
@@ -49,18 +54,17 @@ function readConfigFromForm(root: HTMLElement): LootValueCapConfig {
     });
   }
   bands.sort((a, b) => a.maxLevel - b.maxLevel);
+  return bands;
+}
 
-  const defaultMaxCaps = Number(
-    root.querySelector<HTMLInputElement>('[name="defaultMaxCaps"]')?.value ?? 0,
-  );
-  const drawRerollMaxAttempts = Number(
-    root.querySelector<HTMLInputElement>('[name="drawRerollMaxAttempts"]')?.value ?? 8,
-  );
+function readConfigFromForm(root: HTMLElement): LootValueCapConfig {
+  const bands = readBandsFromForm(root);
+  const formula = readFormulaFromForm(root);
 
   return normalizeLootValueCapConfig({
     bands,
-    defaultMaxCaps,
-    drawRerollMaxAttempts,
+    formula,
+    defaultMaxCaps: formula.capCeiling ?? 10_000,
   });
 }
 
@@ -78,10 +82,11 @@ export default class LootValueCapSettingsApp extends HandlebarsApplicationMixin(
       title: "WASTELANDER.Scavenging.Settings.LootValueCapMenuTitle",
       icon: "fa-solid fa-coins",
     },
-    position: { width: 560, height: "auto" },
+    position: { width: 620, height: "auto" },
     actions: {
       addBand: LootValueCapSettingsApp.#onAddBand,
       removeBand: LootValueCapSettingsApp.#onRemoveBand,
+      recalculateBands: LootValueCapSettingsApp.#onRecalculateBands,
       saveConfig: LootValueCapSettingsApp.#onSaveConfig,
       resetDefaults: LootValueCapSettingsApp.#onResetDefaults,
     },
@@ -107,21 +112,26 @@ export default class LootValueCapSettingsApp extends HandlebarsApplicationMixin(
       this.#loadedFromSettings = true;
     }
 
+    const formula = this.#config.formula ?? getDefaultLootValueCapFormula();
     const bands = this.#config.bands ?? [];
     return {
       bands,
-      defaultMaxCaps: this.#config.defaultMaxCaps ?? 10000,
-      drawRerollMaxAttempts: this.#config.drawRerollMaxAttempts ?? 8,
-      previewRows: previewRowsFromBands(bands),
+      formulaBase: formula.base ?? 25,
+      formulaScale: formula.scale ?? 30,
+      formulaCapCeiling: formula.capCeiling ?? 10_000,
+      previewRows: previewRowsFromConfig(this.#config),
     };
   }
 
   static #onAddBand(this: LootValueCapSettingsApp): void {
     const bands = [...(this.#config.bands ?? [])];
     const last = bands.at(-1);
+    const formula = this.#config.formula ?? getDefaultLootValueCapFormula();
+    const maxLevel = (last?.maxLevel ?? 0) + 2;
     bands.push({
-      maxLevel: (last?.maxLevel ?? 0) + 2,
-      maxCaps: (last?.maxCaps ?? 100) + 100,
+      maxLevel,
+      maxCaps: recalculateBandCapsFromFormula([{ maxLevel, maxCaps: 0 }], formula)[0]!
+        .maxCaps,
     });
     this.#config = { ...this.#config, bands };
     void this.render();
@@ -137,6 +147,31 @@ export default class LootValueCapSettingsApp extends HandlebarsApplicationMixin(
     const bands = [...(this.#config.bands ?? [])];
     bands.splice(index, 1);
     this.#config = { ...this.#config, bands };
+    void this.render();
+  }
+
+  static #onRecalculateBands(
+    this: LootValueCapSettingsApp,
+    _event: Event,
+    target: HTMLElement,
+  ): void {
+    const root = target.closest<HTMLElement>(".wastelander-loot-cap-settings");
+    if (!root) return;
+
+    const formula = readFormulaFromForm(root);
+    const bands = readBandsFromForm(root);
+    if (!bands.length) {
+      ui.notifications.warn(t("WASTELANDER.Scavenging.Settings.LootValueCapNoBands"));
+      return;
+    }
+
+    const recalculated = recalculateBandCapsFromFormula(bands, formula);
+    this.#config = {
+      ...this.#config,
+      formula,
+      bands: recalculated,
+      defaultMaxCaps: formula.capCeiling ?? this.#config.defaultMaxCaps,
+    };
     void this.render();
   }
 

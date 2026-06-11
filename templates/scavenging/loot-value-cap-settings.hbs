@@ -2,7 +2,43 @@
   <p class="wastelander-scavenger-hint">{{localize "WASTELANDER.Scavenging.Settings.LootValueCapIntro"}}</p>
   <p class="wastelander-scavenger-hint">{{localize "WASTELANDER.Scavenging.Settings.LootValueCapFilterNote"}}</p>
 
+  <section class="wastelander-scavenger-section wastelander-loot-cap-curve-section">
+    <h3>{{localize "WASTELANDER.Scavenging.Settings.LootValueCapFormulaTitle"}}</h3>
+    <div class="wastelander-loot-cap-curve-layout">
+      <div class="wastelander-loot-cap-curve-main">
+        <p class="wastelander-scavenger-hint wastelander-loot-cap-formula-hint">{{localize "WASTELANDER.Scavenging.Settings.LootValueCapFormulaHint"}}</p>
+        <div class="wastelander-loot-cap-formula-grid">
+          <div class="wastelander-form-row">
+            <label for="loot-cap-formula-base">{{localize "WASTELANDER.Scavenging.Settings.LootValueCapFormulaBase"}}</label>
+            <input type="number" min="0" step="1" id="loot-cap-formula-base" name="formulaBase" value="{{formulaBase}}" />
+          </div>
+          <div class="wastelander-form-row">
+            <label for="loot-cap-formula-scale">{{localize "WASTELANDER.Scavenging.Settings.LootValueCapFormulaScale"}}</label>
+            <input type="number" min="0" step="1" id="loot-cap-formula-scale" name="formulaScale" value="{{formulaScale}}" />
+          </div>
+          <div class="wastelander-form-row">
+            <label for="loot-cap-formula-ceiling">{{localize "WASTELANDER.Scavenging.Settings.LootValueCapFormulaCeiling"}}</label>
+            <input type="number" min="0" step="1" id="loot-cap-formula-ceiling" name="formulaCapCeiling" value="{{formulaCapCeiling}}" />
+          </div>
+        </div>
+      </div>
+      <aside class="wastelander-loot-cap-preview-panel" aria-labelledby="loot-cap-preview-heading">
+        <h3 id="loot-cap-preview-heading">{{localize "WASTELANDER.Scavenging.Settings.LootValueCapPreviewTitle"}}</h3>
+        <ul class="wastelander-loot-cap-preview">
+          {{#each previewRows}}
+            <li>{{localize "WASTELANDER.Scavenging.Settings.LootValueCapPreviewRow" level=level maxCaps=maxCaps}}</li>
+          {{/each}}
+        </ul>
+      </aside>
+    </div>
+  </section>
+
   <section class="wastelander-scavenger-section">
+    <div class="wastelander-loot-cap-bands-toolbar">
+      <button type="button" class="wastelander-btn-secondary" data-action="recalculateBands">
+        <i class="fas fa-calculator" aria-hidden="true"></i> {{localize "WASTELANDER.Scavenging.Settings.LootValueCapRecalculate"}}
+      </button>
+    </div>
     <h3>{{localize "WASTELANDER.Scavenging.Settings.LootValueCapBandsTitle"}}</h3>
     <div class="wastelander-loot-cap-table-scroll" tabindex="0">
       <table class="wastelander-loot-cap-table">
@@ -35,27 +71,6 @@
     <button type="button" class="wastelander-btn-secondary" data-action="addBand">
       <i class="fas fa-plus" aria-hidden="true"></i> {{localize "WASTELANDER.Scavenging.Settings.LootValueCapAddBand"}}
     </button>
-  </section>
-
-  <section class="wastelander-scavenger-section">
-    <h3>{{localize "WASTELANDER.Scavenging.Settings.LootValueCapAdvancedTitle"}}</h3>
-    <div class="wastelander-form-row">
-      <label for="loot-cap-default">{{localize "WASTELANDER.Scavenging.Settings.LootValueCapDefaultMax"}}</label>
-      <input type="number" min="0" step="1" id="loot-cap-default" name="defaultMaxCaps" value="{{defaultMaxCaps}}" />
-    </div>
-    <div class="wastelander-form-row">
-      <label for="loot-cap-reroll">{{localize "WASTELANDER.Scavenging.Settings.LootValueCapRerollAttempts"}}</label>
-      <input type="number" min="1" step="1" id="loot-cap-reroll" name="drawRerollMaxAttempts" value="{{drawRerollMaxAttempts}}" />
-    </div>
-  </section>
-
-  <section class="wastelander-scavenger-section">
-    <h3>{{localize "WASTELANDER.Scavenging.Settings.LootValueCapPreviewTitle"}}</h3>
-    <ul class="wastelander-loot-cap-preview">
-      {{#each previewRows}}
-        <li>{{localize "WASTELANDER.Scavenging.Settings.LootValueCapPreviewRow" level=level maxCaps=maxCaps}}</li>
-      {{/each}}
-    </ul>
   </section>
 
   <footer class="wastelander-denizen-import-footer">
