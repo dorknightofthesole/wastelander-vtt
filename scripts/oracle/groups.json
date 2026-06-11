@@ -1,0 +1,86 @@
+{
+  "clear-blocker-table": ["clear-blocker-table"],
+  "location-generation-tables": [
+    "inhabitants-generator",
+    "location-icon-generator",
+    "wasteland-truth-generator",
+    "settlement-truth-generator"
+  ],
+  "encounter-generation-tables": [
+    "settlement-encounter",
+    "wasteland-encounter",
+    "combat-states",
+    "quantity-table"
+  ],
+  "equipment-tables": [
+    "conditions-table",
+    "equipment-armor-mods",
+    "equipment-weapon-mods"
+  ],
+  "loot-tables": [
+    "loot-generation-table",
+    "loot-armor",
+    "loot-caps",
+    "loot-supplies",
+    "loot-chems",
+    "loot-ranged-weapons",
+    "loot-melee-weapons",
+    "loot-thrown-explosives",
+    "loot-oddities",
+    "loot-scrap"
+  ],
+  "generate-npc": [
+    "npc-age",
+    "npc-demeanor-odds",
+    "npc-demeanor-evens",
+    "npc-distinctive-features",
+    "npc-profession",
+    "npc-secret",
+    "npc-truth"
+  ],
+  "dangerous-npc": [
+    "dangerous-npc-threat",
+    "dangerous-npc-special-ability",
+    "dangerous-npc-weapons",
+    "dangerous-npc-group"
+  ],
+  "generate-foe": [
+    "foe-type",
+    "foe-creature-generator",
+    "foe-super-mutant-generator",
+    "foe-feral-ghoul-generator",
+    "foe-robot-generator",
+    "foe-raider-generator",
+    "foe-institute-generator",
+    "foe-brotherhood-of-steel-generator",
+    "foe-zetan-generator"
+  ],
+  "generate-side-quest": [
+    "side-quest-generate-reward",
+    "side-quest-goal-type",
+    "side-quest-goal-vengeance",
+    "side-quest-goal-money",
+    "side-quest-goal-family",
+    "side-quest-goal-community",
+    "side-quest-goal-information",
+    "side-quest-goal-fame",
+    "side-quest-goal-power",
+    "side-quest-goal-love",
+    "side-quest-goal-survival",
+    "side-quest-goal-food",
+    "side-quest-goal-obsession",
+    "side-quest-goal-excitement",
+    "side-quest-goal-purpose",
+    "side-quest-goal-redemption",
+    "side-quest-goal-distraction",
+    "side-quest-goal-safety",
+    "side-quest-goal-escape",
+    "side-quest-goal-technology"
+  ],
+  "miscellaneous-tables": [
+    "random-faction",
+    "injury-table",
+    "miraculous-escape",
+    "reputation-table"
+  ]
+}

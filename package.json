@@ -8,9 +8,15 @@
     "dev": "vite build --watch",
     "prepare": "npm run build",
     "list-pdf-fields": "node scripts/list-pdf-fields.mjs",
-    "build:denizens": "node --experimental-strip-types scripts/build-denizens-catalog.mjs"
+    "build:denizens": "node --experimental-strip-types scripts/build-denizens-catalog.mjs",
+    "build:oracle": "node scripts/build-oracle-rolltables.mjs",
+    "build:oracle:list": "node scripts/build-oracle-rolltables.mjs --list",
+    "extract:oracle": "node scripts/extract-oracle-manifests.mjs",
+    "extract:oracle:list": "node scripts/extract-oracle-manifests.mjs --list",
+    "extract:oracle:dump": "node scripts/extract-oracle-manifests.mjs --dump-pages"
   },
   "devDependencies": {
+    "pdfjs-dist": "^6.0.227",
     "typescript": "^5.7.0",
     "vite": "^6.0.0"
   },

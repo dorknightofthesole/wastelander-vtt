@@ -13,6 +13,12 @@ docs/reference/source/*.pdf
 
 # Raw Foundry actor exports (full stat blocks — do not redistribute)
 src/data/denizens/*.json
+
+# Wasteland Wanderer oracle roll tables (licensed book text — local build only)
+scripts/oracle/manifests/*.json
+!scripts/oracle/manifests/*.example.json
+scripts/oracle/manifests-staging/
+src/data/oracle/*.json
 assets/tokens/*
 
 # Diagnostic reports (https://nodejs.org/api/report.html)

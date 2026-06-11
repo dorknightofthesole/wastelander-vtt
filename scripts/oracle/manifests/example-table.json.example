@@ -1,0 +1,23 @@
+{
+  "title": "Example Table",
+  "slug": "example-table",
+  "layout": "single",
+  "rollMin": 1,
+  "rollMax": 6,
+  "source": {
+    "document": "your-local-rulebook.pdf",
+    "page": 0
+  },
+  "results": [
+    {
+      "range": "1-3",
+      "name": "Short label",
+      "description": "Longer effect text shown in Foundry when name and description differ."
+    },
+    {
+      "range": "4-6",
+      "name": "Same as description",
+      "description": "Same as description"
+    }
+  ]
+}

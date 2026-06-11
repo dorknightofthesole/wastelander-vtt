@@ -163,6 +163,58 @@ Run import once per world after bundling your JSON, then scavenging inhabitant w
 
 ---
 
+## Oracle roll tables (Wasteland Wanderer)
+
+Wastelander can build Foundry `RollTable` JSON for appendix oracle tables from the licensed **Wasteland Wanderer** PDF. Manifests and generated output stay on your machine (gitignored); the repo ships the extraction and build tooling only.
+
+### Provide the PDF
+
+Place your licensed PDF at this path with this **exact filename**:
+
+```text
+docs/reference/source/Fallout-2d20-Wasteland-Wanderer.pdf
+```
+
+The `docs/reference/source/` folder is gitignored. If your copy has a different name, rename it to match, or pass an alternate path as the last argument to the extract script (see [docs/reference/oracle-rolltables.md](docs/reference/oracle-rolltables.md)).
+
+To change the default path in code, update `DEFAULT_PDF` in:
+
+- `scripts/extract-oracle-manifests.mjs`
+- `scripts/build-oracle-rolltables.mjs`
+
+### Workflow
+
+```bash
+# 1. Draft manifests from the PDF (compare before write)
+npm run extract:oracle
+
+# 2. Review manifests — existing tables are not overwritten
+#    New tables     → scripts/oracle/manifests/<slug>.json
+#    Unchanged      → skipped
+#    Different      → scripts/oracle/manifests-staging/<slug>.json
+#                     + scripts/oracle/manifests-staging/staging-diff.md
+
+# 3. Build Foundry import JSON
+npm run build:oracle
+```
+
+Import the files from `src/data/oracle/` into Foundry (or use your usual compendium workflow).
+
+`npm run extract:oracle` parses every appendix table profile, compares each result set against any existing manifest, then writes or skips accordingly. It never overwrites a manifest that already exists — differences go to `manifests-staging/` with a combined diff report.
+
+Useful variants:
+
+```bash
+npm run extract:oracle:list          # list extractable table slugs
+npm run build:oracle:list            # list manifest slugs and section groups
+npm run extract:oracle -- --table clear-blocker-table
+npm run build:oracle -- clear-blocker-table
+```
+
+Full command reference, layout profiles, and known extraction quirks: [docs/reference/oracle-rolltables.md](docs/reference/oracle-rolltables.md).
+
+---
+
 ## Bundled compendiums
 
 The module includes a **Wastelander** compendium folder with two packs:
@@ -184,7 +236,7 @@ To refresh pack data from your Foundry world after editing compendiums, see [pac
 |------------------|----------|
 | [foundryvtt-fallout](https://github.com/Muttley/foundryvtt-fallout) | **Required** — actors, compendiums, AP tracker, sheets |
 | Simple Calendar Reborn | Advance world time after scavenging |
-| Licensed Modiphius PDFs | Character sheet export only |
+| Licensed Modiphius PDFs | Character sheet export; Wasteland Wanderer oracle table extraction (local build) |
 | Bundled `wastelander.items` / `wastelander.wastelander` | Custom scavenging items and roll tables (included with module) |
 
 ---

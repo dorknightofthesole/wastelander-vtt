@@ -13,3 +13,5 @@ Commit this file with the repo so the design target stays with the codebase.
 **Repo:** [dorknightofthesole/wastelander-vtt](https://github.com/dorknightofthesole/wastelander-vtt) (local folder: `wastelander-foundry-vtt`).
 
 **Rules PDF:** See [rulebook-sources.md](./rulebook-sources.md) for the local char-creation extract path (not in git).
+
+**Oracle roll tables:** See [oracle-rolltables.md](./oracle-rolltables.md). Requires `docs/reference/source/Fallout-2d20-Wasteland-Wanderer.pdf` (local, gitignored). Workflow: `npm run extract:oracle` → review manifests → `npm run build:oracle`.
