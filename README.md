@@ -12,6 +12,19 @@ All copyright assets included in the module are owned by Modiphius Entertainment
 
 ---
 
+## Features
+
+- **Character creation** — Step-by-step wizard (origin, S.P.E.C.I.A.L., skills, perks, equipment); PDF export/import with licensed Modiphius sheets
+- **Combat dice Roller** — Chat-bar CD roller with effect-face highlighting
+- **Scavenging (Overseer)** — Scene location generator, inhabitants/obstacles/hazards, per-scene loot RollTables, auto-updated Scavenger journal
+- **Scavenging (players)** — Search team rolls, min/AP loot on scene tables, Luck Point shifts, server-validated actions
+- **Loot filtering** — Optional caps or rarity limits by location level (default: no filter — “The New Vegas Option”)
+- **Denizen import** — Bring your own NPC actor JSON into the world for inhabitant rosters
+- **Oracle tables** — Build/import Wasteland Wanderer roll tables from your licensed PDF (local tooling)
+- **Bundled compendiums** — Custom scavenging items and roll tables included with the module
+
+---
+
 ## Installation
 
 1. Install the module in Foundry (manifest URL in `module.json`).
