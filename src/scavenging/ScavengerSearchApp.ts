@@ -4,6 +4,7 @@ import {
   promptSurvivalSearchRoll,
 } from "../integrations/falloutSkillDialog.js";
 import { t } from "../integrations/i18n.js";
+import { currentUserIsOverseer } from "../integrations/overseerAccess.js";
 import type { LootCategoryKey, PartyActorRow, ScavengerLocation } from "./ScavengerLocation.js";
 import { buildPlayerLootRows } from "./lootGrid.js";
 import { getPartyActorsOnScene, userControlsActor } from "./partyContext.js";
@@ -250,7 +251,7 @@ export default class ScavengerSearchApp extends HandlebarsApplicationMixin(
 
   #partyActorsForUi(): PartyActorRow[] {
     const rows = this.#partyOnScene();
-    const list = game.user?.isGM
+    const list = currentUserIsOverseer()
       ? rows
       : rows.filter((r) => r.userId === game.user?.id);
 
@@ -587,7 +588,7 @@ export default class ScavengerSearchApp extends HandlebarsApplicationMixin(
   ): LuckActorOption[] {
     const userId = game.user?.id ?? "";
     return searchTeamActorIds(playerSearch)
-      .filter((actorId) => game.user?.isGM || this.#canControlActor(actorId, userId))
+      .filter((actorId) => currentUserIsOverseer() || this.#canControlActor(actorId, userId))
       .map((actorId) => {
         const actor = game.actors.get(actorId);
         const role = getSearchTeamRole(playerSearch, actorId);

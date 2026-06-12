@@ -102,6 +102,89 @@ export type RollTableSummary = {
   folder?: string | Folder | null;
 };
 
+type RollTableResultsLike =
+  | Array<{ id?: string }>
+  | {
+      size?: number;
+      length?: number;
+      contents?: Array<{ id?: string }>;
+      map?: (fn: (row: { id?: string }) => string) => string[];
+    }
+  | null
+  | undefined;
+
+/** Foundry v13 embedded collections expose `.size`; older paths may use arrays. */
+export function rollTableResultCount(doc: { results?: RollTableResultsLike }): number {
+  const results = doc.results;
+  if (!results) return 0;
+  if (
+    typeof results === "object" &&
+    !Array.isArray(results) &&
+    typeof results.size === "number"
+  ) {
+    return results.size;
+  }
+  if (Array.isArray(results)) return results.length;
+  if (
+    typeof results === "object" &&
+    Array.isArray(results.contents)
+  ) {
+    return results.contents.length;
+  }
+  if (
+    typeof results === "object" &&
+    typeof results.length === "number"
+  ) {
+    return results.length;
+  }
+  if (typeof results === "object" && Symbol.iterator in results) {
+    let count = 0;
+    for (const _row of results as Iterable<unknown>) {
+      count += 1;
+    }
+    return count;
+  }
+  return 0;
+}
+
+export function rollTableResultIds(doc: { results?: RollTableResultsLike }): string[] {
+  const results = doc.results;
+  if (!results) return [];
+  if (Array.isArray(results)) {
+    return results.map((row) => String(row.id ?? "")).filter(Boolean);
+  }
+  if (typeof results === "object") {
+    if (typeof results.map === "function") {
+      return results.map((row) => String(row.id ?? "")).filter(Boolean);
+    }
+    if (Array.isArray(results.contents)) {
+      return results.contents
+        .map((row) => String(row.id ?? ""))
+        .filter(Boolean);
+    }
+  }
+  return [];
+}
+
+export function formatRollTableFolderPath(
+  doc: { folder?: string | Folder | null },
+): string {
+  const folders = (game as { folders?: { get?: (id: string) => Folder } }).folders;
+  const parts: string[] = [];
+  const seen = new Set<string>();
+  let folderId = documentFolderId(doc);
+
+  while (folderId && !seen.has(folderId)) {
+    seen.add(folderId);
+    const folder = folders?.get?.(folderId);
+    if (!folder) break;
+    parts.unshift(folder.name);
+    folderId = folderParentId(folder);
+  }
+
+  return parts.length ? parts.join(" → ") : "(Roll Tables root)";
+}
+
 export function documentFolderId(
   doc: { folder?: string | Folder | null },
 ): string | null {
@@ -270,7 +353,7 @@ export async function upsertRollTableInFolder(
     if (existing) {
       await existing.update(tablePayload, SILENT);
 
-      const resultIds = (existing.results ?? []).map((row) => row.id);
+      const resultIds = rollTableResultIds(existing);
       if (resultIds.length) {
         await existing.deleteEmbeddedDocuments("TableResult", resultIds, SILENT);
       }

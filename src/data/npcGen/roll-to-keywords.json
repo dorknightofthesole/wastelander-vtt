@@ -1,0 +1,32 @@
+{
+  "profession": {
+    "Trader": ["Merchant", "Trader"],
+    "Leader": ["Leader"],
+    "Farmer": ["Settler", "Farmer"],
+    "Guard": ["Guard"],
+    "Cook": ["Cook"]
+  },
+  "demeanor": {
+    "Happy": ["Friendly"],
+    "Hostile": ["Hostile"],
+    "Loyal": ["Loyal"],
+    "Professional": ["Professional"],
+    "Addict": ["Addict"],
+    "Savage": ["Savage"],
+    "Peaceful": ["Peaceful"],
+    "Desperate": ["Desperate"],
+    "Ruthless": ["Ruthless"],
+    "Shifty": ["Shifty"]
+  },
+  "distinctiveFeatures": {
+    "Finely dressed": ["Well-dressed"],
+    "Well-maintained equipment": ["Well-equipped"],
+    "Named weapon": ["Armed"],
+    "Pack Brahmin": ["Brahmin"]
+  },
+  "age": {
+    "Child": ["Young"],
+    "Teenager": ["Young"],
+    "Ancient": ["Elder"]
+  }
+}

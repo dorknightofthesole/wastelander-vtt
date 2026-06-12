@@ -1,4 +1,5 @@
 import { t } from "../integrations/i18n.js";
+import { currentUserIsOverseer } from "../integrations/overseerAccess.js";
 import { renderDenizenImportMenu } from "./DenizenImportMenuApp.js";
 
 type SidebarHeaderControl = Record<string, unknown>;
@@ -11,14 +12,14 @@ function isActorsSidebar(app: unknown): boolean {
 }
 
 function pushDenizenImportHeaderControl(controls: SidebarHeaderControl[]): void {
-  if (!game.user?.isGM) return;
+  if (!currentUserIsOverseer()) return;
   if (controls.some((c) => c.action === "wastelanderImportDenizens")) return;
 
   controls.push({
     action: "wastelanderImportDenizens",
     icon: "fa-solid fa-file-import",
     label: t("WASTELANDER.Denizens.Import.OpenMenu"),
-    ownership: "GAMEMASTER",
+    visible: () => currentUserIsOverseer(),
     onClick: () => renderDenizenImportMenu(),
   });
 }

@@ -30,6 +30,9 @@
     "loot-scrap"
   ],
   "generate-npc": [
+    "npc-names-masculine",
+    "npc-names-feminine",
+    "npc-surnames",
     "npc-age",
     "npc-demeanor-odds",
     "npc-demeanor-evens",

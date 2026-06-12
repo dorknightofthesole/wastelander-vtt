@@ -1,4 +1,5 @@
 import { MODULE_ID } from "../constants.js";
+import { currentUserIsOverseer } from "../integrations/overseerAccess.js";
 import type { LootCategoryKey, ScavengerLocation } from "./ScavengerLocation.js";
 import type { LootTableRow } from "./lootTableRanges.js";
 import {
@@ -52,7 +53,7 @@ export function isLootRarityFilterEnabled(): boolean {
 
 /** Migrate legacy boolean setting to lootFilterMode (once per world). */
 export async function migrateLegacyLootFilterSetting(): Promise<void> {
-  if (!game.user?.isGM) return;
+  if (!currentUserIsOverseer()) return;
 
   const legacyEnabled = Boolean(
     game.settings.get(MODULE_ID, SCAVENGING_SETTINGS.lootValueFilterEnabled),

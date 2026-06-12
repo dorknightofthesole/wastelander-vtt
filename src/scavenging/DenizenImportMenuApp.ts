@@ -1,4 +1,5 @@
 import { MODULE_PATH } from "../constants.js";
+import { currentUserIsOverseer } from "../integrations/overseerAccess.js";
 import {
   getBundledDenizenCount,
   importBundledDenizens,
@@ -36,7 +37,7 @@ export default class DenizenImportMenuApp extends HandlebarsApplicationMixin(
     const bundledCount = getBundledDenizenCount();
     const canImport =
       game.system.id === "fallout" &&
-      Boolean(game.user?.isGM) &&
+      currentUserIsOverseer() &&
       bundledCount > 0 &&
       !this.#importing;
 
@@ -44,7 +45,7 @@ export default class DenizenImportMenuApp extends HandlebarsApplicationMixin(
       falloutSystem: game.system.id === "fallout",
       hasBundled: bundledCount > 0,
       bundledCount,
-      isGm: Boolean(game.user?.isGM),
+      isGm: currentUserIsOverseer(),
       importing: this.#importing,
       canImport,
     };

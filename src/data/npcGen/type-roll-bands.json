@@ -1,0 +1,7 @@
+{
+  "bands": [
+    { "min": 1, "max": 14, "type": "normal" },
+    { "min": 15, "max": 18, "type": "notable" },
+    { "min": 19, "max": 20, "type": "major" }
+  ]
+}

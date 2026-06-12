@@ -62,7 +62,83 @@ export async function updateWorldActor(
 type RenderableActorSheet = {
   rendered?: boolean;
   render?: (force?: boolean) => Promise<unknown>;
+  close?: (options?: unknown) => Promise<unknown>;
 };
+
+type SidebarTabApp = {
+  rendered?: boolean;
+  render?: (force?: boolean) => Promise<unknown>;
+};
+
+function actorsSidebarTabs(): SidebarTabApp[] {
+  const uiRef = ui as {
+    actors?: SidebarTabApp;
+    sidebar?: {
+      tabs?: Record<string, SidebarTabApp | undefined>;
+      tab?: Record<string, SidebarTabApp | undefined>;
+    };
+  };
+  const tabs = uiRef.sidebar?.tabs ?? uiRef.sidebar?.tab ?? {};
+  const candidates = [uiRef.actors, tabs.actors, tabs.actor];
+  return candidates.filter((tab): tab is SidebarTabApp => tab != null);
+}
+
+/** Re-render the Actors sidebar after silent document creates (`render: false`). */
+export async function refreshActorsSidebar(force = true): Promise<void> {
+  for (const tab of actorsSidebarTabs()) {
+    if (!tab.render) continue;
+    try {
+      await tab.render(force);
+      return;
+    } catch {
+      // Try the next known Actors tab reference.
+    }
+  }
+}
+
+/** Close an open actor sheet without throwing. */
+export async function closeActorSheet(actor: Actor | string): Promise<void> {
+  const doc =
+    typeof actor === "string" ? game.actors.get(actor) : actor;
+  if (!doc) return;
+
+  const sheet = doc.sheet as RenderableActorSheet | null | undefined;
+  if (sheet?.rendered && sheet.close) {
+    try {
+      await sheet.close();
+      return;
+    } catch {
+      // Fall through to ui.windows fallback.
+    }
+  }
+
+  const windows = (ui as { windows?: Record<string, { close?: () => Promise<unknown> }> })
+    .windows;
+  if (!windows) return;
+
+  for (const app of Object.values(windows)) {
+    const docRef = (app as { document?: Actor; actor?: Actor }).document
+      ?? (app as { actor?: Actor }).actor;
+    if (docRef?.id !== doc.id) continue;
+    if (typeof app.close !== "function") continue;
+    try {
+      await app.close();
+    } catch {
+      // ignore
+    }
+  }
+}
+
+/** Close every rendered actor sheet (e.g. before another NPC create/generate). */
+export async function closeAllRenderedActorSheets(): Promise<void> {
+  const actors = (game as { actors?: Iterable<Actor> }).actors;
+  if (!actors) return;
+  for (const actor of actors) {
+    const sheet = actor.sheet as RenderableActorSheet | null | undefined;
+    if (!sheet?.rendered) continue;
+    await closeActorSheet(actor);
+  }
+}
 
 /** Re-render open actor sheets after silent embedded-document updates. */
 export function refreshActorSheet(actor: Actor): void {

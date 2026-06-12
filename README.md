@@ -14,12 +14,14 @@ All copyright assets included in the module are owned by Modiphius Entertainment
 
 ## Features
 
-- **Character creation** — Step-by-step wizard (origin, S.P.E.C.I.A.L., skills, perks, equipment); PDF export/import with licensed Modiphius sheets
-- **Combat dice Roller** — Chat-bar CD roller with effect-face highlighting
-- **Scavenging (Overseer)** — Scene location generator, inhabitants/obstacles/hazards, per-scene loot RollTables, auto-updated Scavenger journal
+- **Guided character creation** — Step-by-step wizard (origin, S.P.E.C.I.A.L., skills, perks, equipment); PDF export/import with licensed Modiphius sheets
+- **Combat dice roller** — Chat-bar CD roller with effect-face highlighting
+- **Scavenging scene generation (Overseer)** — Location generator with inhabitants, obstacles, and hazards; per-scene loot RollTables under **Roll Tables → Wastelander → Scenes**; auto-updated Scavenger journal
+  - **Loot filtering** — Optional caps or rarity limits by location level when tables are built or reset (default: no filter — “The New Vegas Option”)
+  - **Scene loot tables** — Booklet tables materialized per scene (with filtering applied on build/reset); Overseers can edit rows, formulas, and items in Foundry for custom, scene-specific loot
 - **Scavenging (players)** — Search team rolls, min/AP loot on scene tables, Luck Point shifts, server-validated actions
-- **Loot filtering** — Optional caps or rarity limits by location level (default: no filter — “The New Vegas Option”)
 - **Denizen import** — Bring your own NPC actor JSON into the world for inhabitant rosters
+- **Friendly NPC generator (Overseer)** — Step-by-step Wasteland Wanderer rolls; builds Core Rulebook Character stat blocks (Normal/Notable/Major), journal page, and actor
 - **Oracle tables** — Build/import Wasteland Wanderer roll tables from your licensed PDF (local tooling)
 - **Bundled compendiums** — Custom scavenging items and roll tables included with the module
 
@@ -76,6 +78,14 @@ A quick **Roll combat dice** control in the chat bar (Fallout effect-face icon) 
 - **Chat card** — Each die face is shown with Fallout CD art; effect faces (5 and 6) are highlighted. Summary line: **Total N | X Effects** (damage-plaq styling).
 
 Useful for perks and abilities that key off individual CD results (such as whether an effect was rolled), not just the numeric total.
+
+---
+
+## Friendly NPC generator (Overseer)
+
+**Scene toolbar → Tokens → user-plus icon** (GM only). Rolls Wasteland Wanderer **Generate NPC** tables step by step, then builds a Core Rulebook **Character** stat block (Normal / Notable / Major), creates an actor under **Wastelander → Generated NPCs**, and adds a journal page.
+
+Requires Wanderer oracle tables imported first. See [docs/reference/friendly-npc-generator.md](docs/reference/friendly-npc-generator.md).
 
 ---
 

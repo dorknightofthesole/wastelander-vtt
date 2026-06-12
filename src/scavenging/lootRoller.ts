@@ -6,6 +6,7 @@ import { itemUuidFromTableRow } from "./lootItemInteract.js";
 import {
   clampLootRollSum,
   collectTableResultRows,
+  executeRollTableDraw,
   lookupLootAtRollSum,
   type TableResultRow,
 } from "./rollTableLookup.js";
@@ -62,19 +63,6 @@ export type DrawnLoot = {
   drewToChat?: boolean;
 };
 
-function normalizeRollTableDraw(raw: unknown): { results: TableResultRow[]; rollTotal?: number } {
-  if (!raw || typeof raw !== "object") return { results: [] };
-  const obj = raw as Record<string, unknown>;
-  const inner =
-    obj.RollTableDraw && typeof obj.RollTableDraw === "object"
-      ? (obj.RollTableDraw as Record<string, unknown>)
-      : obj;
-  const results = Array.isArray(inner.results) ? (inner.results as TableResultRow[]) : [];
-  const rollTotal =
-    typeof inner.rollTotal === "number" ? inner.rollTotal : undefined;
-  return { results, rollTotal };
-}
-
 function resultLabelFromDraw(
   result: TableResultRow,
   tableKey: LootCategoryKey,
@@ -94,33 +82,36 @@ async function drawFromRollTableDocument(
   luckShift: number,
 ): Promise<DrawnLoot> {
   const whisper = getScavengingSettingBoolean(SCAVENGING_SETTINGS.searchRollWhisper);
-  const drawRaw = await table.draw({
+  const outcome = await executeRollTableDraw(table, {
     displayChat,
-    ...(displayChat && whisper ? { messageMode: CONST.DICE_ROLL_MODES.PRIVATE } : {}),
+    drawOptions:
+      displayChat && whisper
+        ? { messageMode: CONST.DICE_ROLL_MODES.PRIVATE }
+        : undefined,
   });
-  const { results, rollTotal } = normalizeRollTableDraw(drawRaw);
   const picked =
-    results.find((r) => r.type === "document" || r.documentUuid) ?? results[0];
+    outcome.rows.find((r) => r.type === "document" || r.documentUuid) ??
+    outcome.rows[0];
 
-  if (!picked) {
+  if (!picked || outcome.label.startsWith("(No result on ")) {
     return {
-      label: `(No result on ${table.name})`,
+      label: outcome.label || `(No result on ${table.name})`,
       rollSum: 0,
-      drewToChat: displayChat,
+      drewToChat: outcome.drewToChat,
       tableCategory: category,
     };
   }
 
   const range = picked.range;
   let rollSum =
-    rollTotal ??
+    outcome.rollTotal ||
     (range
       ? Math.round((Math.min(range[0]!, range[1]!) + Math.max(range[0]!, range[1]!)) / 2)
       : 0);
   rollSum = clampLootRollSum(category, rollSum);
 
   const tableRows = collectTableResultRows(table);
-  let label = resultLabelFromDraw(picked, category);
+  let label = outcome.label || resultLabelFromDraw(picked, category);
   let itemUuid = itemUuidFromTableRow(picked);
   let resolvedSum = rollSum;
 
@@ -140,7 +131,7 @@ async function drawFromRollTableDocument(
     rollSum: resolvedSum,
     itemUuid,
     tableCategory: category,
-    drewToChat: displayChat,
+    drewToChat: outcome.drewToChat,
   };
 }
 

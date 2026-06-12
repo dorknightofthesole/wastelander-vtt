@@ -11,6 +11,16 @@ import {
 import { registerOracleSettings } from "./oracle/oracleSettings.js";
 import { getBundledDenizenCount, importBundledDenizens } from "./scavenging/denizenImport.js";
 import { registerCombatDiceChatButton } from "./integrations/combatDiceChatButton.js";
+import {
+  createInitialNpcGeneratorState,
+  type NpcGenStepId,
+} from "./npcGen/npcGeneratorState.js";
+import NpcGeneratorApp from "./npcGen/NpcGeneratorApp.js";
+import { registerNpcGeneratorHooks } from "./npcGen/npcGeneratorHooks.js";
+import {
+  diagnoseNpcGenTables,
+  logNpcGenTableDiagnostics,
+} from "./npcGen/wandererRollTables.js";
 import { registerScavengingHooks } from "./scavenging/scavengingHooks.js";
 
 Hooks.once("init", () => {
@@ -18,6 +28,7 @@ Hooks.once("init", () => {
   registerActorSheetControlHooks();
   registerCombatDiceChatButton();
   registerScavengingHooks();
+  registerNpcGeneratorHooks();
   registerOracleSettings();
   console.log(`${MODULE_ID} | initializing`);
 });
@@ -30,6 +41,13 @@ Hooks.once("ready", () => {
     bundledDenizenCount: getBundledDenizenCount,
     importOracleRollTables: importBundledOracleRollTables,
     bundledOracleRollTableCount: getBundledOracleRollTableCount,
+    /** Console diagnostics for NPC generator roll tables (optional step id). */
+    debugNpcGenTables: (step?: NpcGenStepId) => {
+      const state =
+        NpcGeneratorApp.getOpenState() ?? createInitialNpcGeneratorState();
+      if (step) state.step = step;
+      return logNpcGenTableDiagnostics(diagnoseNpcGenTables(state.step, state));
+    },
   };
 });
 

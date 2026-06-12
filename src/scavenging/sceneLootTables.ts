@@ -1,4 +1,5 @@
 import { MODULE_ID } from "../constants.js";
+import { currentUserIsOverseer } from "../integrations/overseerAccess.js";
 import {
   deleteRollTablesInFolder,
   ensureRollTableFolder,
@@ -161,7 +162,7 @@ function lootRowsToResultPayload(rows: LootTableRow[]): RollTableResultPayload[]
 }
 
 async function ensurePlayerCanDraw(table: RollTable): Promise<void> {
-  if (!game.user?.isGM) return;
+  if (!currentUserIsOverseer()) return;
   const def = Number(table.ownership?.default ?? 0);
   if (def >= 1) return;
   await table.update(
@@ -390,7 +391,7 @@ export async function syncSceneLootTables(
   sceneName: string,
   mode: SyncSceneLootMode,
 ): Promise<ScavengerLocation> {
-  if (!game.user?.isGM) return location;
+  if (!currentUserIsOverseer()) return location;
 
   const folderId = await ensureSceneLootFolder(
     sceneId,

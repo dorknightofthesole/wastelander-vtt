@@ -1,5 +1,6 @@
 import { MODULE_ID } from "../constants.js";
 import { t } from "../integrations/i18n.js";
+import { currentUserIsOverseer } from "../integrations/overseerAccess.js";
 import {
   handlePlayerSearchSocket,
   isPlayerSearchSocketRequest,
@@ -57,7 +58,7 @@ export function registerScavengingHooks(): void {
       };
     };
     const handler = (data: unknown, _userId: string): void => {
-      if (!game.user?.isGM) return;
+      if (!currentUserIsOverseer()) return;
       if (isPlayerSearchSocketRequest(data as Parameters<typeof isPlayerSearchSocketRequest>[0])) {
         void handlePlayerSearchSocket(
           data as Parameters<typeof handlePlayerSearchSocket>[0],
@@ -76,7 +77,7 @@ export function registerScavengingHooks(): void {
     const group = controls.tokens ?? controls.token;
     if (!group) return;
 
-    if (game.user?.isGM) {
+    if (currentUserIsOverseer()) {
       registerSceneControlTool(group, {
         name: "wastelander-scavenging",
         title: t("WASTELANDER.Scavenging.Tooltip"),

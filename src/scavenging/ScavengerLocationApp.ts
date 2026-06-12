@@ -1,4 +1,5 @@
 import { MODULE_ID, MODULE_PATH } from "../constants.js";
+import { currentUserIsOverseer } from "../integrations/overseerAccess.js";
 import { enrichFalloutHtml } from "../integrations/foundryText.js";
 import { rollHazardDamageForActor } from "./hazardDamage.js";
 import {
@@ -214,7 +215,7 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
     this.#activeTab = resolveOverseerOpeningTab(applied.location);
     this.party = applied.party;
     this.#sceneId = sceneId;
-    if (sceneId && game.user?.isGM) {
+    if (sceneId && currentUserIsOverseer()) {
       scheduleScavengerJournalSync(sceneId);
     }
   }

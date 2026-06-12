@@ -5,6 +5,8 @@ import {
   ensureRollTableFolder,
   findWorldRollTableByName,
   getRollTableDocument,
+  rollTableResultCount,
+  rollTableResultIds,
   ROLL_TABLE_CREATE_OPTIONS,
 } from "../integrations/rollTableDocuments.js";
 import {
@@ -109,12 +111,21 @@ async function upsertRollTableFromExport(
     if (existing) {
       await existing.update(tablePayload, SILENT);
 
-      const resultIds = (existing.results ?? []).map((row) => row.id);
+      const resultIds = rollTableResultIds(existing);
       if (resultIds.length) {
         await existing.deleteEmbeddedDocuments("TableResult", resultIds, SILENT);
       }
       if (results.length) {
         await existing.createEmbeddedDocuments("TableResult", results, SILENT);
+      }
+
+      const refreshed = getRollTableDocument(existing.id);
+      const importedCount = refreshed ? rollTableResultCount(refreshed) : 0;
+      if (results.length > 0 && importedCount === 0) {
+        console.error(
+          `${MODULE_ID} | oracle import "${name}" wrote 0/${results.length} results`,
+        );
+        return "failed";
       }
 
       return "updated";
@@ -129,7 +140,16 @@ async function upsertRollTableFromExport(
       [createPayload],
       CREATE_OPTIONS,
     );
-    return created[0] ? "created" : "failed";
+    const table = created[0];
+    if (!table) return "failed";
+    const importedCount = rollTableResultCount(table);
+    if (results.length > 0 && importedCount === 0) {
+      console.error(
+        `${MODULE_ID} | oracle import "${name}" created with 0/${results.length} results`,
+      );
+      return "failed";
+    }
+    return "created";
   } catch (err) {
     console.warn(`${MODULE_ID} | failed to import oracle table "${name}"`, err);
     return "failed";

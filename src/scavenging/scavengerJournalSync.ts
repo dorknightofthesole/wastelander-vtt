@@ -1,5 +1,6 @@
 import { MODULE_ID } from "../constants.js";
 import { t } from "../integrations/i18n.js";
+import { currentUserIsOverseer, isOverseer } from "../integrations/overseerAccess.js";
 import { renderScavengerJournalHtml } from "./renderScavengerJournalHtml.js";
 import { getPartyActorsOnScene } from "./partyContext.js";
 import {
@@ -17,12 +18,12 @@ const SCENE_PAGE_FLAG = "scavengerJournalPageId";
 const syncTimers = new Map<string, ReturnType<typeof setTimeout>>();
 let syncInFlight = false;
 
-function gmOnlyOwnership(): Record<string, number> {
+function overseerOwnership(): Record<string, number> {
   const ownership: Record<string, number> = { default: 0 };
-  const users = (game as { users?: { contents?: Array<{ id: string; isGM: boolean }> } })
+  const users = (game as { users?: { contents?: Array<{ id: string; isGM: boolean; role?: number }> } })
     .users?.contents;
   for (const user of users ?? []) {
-    if (user.isGM) ownership[user.id] = 3;
+    if (isOverseer(user)) ownership[user.id] = 3;
   }
   return ownership;
 }
@@ -104,7 +105,7 @@ async function getScavengerJournalId(): Promise<string> {
     const created = await JournalEntry.create({
       name: journalTitle,
       folder: null,
-      ownership: gmOnlyOwnership(),
+      ownership: overseerOwnership(),
     });
     journalId = created.id;
   }
@@ -182,7 +183,7 @@ async function syncScavengerJournalForSceneInner(sceneId: string): Promise<void>
 
 /** Debounced journal refresh for a scene (GM world only). */
 export function scheduleScavengerJournalSync(sceneId: string): void {
-  if (!game.user?.isGM) return;
+  if (!currentUserIsOverseer()) return;
   const id = sceneId.trim();
   if (!id) return;
 
@@ -198,7 +199,7 @@ export function scheduleScavengerJournalSync(sceneId: string): void {
 }
 
 export async function flushScavengerJournalSync(sceneId: string): Promise<void> {
-  if (!game.user?.isGM) return;
+  if (!currentUserIsOverseer()) return;
   if (syncInFlight) {
     scheduleScavengerJournalSync(sceneId);
     return;

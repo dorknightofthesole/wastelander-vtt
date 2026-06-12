@@ -1,0 +1,284 @@
+<div class="wastelander-wizard-layout wastelander-npc-gen-layout">
+  <nav class="wastelander-sidebar wastelander-npc-gen-sidebar" aria-label="{{localize "WASTELANDER.NpcGen.Title"}}">
+    <h2 class="wastelander-npc-gen-sidebar-title">{{localize "WASTELANDER.NpcGen.Title"}}</h2>
+    <ol class="wastelander-step-list wastelander-npc-gen-step-list scrollable">
+      {{#each steps}}
+      <li class="wastelander-step-item wastelander-npc-gen-step-item {{#if this.active}}active{{/if}} {{#if this.complete}}complete{{/if}} {{#if this.focused}}focused{{/if}}">
+        <span class="wastelander-step-number">{{this.number}}</span>
+        <span class="wastelander-step-label">{{this.label}}</span>
+        {{#if this.clickable}}
+        <button
+          type="button"
+          class="wastelander-step-value wastelander-npc-gen-step-value-btn"
+          data-action="focusStep"
+          data-step-id="{{this.id}}"
+        >{{#if this.value}}{{this.value}}{{else}}—{{/if}}</button>
+        {{else if this.value}}
+        <span class="wastelander-step-value">{{this.value}}</span>
+        {{/if}}
+      </li>
+      {{/each}}
+    </ol>
+  </nav>
+
+  <main class="wastelander-main wastelander-npc-gen-main">
+    <section class="wastelander-step-content wastelander-npc-gen-step-content scrollable">
+      {{#if stepTableStatus}}
+      <div class="wastelander-npc-gen-table-status" aria-label="Roll table status">
+        {{#each stepTableStatus}}
+        <p class="wastelander-npc-gen-table-status-row {{#if this.ok}}is-ok{{/if}}{{#if this.warning}} is-warn{{/if}}">
+          <span class="wastelander-npc-gen-table-status-label">{{this.title}}</span>
+          <span class="wastelander-npc-gen-table-status-detail">{{this.reason}}</span>
+        </p>
+        {{/each}}
+      </div>
+      {{/if}}
+
+      {{#unless tablesReady}}
+      <div class="wastelander-hint wastelander-npc-gen-warning">
+        <p>{{localize "WASTELANDER.NpcGen.TablesNotReadyHint"}}</p>
+      </div>
+      {{/unless}}
+
+      {{#if showFocusedStep}}
+      <div class="wastelander-npc-gen-step-detail">
+        <div class="wastelander-npc-gen-step-detail-header">
+          <h3>{{focusedStepLabel}}</h3>
+          {{#if focusedStepValue}}
+          <p class="wastelander-npc-gen-result wastelander-npc-gen-result-value">{{focusedStepValue}}</p>
+          {{/if}}
+          <div class="wastelander-npc-gen-action-row">
+            {{#if showReroll}}
+            <button
+              type="button"
+              class="wastelander-btn-secondary wastelander-npc-gen-reroll-btn"
+              data-action="rerollStep"
+              data-step-id="{{focusedStepId}}"
+            >
+              {{localize "WASTELANDER.NpcGen.Reroll"}}
+            </button>
+            {{/if}}
+          </div>
+        </div>
+
+        {{#if pickerRows.length}}
+        <div class="wastelander-npc-gen-picker">
+          <p class="wastelander-npc-gen-picker-hint">{{localize "WASTELANDER.NpcGen.Picker.Hint"}}</p>
+          <table class="wastelander-npc-gen-picker-table">
+            <thead>
+              <tr>
+                <th scope="col">{{localize "WASTELANDER.NpcGen.Picker.Range"}}</th>
+                <th scope="col">{{localize "WASTELANDER.NpcGen.Picker.Result"}}</th>
+                <th scope="col">{{localize "WASTELANDER.NpcGen.Picker.Table"}}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{#each pickerRows}}
+              <tr class="wastelander-npc-gen-picker-row {{#if this.selected}}is-selected{{/if}}">
+                <td class="wastelander-npc-gen-picker-range">{{this.rangeLabel}}</td>
+                <td class="wastelander-npc-gen-picker-label">
+                  <button
+                    type="button"
+                    class="wastelander-npc-gen-picker-choice"
+                    data-action="pickStepOption"
+                    data-picker-index="{{this.index}}"
+                  >{{this.label}}</button>
+                </td>
+                <td class="wastelander-npc-gen-picker-table-name">{{this.tableTitle}}</td>
+              </tr>
+              {{/each}}
+            </tbody>
+          </table>
+        </div>
+        {{/if}}
+      </div>
+      {{/if}}
+
+      {{#if isGearStep}}
+      <div class="wastelander-npc-gen-gear">
+        <h3>{{localize "WASTELANDER.NpcGen.Gear.Title"}}</h3>
+        <p class="wastelander-npc-gen-gear-hint">{{localize "WASTELANDER.NpcGen.Gear.Hint"}}</p>
+
+        {{#if gearSections.length}}
+        {{#each gearSections}}
+        <div class="wastelander-npc-gen-gear-section">
+          <h4 class="wastelander-npc-gen-gear-section-title">{{this.title}}</h4>
+          <ul class="wastelander-npc-gen-gear-list">
+            {{#each this.rows}}
+            <li class="wastelander-npc-gen-gear-item">
+              <span class="wastelander-npc-gen-gear-item-label">{{this.label}}</span>
+              {{#if this.detail}}<span class="wastelander-npc-gen-gear-item-detail">{{this.detail}}</span>{{/if}}
+            </li>
+            {{/each}}
+          </ul>
+        </div>
+        {{/each}}
+        {{else}}
+        <p class="wastelander-npc-gen-gear-empty">{{localize "WASTELANDER.NpcGen.Gear.NoMappedGear"}}</p>
+        {{/if}}
+
+        {{#if denizenCombatSection}}
+        <div class="wastelander-npc-gen-gear-section">
+          <h4 class="wastelander-npc-gen-gear-section-title">{{denizenCombatSection.title}}</h4>
+          <ul class="wastelander-npc-gen-gear-list">
+            {{#each denizenCombatSection.rows}}
+            <li class="wastelander-npc-gen-gear-item">
+              <span class="wastelander-npc-gen-gear-item-label">{{this.label}}</span>
+            </li>
+            {{/each}}
+          </ul>
+        </div>
+        {{/if}}
+
+        <div class="wastelander-npc-gen-gear-add-combat">
+          <h4 class="wastelander-npc-gen-gear-section-title">{{localize "WASTELANDER.NpcGen.Gear.AddCombatGear"}}</h4>
+          {{#if denizenOptions.length}}
+          <label class="wastelander-npc-gen-gear-denizen-select">
+            <span>{{localize "WASTELANDER.NpcGen.Gear.DenizenSelect"}}</span>
+            <select data-npc-gen-select="denizen">
+              <option value="">{{localize "WASTELANDER.NpcGen.Gear.DenizenPlaceholder"}}</option>
+              {{#each denizenOptions}}
+              <option value="{{id}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+              {{/each}}
+            </select>
+          </label>
+
+          {{#if denizenPreviewSection}}
+          <div class="wastelander-npc-gen-gear-section wastelander-npc-gen-gear-preview">
+            <h4 class="wastelander-npc-gen-gear-section-title">{{denizenPreviewSection.title}}</h4>
+            <ul class="wastelander-npc-gen-gear-list">
+              {{#each denizenPreviewSection.rows}}
+              <li class="wastelander-npc-gen-gear-item">
+                <span class="wastelander-npc-gen-gear-item-label">{{this.label}}</span>
+              </li>
+              {{/each}}
+            </ul>
+          </div>
+          {{/if}}
+
+          <button
+            type="button"
+            class="wastelander-btn-secondary wastelander-npc-gen-approve-gear-btn"
+            data-action="approveDenizenGear"
+          >
+            {{localize "WASTELANDER.NpcGen.Gear.Approve"}}
+          </button>
+          {{else}}
+          <p class="wastelander-npc-gen-gear-empty">{{localize "WASTELANDER.NpcGen.Gear.NoDenizens"}}</p>
+          {{/if}}
+        </div>
+      </div>
+      {{/if}}
+
+      {{#if isReviewStep}}
+      <div class="wastelander-npc-gen-review">
+        <h3>{{localize "WASTELANDER.NpcGen.Review.Title"}}</h3>
+        <dl class="wastelander-npc-gen-summary">
+          <dt>{{localize "WASTELANDER.NpcGen.Review.Name"}}</dt>
+          <dd>{{reviewName}}</dd>
+          <dt>{{localize "WASTELANDER.NpcGen.Review.Profession"}}</dt>
+          <dd>{{rolls.profession}}</dd>
+          <dt>{{localize "WASTELANDER.NpcGen.Review.Age"}}</dt>
+          <dd>{{rolls.age}}</dd>
+        </dl>
+
+        <div class="wastelander-npc-gen-overrides">
+          <label>
+            {{localize "WASTELANDER.NpcGen.Review.Level"}}
+            <select data-npc-gen-select="level">
+              {{#each levelOptions}}
+              <option value="{{this.value}}" {{#if this.selected}}selected{{/if}}>{{this.value}}</option>
+              {{/each}}
+            </select>
+          </label>
+          <label>
+            {{localize "WASTELANDER.NpcGen.Review.NpcType"}}
+            <select data-npc-gen-select="npcType">
+              {{#each typeOptions}}
+              <option value="{{this.id}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>
+              {{/each}}
+            </select>
+          </label>
+        </div>
+
+        {{#if statsPreview}}
+        <div class="wastelander-npc-gen-stats-preview">
+          <p><strong>{{localize "WASTELANDER.NpcGen.Review.Special"}}</strong>
+            STR {{statsPreview.special.str}}
+            PER {{statsPreview.special.per}}
+            END {{statsPreview.special.end}}
+            CHA {{statsPreview.special.cha}}
+            INT {{statsPreview.special.int}}
+            AGI {{statsPreview.special.agi}}
+            LCK {{statsPreview.special.luc}}
+          </p>
+          <p><strong>{{localize "WASTELANDER.NpcGen.Review.Hp"}}</strong> {{statsPreview.healthPoints}}</p>
+          <p><strong>{{localize "WASTELANDER.NpcGen.Review.Tags"}}</strong> {{statsPreview.tagSkillsJoined}}</p>
+        </div>
+        {{/if}}
+      </div>
+      {{/if}}
+
+      {{#if showRollStatus}}
+      {{#if rolling}}
+      <p class="wastelander-npc-gen-roll-block">{{localize "WASTELANDER.NpcGen.Diagnostics.Rolling"}}</p>
+      {{else if rollBlockReason}}
+      <p class="wastelander-npc-gen-roll-block">{{rollBlockReason}}</p>
+      {{/if}}
+      {{/if}}
+    </section>
+
+    {{#if showAiPromptFallback}}
+    <div class="wastelander-npc-gen-ai-prompt-panel">
+      <p class="wastelander-npc-gen-ai-prompt-hint">{{localize "WASTELANDER.NpcGen.AiPrompt.FallbackHint"}}</p>
+      <textarea
+        class="wastelander-npc-gen-ai-prompt-text"
+        readonly
+        rows="14"
+        aria-label="{{localize "WASTELANDER.NpcGen.AiPrompt.TextareaLabel"}}"
+      >{{aiPromptText}}</textarea>
+      <button
+        type="button"
+        class="wastelander-btn-secondary wastelander-npc-gen-ai-prompt-dismiss"
+        data-action="dismissAiPrompt"
+      >
+        {{localize "WASTELANDER.NpcGen.AiPrompt.Dismiss"}}
+      </button>
+    </div>
+    {{/if}}
+
+    <footer class="wastelander-npc-gen-footer">
+      <div class="wastelander-npc-gen-footer-actions">
+        {{#if showGenerateButton}}
+        <button
+          type="button"
+          class="wastelander-btn-primary wastelander-npc-gen-generate-btn"
+          data-action="generate"
+          {{#unless generateEnabled}}disabled{{/unless}}
+        >
+          {{localize "WASTELANDER.NpcGen.Generate"}}
+        </button>
+        {{/if}}
+        <button
+          type="button"
+          class="wastelander-btn-secondary wastelander-npc-gen-ai-prompt-btn"
+          data-action="copyAiPrompt"
+          {{#unless aiPromptEnabled}}disabled{{/unless}}
+        >
+          {{localize "WASTELANDER.NpcGen.AiPrompt.Copy"}}
+        </button>
+        <button
+          type="button"
+          class="wastelander-btn-primary wastelander-npc-gen-finish-btn"
+          data-action="finish"
+          {{#unless finishEnabled}}disabled{{/unless}}
+        >
+          {{localize "WASTELANDER.NpcGen.Finish"}}
+        </button>
+        <button type="button" class="wastelander-btn-secondary wastelander-npc-gen-reset-btn" data-action="reset">
+          {{localize "WASTELANDER.NpcGen.Reset"}}
+        </button>
+      </div>
+    </footer>
+  </main>
+</div>

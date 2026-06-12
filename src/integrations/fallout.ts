@@ -1,5 +1,6 @@
 import { MODULE_ID } from "../constants.js";
 import { slugifyName } from "../utils/slugify.js";
+import { whitelistItemCreatePayload } from "./actorCreatePayload.js";
 import { getWorldActor, resolveActorId } from "./falloutActor.js";
 
 export type { WizardRollContext } from "./falloutRollChat.js";
@@ -65,6 +66,10 @@ export const ITEM_CREATE_OMIT_KEYS = new Set([
   "ownership",
   "sort",
   "actor",
+  "actors",
+  "items",
+  "effects",
+  "flags",
   "compendium",
   "permission",
   "uuid",
@@ -133,18 +138,16 @@ export function prepareCompendiumItemCreateData(
   for (const key of ITEM_CREATE_OMIT_KEYS) {
     delete itemData[key];
   }
+  delete itemData._stats;
 
   const system = (itemData.system ?? {}) as Record<string, unknown>;
   applySystemOverrides(system, { ...options, source });
   itemData.system = system;
 
-  const stats = {
-    ...((itemData._stats as Record<string, unknown> | undefined) ?? {}),
-    compendiumSource: uuid,
-  };
+  const stats = { compendiumSource: uuid };
   itemData._stats = stats;
 
-  return itemData;
+  return whitelistItemCreatePayload(itemData);
 }
 
 export async function addCompendiumItemToActor(
@@ -176,11 +179,10 @@ export async function addCompendiumItemToActor(
   flags[MODULE_ID] = moduleFlags;
   itemData.flags = flags;
 
-  const created = await parent.createEmbeddedDocuments(
-    "Item",
-    [itemData],
-    SILENT,
-  );
+  const created = await Item.implementation.createDocuments([itemData], {
+    parent,
+    ...SILENT,
+  });
   return created[0] ?? null;
 }
 

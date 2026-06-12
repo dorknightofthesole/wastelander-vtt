@@ -1,7 +1,7 @@
 /* Minimal Foundry globals for compile-time checks (full types optional). */
 declare const game: {
   system: { id: string };
-  user: { id: string; isGM: boolean };
+  user: { id: string; isGM: boolean; role?: number };
   settings: {
     get: (scope: string, key: string) => unknown;
     set: (scope: string, key: string, value: unknown) => Promise<unknown>;
@@ -38,6 +38,11 @@ declare const ui: {
     warn: (message: string) => void;
     info: (message: string) => void;
     error: (message: string) => void;
+  };
+  actors?: { rendered?: boolean; render?: (force?: boolean) => Promise<unknown> };
+  sidebar?: {
+    tabs?: Record<string, { rendered?: boolean; render?: (force?: boolean) => Promise<unknown> } | undefined>;
+    tab?: Record<string, { rendered?: boolean; render?: (force?: boolean) => Promise<unknown> } | undefined>;
   };
   windows: Record<string, { bringToFront?: () => void; render?: (options?: object) => Promise<unknown> }>;
 };
@@ -185,7 +190,11 @@ declare class Actor {
     some: (fn: (item: Item) => boolean) => boolean;
     map?: (fn: (item: Item) => Item) => Item[];
   };
-  sheet?: { render: (force?: boolean) => void };
+  sheet?: {
+    render: (force?: boolean) => void | Promise<unknown>;
+    close?: (options?: unknown) => Promise<unknown>;
+    rendered?: boolean;
+  };
   update(data: object, options?: { render?: boolean }): Promise<unknown>;
   createEmbeddedDocuments(
     type: string,
@@ -222,6 +231,14 @@ declare class Item {
       data: object,
       context?: { parent?: Actor; render?: boolean; keepId?: boolean },
     ): Promise<Item | undefined>;
+    createDocuments(
+      data: object[],
+      options?: { parent?: Actor; render?: boolean; keepId?: boolean },
+    ): Promise<Item[]>;
+    updateDocuments(
+      updates: object[],
+      options?: { parent?: Actor; render?: boolean },
+    ): Promise<Item[]>;
   };
 }
 

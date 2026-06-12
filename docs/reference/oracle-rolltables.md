@@ -31,6 +31,7 @@ Extraction uses position-aware PDF parsing (`pdfjs-dist`) and layout profiles in
 | Area | Issue | Fix |
 |------|-------|-----|
 | Encounters (`twoColumnD20`) | Prompt text split across columns | Merge `description` fragments; check `xBands` via `--dump-pages` |
+| Paired d20 (`twoColumnPairedD20`) | Same row shows e.g. `1 Trader \| 6 Scout`; may continue on next printed page | Use `pairedPageRanges` y-bands per printed page; see `npc-profession` profile |
 | Loot (`threeColumnSum`) | Wrapped weapon names | Join name lines; verify result numbers 2–40 |
 | Goal sub-tables | Page drift near appendix end | Tune `printedPage` in profile |
 | `reputation-table`, `injury-table` | Region bleed from adjacent tables | Tighten `exactStart`, `printedPageEnd`, or `xBands` |
@@ -128,7 +129,24 @@ Registered section groups:
 | `encounter-generation-tables` | Settlement Encounter, Wasteland Encounter, Combat States, Quantity |
 | `equipment-tables` | Conditions, Armor Mods, Weapon Mods |
 | `loot-tables` | Loot Generation, Armor, Caps, Supplies, Chems, Ranged/Melee/Thrown/Oddities/Scrap |
-| `generate-npc` | Age, Demeanor (Odds/Evens), Distinctive Features, Profession, Secret, Truth |
+| `generate-npc` | Names (Masculine/Feminine), Surnames, Age, Demeanor (Odds/Evens), Distinctive Features, Profession, Secret, Truth |
+
+### Name & surname tables (`generate-npc`)
+
+**Source:** Wasteland Wanderer **printed p.178** (NPC NAME — two columns) and **p.180** (Surnames).
+
+These are comma-separated name lists, not d20 grids. Profiles `npc-names-masculine`, `npc-names-feminine`, and `npc-surnames` use layouts `npcNameList` / `npcSurnameList` in `profiles.mjs`. Built formulas use the smallest standard dice that covers the row count (e.g. `2d100` for 180 masculine names); roll ranges are offset when the formula minimum is above 1.
+
+```bash
+npm run extract:oracle -- --table npc-names-masculine
+npm run extract:oracle -- --table npc-names-feminine
+npm run extract:oracle -- --table npc-surnames
+npm run build:oracle -- generate-npc
+npm run build
+```
+
+Then import via **Settings → Wastelander → Import Wanderer oracle roll tables** (same as all oracle tables). See also [`friendly-npc-generator.md`](friendly-npc-generator.md).
+
 | `dangerous-npc` | Threat, Special Ability, Weapons, Group |
 | `generate-foe` | Foe Type + 8 foe generators |
 | `generate-side-quest` | Generate Reward, Goal Type, 18 goal sub-tables |

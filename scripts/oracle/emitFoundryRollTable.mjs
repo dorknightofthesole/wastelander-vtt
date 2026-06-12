@@ -1,5 +1,10 @@
 import { randomBytes } from "node:crypto";
-import { deriveFormula, parseRange } from "./parseRange.mjs";
+import {
+  deriveFormula,
+  isSequentialUnitRanges,
+  parseRange,
+  rollSpaceForFormula,
+} from "./parseRange.mjs";
 
 const RESULT_IMG = "icons/svg/d20-black.svg";
 
@@ -88,12 +93,41 @@ function buildStats(prevStats, now) {
  *   results: Array<{ range: string | [number, number]; name: string; description?: string }>;
  * }} manifest
  */
+function offsetSequentialRanges(manifestResults, formula, rollMax) {
+  const space = rollSpaceForFormula(formula);
+  if (!space || space.min <= 1) return manifestResults;
+  if (!isSequentialUnitRanges(manifestResults, { rollMax })) {
+    return manifestResults;
+  }
+  const offset = space.min - 1;
+  return manifestResults.map((row) => {
+    const [low, high] = parseRange(row.range, { rollMax });
+    return {
+      ...row,
+      range: [low + offset, high + offset],
+    };
+  });
+}
+
 export function emitFoundryRollTable(baseDoc, manifest) {
   const now = Date.now();
   const rollMax = manifest.rollMax ?? 100;
   const existingResults = Array.isArray(baseDoc.results) ? baseDoc.results : [];
 
-  const results = manifest.results.map((row) => {
+  const formula =
+    manifest.formula ??
+    deriveFormula(manifest.results, {
+      rollMin: manifest.rollMin,
+      rollMax: manifest.rollMax,
+    });
+
+  const manifestResults = offsetSequentialRanges(
+    manifest.results,
+    formula,
+    rollMax,
+  );
+
+  const results = manifestResults.map((row) => {
     const range = parseRange(row.range, { rollMax });
     const name = String(row.name ?? "").trim();
     let descriptionText = row.description;
@@ -119,13 +153,6 @@ export function emitFoundryRollTable(baseDoc, manifest) {
       documentUuid: prev?.documentUuid ?? null,
     };
   });
-
-  const formula =
-    manifest.formula ??
-    deriveFormula(manifest.results, {
-      rollMin: manifest.rollMin,
-      rollMax: manifest.rollMax,
-    });
 
   const doc = structuredClone(baseDoc);
   doc.name = manifest.title;

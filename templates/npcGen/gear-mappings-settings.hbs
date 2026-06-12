@@ -1,0 +1,91 @@
+<div class="wastelander-npc-gear-mappings-settings wastelander-loot-cap-settings">
+  <p class="wastelander-scavenger-hint">{{localize "WASTELANDER.NpcGen.Settings.GearMappingsIntro"}}</p>
+  <p class="wastelander-scavenger-hint">{{localize "WASTELANDER.NpcGen.Settings.GearMappingsFormatHint"}}</p>
+
+  <section class="wastelander-scavenger-section">
+    <h3>{{localize "WASTELANDER.NpcGen.Settings.GearMappingsProfessionsTitle"}}</h3>
+    <div class="wastelander-loot-cap-table-scroll" tabindex="0">
+      <table class="wastelander-loot-cap-table wastelander-npc-gear-mappings-table">
+        <thead>
+          <tr>
+            <th>{{localize "WASTELANDER.NpcGen.Settings.GearMappingsLabel"}}</th>
+            <th>{{localize "WASTELANDER.NpcGen.Settings.GearMappingsItems"}}</th>
+            <th>{{localize "WASTELANDER.NpcGen.Settings.GearMappingsRolls"}}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody data-gear-section="professions">
+          {{#each professionRows}}
+            <tr data-gear-index="{{@index}}">
+              <td>
+                <input type="text" name="profession-key-{{@index}}" value="{{key}}" data-field="key" />
+              </td>
+              <td>
+                <input type="text" name="profession-items-{{@index}}" value="{{itemsText}}" data-field="items" placeholder="{{localize "WASTELANDER.NpcGen.Settings.GearMappingsItemsPlaceholder"}}" />
+              </td>
+              <td>
+                <input type="text" name="profession-rolls-{{@index}}" value="{{rollsText}}" data-field="rolls" placeholder="{{localize "WASTELANDER.NpcGen.Settings.GearMappingsRollsPlaceholder"}}" />
+              </td>
+              <td>
+                <button type="button" class="wastelander-btn-secondary" data-action="removeProfessionRow" data-gear-index="{{@index}}" title="{{localize "WASTELANDER.NpcGen.Settings.GearMappingsRemoveRow"}}">
+                  <i class="fas fa-trash" aria-hidden="true"></i>
+                </button>
+              </td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+    <button type="button" class="wastelander-btn-secondary" data-action="addProfessionRow">
+      <i class="fas fa-plus" aria-hidden="true"></i> {{localize "WASTELANDER.NpcGen.Settings.GearMappingsAddProfession"}}
+    </button>
+  </section>
+
+  <section class="wastelander-scavenger-section">
+    <h3>{{localize "WASTELANDER.NpcGen.Settings.GearMappingsDemeanorTitle"}}</h3>
+    <div class="wastelander-loot-cap-table-scroll" tabindex="0">
+      <table class="wastelander-loot-cap-table wastelander-npc-gear-mappings-table">
+        <thead>
+          <tr>
+            <th>{{localize "WASTELANDER.NpcGen.Settings.GearMappingsLabel"}}</th>
+            <th>{{localize "WASTELANDER.NpcGen.Settings.GearMappingsItems"}}</th>
+            <th>{{localize "WASTELANDER.NpcGen.Settings.GearMappingsRolls"}}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody data-gear-section="demeanor">
+          {{#each demeanorRows}}
+            <tr data-gear-index="{{@index}}">
+              <td>
+                <input type="text" name="demeanor-key-{{@index}}" value="{{key}}" data-field="key" />
+              </td>
+              <td>
+                <input type="text" name="demeanor-items-{{@index}}" value="{{itemsText}}" data-field="items" placeholder="{{localize "WASTELANDER.NpcGen.Settings.GearMappingsItemsPlaceholder"}}" />
+              </td>
+              <td>
+                <input type="text" name="demeanor-rolls-{{@index}}" value="{{rollsText}}" data-field="rolls" placeholder="{{localize "WASTELANDER.NpcGen.Settings.GearMappingsRollsPlaceholder"}}" />
+              </td>
+              <td>
+                <button type="button" class="wastelander-btn-secondary" data-action="removeDemeanorRow" data-gear-index="{{@index}}" title="{{localize "WASTELANDER.NpcGen.Settings.GearMappingsRemoveRow"}}">
+                  <i class="fas fa-trash" aria-hidden="true"></i>
+                </button>
+              </td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+    <button type="button" class="wastelander-btn-secondary" data-action="addDemeanorRow">
+      <i class="fas fa-plus" aria-hidden="true"></i> {{localize "WASTELANDER.NpcGen.Settings.GearMappingsAddDemeanor"}}
+    </button>
+  </section>
+
+  <footer class="wastelander-denizen-import-footer">
+    <button type="button" class="wastelander-btn-primary" data-action="saveConfig">
+      <i class="fas fa-save" aria-hidden="true"></i> {{localize "WASTELANDER.NpcGen.Settings.GearMappingsSave"}}
+    </button>
+    <button type="button" class="wastelander-btn-secondary" data-action="resetDefaults">
+      {{localize "WASTELANDER.NpcGen.Settings.GearMappingsReset"}}
+    </button>
+  </footer>
+</div>

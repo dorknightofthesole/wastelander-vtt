@@ -1,6 +1,7 @@
 import { MODULE_ID } from "../constants.js";
 import { ITEM_CREATE_OMIT_KEYS } from "../integrations/fallout.js";
 import { t } from "../integrations/i18n.js";
+import { currentUserIsOverseer } from "../integrations/overseerAccess.js";
 import {
   dedupeDenizenCatalog,
   applyRobotDenizenSystemDefaults,
@@ -320,7 +321,7 @@ export async function importBundledDenizens(): Promise<DenizenImportResult> {
     return result;
   }
 
-  if (!game.user?.isGM) {
+  if (!currentUserIsOverseer()) {
     result.errors.push(t("WASTELANDER.Denizens.Import.GmOnly"));
     return result;
   }

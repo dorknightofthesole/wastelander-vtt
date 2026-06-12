@@ -1,0 +1,190 @@
+{
+  "professions": {
+    "Trader": {
+      "specialBiases": { "cha": 3, "per": 2, "int": 1 },
+      "tagSkills": ["Barter", "Speech"],
+      "skillPriorities": ["Barter", "Speech", "Survival", "Small Guns"]
+    },
+    "Leader": {
+      "specialBiases": { "cha": 3, "end": 2, "int": 1 },
+      "tagSkills": ["Speech", "Barter"],
+      "skillPriorities": ["Speech", "Barter", "Small Guns", "Survival"]
+    },
+    "Farmer": {
+      "specialBiases": { "end": 2, "str": 2, "per": 1 },
+      "tagSkills": ["Survival", "Unarmed"],
+      "skillPriorities": ["Survival", "Unarmed", "Science", "Repair"]
+    },
+    "Guard": {
+      "specialBiases": { "end": 2, "per": 2, "agi": 1 },
+      "tagSkills": ["Small Guns", "Melee Weapons"],
+      "skillPriorities": ["Small Guns", "Melee Weapons", "Unarmed", "Speech"]
+    },
+    "Cook": {
+      "specialBiases": { "int": 2, "end": 1, "per": 1 },
+      "tagSkills": ["Survival", "Science"],
+      "skillPriorities": ["Survival", "Science", "Speech", "Medicine"]
+    },
+    "Scout": {
+      "specialBiases": { "per": 3, "agi": 2, "end": 1 },
+      "tagSkills": ["Sneak", "Small Guns"],
+      "skillPriorities": ["Sneak", "Small Guns", "Survival", "Lockpick"]
+    },
+    "Settler": {
+      "specialBiases": { "end": 2, "per": 2, "cha": 1 },
+      "tagSkills": ["Survival", "Speech"],
+      "skillPriorities": ["Survival", "Speech", "Science", "Repair"]
+    },
+    "Informer": {
+      "specialBiases": { "per": 3, "cha": 1, "agi": 1 },
+      "tagSkills": ["Sneak", "Speech"],
+      "skillPriorities": ["Sneak", "Speech", "Small Guns", "Barter"]
+    },
+    "Tinkerer": {
+      "specialBiases": { "int": 3, "agi": 1, "per": 1 },
+      "tagSkills": ["Science", "Repair"],
+      "skillPriorities": ["Science", "Repair", "Lockpick", "Small Guns"]
+    },
+    "Doctor/Scientist": {
+      "specialBiases": { "int": 3, "end": 1, "per": 1 },
+      "tagSkills": ["Medicine", "Science"],
+      "skillPriorities": ["Medicine", "Science", "Speech", "Survival"]
+    },
+    "Hunter": {
+      "specialBiases": { "per": 3, "agi": 2, "end": 1 },
+      "tagSkills": ["Small Guns", "Survival"],
+      "skillPriorities": ["Small Guns", "Survival", "Sneak", "Melee Weapons"]
+    },
+    "Scavenger": {
+      "specialBiases": { "per": 2, "agi": 1, "luc": 1 },
+      "tagSkills": ["Survival", "Lockpick"],
+      "skillPriorities": ["Survival", "Lockpick", "Barter", "Science"]
+    },
+    "Slave/Slaver": {
+      "specialBiases": { "str": 2, "cha": 2, "end": 1 },
+      "tagSkills": ["Speech", "Barter"],
+      "skillPriorities": ["Speech", "Barter", "Small Guns", "Melee Weapons"]
+    },
+    "Raider": {
+      "specialBiases": { "str": 2, "end": 2, "agi": 1 },
+      "tagSkills": ["Small Guns", "Melee Weapons"],
+      "skillPriorities": ["Small Guns", "Melee Weapons", "Unarmed", "Sneak"]
+    },
+    "Rookie": {
+      "specialBiases": { "end": 1, "per": 1, "agi": 1 },
+      "tagSkills": ["Small Guns", "Survival"],
+      "skillPriorities": ["Small Guns", "Survival", "Speech", "Unarmed"]
+    },
+    "Courier": {
+      "specialBiases": { "agi": 2, "end": 2, "per": 1 },
+      "tagSkills": ["Survival", "Sneak"],
+      "skillPriorities": ["Survival", "Sneak", "Small Guns", "Speech"]
+    },
+    "Traveler": {
+      "specialBiases": { "end": 2, "per": 1, "cha": 1 },
+      "tagSkills": ["Survival", "Barter"],
+      "skillPriorities": ["Survival", "Barter", "Speech", "Small Guns"]
+    },
+    "Survivor": {
+      "specialBiases": { "end": 3, "per": 2, "str": 1 },
+      "tagSkills": ["Survival", "Unarmed"],
+      "skillPriorities": ["Survival", "Unarmed", "Small Guns", "Medicine"]
+    },
+    "Runaway": {
+      "specialBiases": { "agi": 2, "per": 1, "end": 1 },
+      "tagSkills": ["Sneak", "Survival"],
+      "skillPriorities": ["Sneak", "Survival", "Lockpick", "Speech"]
+    },
+    "Diplomat/Con Artist": {
+      "specialBiases": { "cha": 3, "int": 2, "agi": 1 },
+      "tagSkills": ["Speech", "Barter"],
+      "skillPriorities": ["Speech", "Barter", "Sneak", "Small Guns"]
+    }
+  },
+  "demeanor": {
+    "Happy": {
+      "specialBiases": { "cha": 2, "end": 1 },
+      "skillPriorities": ["Speech"]
+    },
+    "Weird": {
+      "specialBiases": { "int": 2, "luc": 1 },
+      "skillPriorities": ["Science", "Speech"]
+    },
+    "Suspicious": {
+      "specialBiases": { "per": 2, "agi": 1 },
+      "skillPriorities": ["Sneak", "Small Guns"]
+    },
+    "Nervous": {
+      "specialBiases": { "agi": 2, "per": 1 },
+      "skillPriorities": ["Sneak", "Survival"]
+    },
+    "Professional": {
+      "specialBiases": { "int": 2, "cha": 1 },
+      "skillPriorities": ["Speech", "Science"]
+    },
+    "Addict": {
+      "specialBiases": { "end": 1, "agi": 1 }
+    },
+    "Paranoid": {
+      "specialBiases": { "per": 3, "agi": 1 },
+      "skillPriorities": ["Sneak", "Small Guns"]
+    },
+    "Insecure": {
+      "specialBiases": { "cha": 2, "end": 1 },
+      "skillPriorities": ["Speech"]
+    },
+    "Disreputable": {
+      "specialBiases": { "cha": 2, "agi": 1 },
+      "skillPriorities": ["Barter", "Speech"]
+    },
+    "Ruthless": {
+      "specialBiases": { "str": 2, "end": 1 },
+      "skillPriorities": ["Small Guns", "Melee Weapons"]
+    },
+    "Hostile": {
+      "specialBiases": { "str": 2, "end": 1 },
+      "skillPriorities": ["Small Guns", "Melee Weapons"]
+    },
+    "Irresponsible": {
+      "specialBiases": { "agi": 2, "luc": 1 },
+      "skillPriorities": ["Sneak", "Lockpick"]
+    },
+    "Reluctant": {
+      "specialBiases": { "end": 1, "cha": 1 },
+      "skillPriorities": ["Speech", "Survival"]
+    },
+    "Savage": {
+      "specialBiases": { "str": 3, "end": 1 },
+      "skillPriorities": ["Melee Weapons", "Unarmed"]
+    },
+    "Loyal": {
+      "specialBiases": { "end": 2, "cha": 2 },
+      "skillPriorities": ["Speech", "Survival"]
+    },
+    "Lonely": {
+      "specialBiases": { "cha": 1, "int": 1 },
+      "skillPriorities": ["Speech", "Survival"]
+    },
+    "Desperate": {
+      "specialBiases": { "end": 1, "per": 1 },
+      "skillPriorities": ["Survival", "Barter"]
+    },
+    "Peaceful": {
+      "specialBiases": { "cha": 2, "end": 1 },
+      "skillPriorities": ["Speech", "Medicine"]
+    },
+    "Creative": {
+      "specialBiases": { "int": 3, "cha": 1 },
+      "skillPriorities": ["Science", "Repair"]
+    },
+    "Shifty": {
+      "specialBiases": { "agi": 2, "cha": 1 },
+      "skillPriorities": ["Sneak", "Lockpick", "Barter"]
+    }
+  },
+  "default": {
+    "specialBiases": { "end": 1, "per": 1, "str": 1 },
+    "tagSkills": ["Speech", "Survival"],
+    "skillPriorities": ["Speech", "Survival", "Small Guns", "Melee Weapons", "Science"]
+  }
+}

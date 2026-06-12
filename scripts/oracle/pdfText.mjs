@@ -153,6 +153,35 @@ export function sliceTableRegion(items, startHeading, endHeading, options = {}) 
 }
 
 /**
+ * Slice paired two-column d20 tables that span printed pages with known y-bands
+ * (avoids appendix text-order bleed between adjacent sections on the same page).
+ *
+ * @param {TextItem[]} items
+ * @param {Record<string, unknown>} profile
+ */
+export function slicePairedD20Region(items, profile) {
+  const printedStart = Number(profile.printedPage);
+  const printedEnd = Number(profile.printedPageEnd ?? profile.printedPage);
+  const pageRanges = /** @type {Record<string, { yMin?: number, yMax?: number }>} */ (
+    profile.pairedPageRanges ?? {}
+  );
+  /** @type {TextItem[]} */
+  const out = [];
+  for (let printed = printedStart; printed <= printedEnd; printed++) {
+    const pdfPage = printedToPdfPage(printed);
+    const range = pageRanges[String(printed)] ?? pageRanges[printed];
+    let pageItems = items.filter((it) => it.page === pdfPage);
+    if (range && typeof range === "object") {
+      const yMin = Number(range.yMin ?? 0);
+      const yMax = Number(range.yMax ?? 9999);
+      pageItems = pageItems.filter((it) => it.y >= yMin && it.y <= yMax);
+    }
+    out.push(...pageItems);
+  }
+  return out;
+}
+
+/**
  * @param {TextItem[]} items
  * @param {number} [tolerance]
  */

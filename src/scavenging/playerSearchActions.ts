@@ -1,4 +1,5 @@
 import { MODULE_ID } from "../constants.js";
+import { currentUserIsOverseer } from "../integrations/overseerAccess.js";
 import { addPartyAp, getPartyAp, spendPartyAp } from "../integrations/falloutApTracker.js";
 import { resolveActor, updateWorldActor } from "../integrations/falloutActor.js";
 import type { FalloutActorSystemSlice } from "../export/actorDerivedStats.js";
@@ -220,7 +221,7 @@ export async function executePlayerSearchAction(
   data: PlayerSearchSocketAction,
   userId: string,
 ): Promise<PlayerSearchActionResult> {
-  if (!game.user?.isGM) {
+  if (!currentUserIsOverseer()) {
     return { ok: false, error: t("WASTELANDER.Scavenging.PlayerSearch.GmOnlyMutation") };
   }
 
@@ -646,7 +647,7 @@ async function executePlayerSearchActionInner(
 export async function requestPlayerSearchAction(
   data: PlayerSearchSocketAction,
 ): Promise<PlayerSearchActionResult> {
-  if (game.user?.isGM) {
+  if (currentUserIsOverseer()) {
     return executePlayerSearchAction(data, game.user.id);
   }
 
@@ -716,7 +717,7 @@ export function isPlayerSearchSocketResponse(
 export async function handlePlayerSearchSocket(
   data: SocketPayload,
 ): Promise<void> {
-  if (!game.user?.isGM) return;
+  if (!currentUserIsOverseer()) return;
   if (!isPlayerSearchSocketRequest(data)) return;
 
   const userId = data.userId ?? game.user.id;
@@ -745,7 +746,7 @@ export function notifyScavengeSearchAppClosed(sceneId: string): void {
   if (!sceneId) return;
   const userId = game.user?.id;
   if (!userId) return;
-  if (game.user?.isGM) {
+  if (currentUserIsOverseer()) {
     suppressRerollWatchesForUser(sceneId, userId);
     return;
   }

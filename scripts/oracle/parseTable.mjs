@@ -4,6 +4,8 @@ import {
   itemsByBand,
   joinBandText,
   normalizeText,
+  printedToPdfPage,
+  slicePairedD20Region,
   sliceTableRegion,
 } from "./pdfText.mjs";
 
@@ -82,7 +84,11 @@ function collectWarnings(results, profile) {
   }
 
   if (rollMin != null && rollMax != null) {
-    if (layout === "twoColumnD20" || layout === "nameEqualsDescription") {
+    if (
+      layout === "twoColumnD20" ||
+      layout === "nameEqualsDescription" ||
+      layout === "twoColumnPairedD20"
+    ) {
       if (results.length < rollMax - rollMin + 1) {
         warnings.push(
           `expected ${rollMax - rollMin + 1} rows, got ${results.length}`,
@@ -230,6 +236,87 @@ function parseNameEqualsTwoColumn(region, profile) {
 
   for (const row of leftNums) addPair(row, byBand.labelL ?? [], 1, 10);
   for (const row of rightNums) addPair(row, byBand.labelR ?? [], 11, 20);
+
+  return results.sort(
+    (a, b) => Number(parseRangeToken(a.range)) - Number(parseRangeToken(b.range)),
+  );
+}
+
+/**
+ * d20 tables with paired columns per row (e.g. 1 Trader | 6 Scout on the same line).
+ * Continuation pages use the same row pairing (11 Hunter | 16 Courier).
+ *
+ * @param {import('./pdfText.mjs').TextItem[]} region
+ * @param {Record<string, unknown>} profile
+ */
+function parseTwoColumnPairedD20(region, profile) {
+  const bands = /** @type {Record<string, [number, number]>} */ (
+    profile.xBands ?? {
+      resultL: [45, 60],
+      labelL: [70, 200],
+      resultR: [210, 235],
+      labelR: [240, 520],
+    }
+  );
+  const rollMin = Number(profile.rollMin ?? 1);
+  const rollMax = Number(profile.rollMax ?? 20);
+
+  const byBand = itemsByBand(region, bands);
+  const rowItems = [
+    ...(byBand.resultL ?? []),
+    ...(byBand.labelL ?? []),
+    ...(byBand.resultR ?? []),
+    ...(byBand.labelR ?? []),
+  ];
+  const rows = groupItemsByRow(rowItems, 6);
+
+  /**
+   * @param {import('./pdfText.mjs').TextItem[]} items
+   * @param {[number, number]} band
+   */
+  function itemsInBand(items, band) {
+    const [low, high] = band;
+    return items.filter((it) => it.x >= low && it.x <= high);
+  }
+
+  /**
+   * @param {import('./pdfText.mjs').TextItem[]} items
+   */
+  function resultNumberFromItems(items) {
+    const digits = [...items]
+      .sort((a, b) => a.x - b.x)
+      .map((it) => it.text.trim())
+      .join("")
+      .replace(/\s/g, "");
+    const m = /^(\d+)$/.exec(digits);
+    return m ? Number(m[1]) : null;
+  }
+
+  /** @type {Array<{ range: string, name: string }>} */
+  const results = [];
+  const seen = new Set();
+
+  function addResult(n, name) {
+    if (n == null || n < rollMin || n > rollMax || seen.has(n)) return;
+    const trimmed = normalizeText(name);
+    if (!trimmed || trimmed.length < 2) return;
+    if (/^(RESULT|ROLE|SECRETS?|NPC|GENERATE|FALLOUT|WASTELAND|CHAPTER|APPENDICES)$/i.test(trimmed)) {
+      return;
+    }
+    if (/^(cont'd|continued|if you are rolling)/i.test(trimmed)) return;
+    if (/fallout|wasteland wanderer|chapter \d/i.test(trimmed)) return;
+    seen.add(n);
+    results.push({ range: String(n), name: trimmed });
+  }
+
+  for (const row of rows) {
+    const leftN = resultNumberFromItems(itemsInBand(row, bands.resultL));
+    const rightN = resultNumberFromItems(itemsInBand(row, bands.resultR));
+    const leftLabel = joinBandText(itemsInBand(row, bands.labelL));
+    const rightLabel = joinBandText(itemsInBand(row, bands.labelR));
+    addResult(leftN, leftLabel);
+    addResult(rightN, rightLabel);
+  }
 
   return results.sort(
     (a, b) => Number(parseRangeToken(a.range)) - Number(parseRangeToken(b.range)),
@@ -525,6 +612,91 @@ function parseGoalSubTable(region) {
 }
 
 /**
+ * @param {string} text
+ * @returns {string[]}
+ */
+function splitCommaSeparatedNames(text) {
+  return normalizeText(text)
+    .split(",")
+    .map((part) => normalizeText(part))
+    .filter(
+      (part) =>
+        part.length > 1 &&
+        !/^(feminine|masculine|names|surnames|npc name)$/i.test(part),
+    );
+}
+
+/**
+ * @param {import('./pdfText.mjs').TextItem[]} region
+ * @param {'feminine' | 'masculine'} column
+ */
+function parseNpcNameList(region, column) {
+  const bands =
+    column === "masculine"
+      ? { min: 225, max: 420 }
+      : { min: 35, max: 220 };
+  const colItems = region.filter(
+    (it) =>
+      it.x >= bands.min &&
+      it.x <= bands.max &&
+      it.y > 40 &&
+      !/^(NPC NAME|Feminine Names|Masculine Names)$/i.test(it.text) &&
+      !/close your eyes/i.test(it.text) &&
+      !/fallout|wasteland wanderer/i.test(it.text),
+  );
+  const rows = groupItemsByRow(colItems, 10);
+  /** @type {string[]} */
+  const names = [];
+  for (const row of rows) {
+    const text = row.map((it) => it.text).join(" ");
+    for (const name of splitCommaSeparatedNames(text)) names.push(name);
+  }
+  return names.map((name, index) => ({
+    range: String(index + 1),
+    name,
+  }));
+}
+
+/**
+ * @param {import('./pdfText.mjs').TextItem[]} region
+ */
+function parseNpcSurnameList(region) {
+  const ageHeadingY = region.find((it) => it.text === "NPC Age")?.y;
+  const surnameItems =
+    ageHeadingY != null
+      ? region.filter((it) => it.y > ageHeadingY + 8)
+      : region;
+  const leftItems = surnameItems.filter(
+    (it) =>
+      it.x >= 35 &&
+      it.x < 220 &&
+      !/^Surnames$/i.test(it.text) &&
+      !/^(NPC Age|RESULT|AGE)$/i.test(it.text),
+  );
+  const rightItems = surnameItems.filter(
+    (it) =>
+      it.x >= 220 &&
+      it.x < 420 &&
+      !/^(NPC Age|RESULT|AGE)$/i.test(it.text),
+  );
+  const leftRows = groupItemsByRow(leftItems, 10);
+  const rightRows = groupItemsByRow(rightItems, 10);
+  const rowCount = Math.max(leftRows.length, rightRows.length);
+  /** @type {string[]} */
+  const names = [];
+  for (let i = 0; i < rowCount; i++) {
+    const leftText = (leftRows[i] ?? []).map((it) => it.text).join(" ");
+    const rightText = (rightRows[i] ?? []).map((it) => it.text).join(" ");
+    for (const name of splitCommaSeparatedNames(leftText)) names.push(name);
+    for (const name of splitCommaSeparatedNames(rightText)) names.push(name);
+  }
+  return names.map((name, index) => ({
+    range: String(index + 1),
+    name,
+  }));
+}
+
+/**
  * @param {import('./pdfText.mjs').TextItem[]} region
  * @param {'odds' | 'evens'} column
  */
@@ -606,24 +778,40 @@ function parseFoeGenerator(region) {
  * @param {import('./pdfText.mjs').TextItem[]} allItems
  * @param {Record<string, unknown>} profile
  */
-export function parseTableFromProfile(allItems, profile) {
-  const region = sliceTableRegion(
-    allItems,
-    String(profile.startHeading),
-    profile.endHeading ? String(profile.endHeading) : undefined,
-    {
-      startAfter: profile.startAfter ? String(profile.startAfter) : undefined,
-      printedPage:
-        profile.printedPage != null ? Number(profile.printedPage) : undefined,
-      printedPageEnd:
-        profile.printedPageEnd != null
-          ? Number(profile.printedPageEnd)
-          : undefined,
-      exactStart: Boolean(profile.exactStart),
-    },
-  );
+function slicePageOnlyRegion(allItems, profile) {
+  const printedPage = Number(profile.printedPage);
+  const printedPageEnd = Number(profile.printedPageEnd ?? profile.printedPage);
+  const pdfStart = printedToPdfPage(printedPage);
+  const pdfEnd = printedToPdfPage(printedPageEnd);
+  return allItems.filter((it) => it.page >= pdfStart && it.page <= pdfEnd);
+}
 
+export function parseTableFromProfile(allItems, profile) {
   const layout = String(profile.layout);
+  const region =
+    layout === "twoColumnPairedD20"
+      ? slicePairedD20Region(allItems, profile)
+      : layout === "npcNameList" || layout === "npcSurnameList"
+      ? slicePageOnlyRegion(allItems, profile)
+      : sliceTableRegion(
+          allItems,
+          String(profile.startHeading),
+          profile.endHeading ? String(profile.endHeading) : undefined,
+          {
+            startAfter: profile.startAfter
+              ? String(profile.startAfter)
+              : undefined,
+            printedPage:
+              profile.printedPage != null
+                ? Number(profile.printedPage)
+                : undefined,
+            printedPageEnd:
+              profile.printedPageEnd != null
+                ? Number(profile.printedPageEnd)
+                : undefined,
+            exactStart: Boolean(profile.exactStart),
+          },
+        );
   /** @type {Array<{ range: string, name: string, description?: string }>} */
   let results = [];
 
@@ -633,6 +821,9 @@ export function parseTableFromProfile(allItems, profile) {
       break;
     case "nameEqualsDescription":
       results = parseNameEqualsTwoColumn(region, profile);
+      break;
+    case "twoColumnPairedD20":
+      results = parseTwoColumnPairedD20(region, profile);
       break;
     case "twoColumnD20":
       results = parseTwoColumnD20Encounter(region, profile);
@@ -672,6 +863,15 @@ export function parseTableFromProfile(allItems, profile) {
         profile.demeanorColumn === "evens" ? "evens" : "odds",
       );
       break;
+    case "npcNameList":
+      results = parseNpcNameList(
+        region,
+        profile.nameColumn === "masculine" ? "masculine" : "feminine",
+      );
+      break;
+    case "npcSurnameList":
+      results = parseNpcSurnameList(region);
+      break;
     default:
       throw new Error(`Unknown layout: ${layout}`);
   }
@@ -707,7 +907,12 @@ export function buildManifest(profile, results) {
   };
 
   if (profile.rollMin != null) manifest.rollMin = profile.rollMin;
-  if (profile.rollMax != null) manifest.rollMax = profile.rollMax;
+  if (results.length > 0) {
+    manifest.rollMax = profile.rollMax != null ? profile.rollMax : results.length;
+    if (profile.rollMin == null) manifest.rollMin = 1;
+  } else if (profile.rollMax != null) {
+    manifest.rollMax = profile.rollMax;
+  }
   if (profile.formula) manifest.formula = profile.formula;
   if (profile.nameEqualsDescription) manifest.nameEqualsDescription = true;
   if (profile.description) manifest.description = profile.description;

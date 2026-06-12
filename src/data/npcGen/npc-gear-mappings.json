@@ -1,0 +1,131 @@
+{
+  "professions": {
+    "Trader": {
+      "items": [{ "name": "Caps" }]
+    },
+    "Leader": {
+      "items": [{ "name": "Holotags" }]
+    },
+    "Farmer": {
+      "items": [{ "name": "Machete" }]
+    },
+    "Guard": {
+      "items": [
+        { "name": "10mm Pistol" },
+        { "name": "10mm Round", "quantityRoll": "10+5dc" }
+      ]
+    },
+    "Cook": {
+      "items": [{ "name": "Cram" }]
+    },
+    "Scout": {
+      "items": [
+        { "name": "Hunting Rifle" },
+        { "name": ".308 Round", "quantityRoll": "10+5dc" }
+      ]
+    },
+    "Settler": {
+      "items": [{ "name": "Cram" }]
+    },
+    "Informer": {
+      "items": [{ "name": "Holotags" }]
+    },
+    "Tinkerer": {
+      "rolls": [{ "table": "Supplies", "count": 1 }]
+    },
+    "Doctor/Scientist": {
+      "items": [{ "name": "Stimpak" }]
+    },
+    "Hunter": {
+      "items": [
+        { "name": "Hunting Rifle" },
+        { "name": ".308 Round", "quantityRoll": "10+5dc" }
+      ]
+    },
+    "Scavenger": {
+      "rolls": [{ "table": "Supplies", "count": 1 }]
+    },
+    "Slave/Slaver": {
+      "items": []
+    },
+    "Raider": {
+      "items": [{ "name": "Combat Knife" }]
+    },
+    "Rookie": {
+      "items": [
+        { "name": "10mm Pistol" },
+        { "name": "10mm Round", "quantityRoll": "10+5dc" }
+      ]
+    },
+    "Courier": {
+      "items": [{ "name": "Caps" }]
+    },
+    "Traveler": {
+      "rolls": [{ "table": "Supplies", "count": 1 }]
+    },
+    "Survivor": {
+      "items": [{ "name": "Machete" }]
+    },
+    "Runaway": {
+      "items": []
+    },
+    "Diplomat/Con Artist": {
+      "items": [{ "name": "Caps" }]
+    }
+  },
+  "demeanor": {
+    "Professional": {
+      "items": [{ "name": "Stimpak" }]
+    },
+    "Addict": {
+      "rolls": [{ "table": "Chems", "count": 1 }]
+    },
+    "Disreputable": {
+      "items": [{ "name": "Caps" }]
+    },
+    "Ruthless": {
+      "items": [{ "name": "Combat Knife" }]
+    },
+    "Hostile": {
+      "items": [{ "name": "Combat Knife" }]
+    },
+    "Savage": {
+      "items": [{ "name": "Machete" }]
+    },
+    "Desperate": {
+      "rolls": [{ "table": "Supplies", "count": 1 }]
+    }
+  },
+  "distinctiveFeatures": {
+    "Dyed Hair": {
+      "items": []
+    },
+    "Missing limb": {
+      "items": []
+    },
+    "Finely dressed": {
+      "items": []
+    },
+    "Vault-Tec ID": {
+      "items": [{ "name": "Holotags" }]
+    },
+    "Named weapon": {
+      "rolls": [{ "table": "Supplies", "count": 1 }]
+    },
+    "Well-maintained equipment": {
+      "items": [{ "name": "Stimpak" }]
+    },
+    "Emaciated": {
+      "items": []
+    },
+    "All Faction symbols removed from equipment": {
+      "items": []
+    },
+    "Pre-War affectation": {
+      "items": []
+    },
+    "Pack Brahmin": {
+      "items": []
+    }
+  }
+}

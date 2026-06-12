@@ -1,10 +1,12 @@
 import type { PartyActorRow } from "./ScavengerLocation.js";
+import { isOverseer } from "../integrations/overseerAccess.js";
 import { getActiveSceneId } from "./scenePersist.js";
 
 type UserDocument = {
   id: string;
   name: string;
   isGM: boolean;
+  role?: number;
   active: boolean;
   character?: { id: string } | string | null;
 };
@@ -72,7 +74,7 @@ export function userControlsActor(
   const users = getGameUsers();
   const user = users.find((u) => u.id === userId);
   if (!user) return false;
-  if (user.isGM) return true;
+  if (isOverseer(user)) return true;
 
   if (sceneId) {
     const row = getPartyActorsOnScene(sceneId).find((r) => r.actorId === actorId);

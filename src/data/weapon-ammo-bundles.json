@@ -1,4 +1,24 @@
 {
+  "Hunting rifle with 10 +5 CD rounds of .308 ammunition": {
+    "weapon": "Hunting Rifle",
+    "ammo": ".308 Round",
+    "quantityRoll": "10+5dc"
+  },
+  "Hunting Rifle": {
+    "weapon": "Hunting Rifle",
+    "ammo": ".308 Round",
+    "quantityRoll": "10+5dc"
+  },
+  "10mm pistol with 10 +5 CD rounds of 10mm ammunition": {
+    "weapon": "10mm Pistol",
+    "ammo": "10mm Round",
+    "quantityRoll": "10+5dc"
+  },
+  "10mm Pistol": {
+    "weapon": "10mm Pistol",
+    "ammo": "10mm Round",
+    "quantityRoll": "10+5dc"
+  },
   "Pipe gun with 10 +5 CD rounds of .38 ammunition": {
     "weapon": "Pipe Revolver",
     "ammo": ".38 Round",

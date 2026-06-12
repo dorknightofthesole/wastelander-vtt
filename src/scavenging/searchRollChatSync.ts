@@ -1,5 +1,6 @@
 import { resolveActorId } from "../integrations/falloutActor.js";
 import { t } from "../integrations/i18n.js";
+import { currentUserIsOverseer, isOverseer } from "../integrations/overseerAccess.js";
 import { addPartyAp } from "../integrations/falloutApTracker.js";
 import { getPartyActorsOnScene } from "./partyContext.js";
 import {
@@ -95,11 +96,12 @@ function resolveSpeakerActorId(message: ChatMessageDoc): string | null {
 
 function isMessageAuthorGm(authorUserId: string | undefined): boolean {
   if (authorUserId) {
-    const user = (game as { users?: { get: (id: string) => { isGM?: boolean } | undefined } })
-      .users?.get(authorUserId);
-    if (user?.isGM) return true;
+    const user = (game as {
+      users?: { get: (id: string) => { isGM?: boolean; role?: number } | undefined };
+    }).users?.get(authorUserId);
+    if (isOverseer(user)) return true;
   }
-  return Boolean(game.user?.isGM);
+  return currentUserIsOverseer();
 }
 
 /**
@@ -322,7 +324,7 @@ export async function syncSearchRollFromChatMessage(
   message: ChatMessageDoc,
   hookUserId?: string,
 ): Promise<void> {
-  if (!game.user?.isGM) return;
+  if (!currentUserIsOverseer()) return;
 
   const messageId = message.id;
   if (messageId) {
@@ -396,12 +398,12 @@ export function registerSearchRollChatSyncHooks(): void {
   });
 
   Hooks.on("activateScene", (scene: { id?: string }) => {
-    if (!game.user?.isGM || !scene?.id) return;
+    if (!currentUserIsOverseer() || !scene?.id) return;
     rebuildRerollWatchesForScene(scene.id);
   });
 
   Hooks.once("ready", () => {
-    if (!game.user?.isGM) return;
+    if (!currentUserIsOverseer()) return;
     const sceneId = canvas?.scene?.id;
     if (sceneId) rebuildRerollWatchesForScene(sceneId);
   });

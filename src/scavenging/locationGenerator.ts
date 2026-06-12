@@ -1,4 +1,5 @@
 import categoriesData from "../data/scavenging/creation/location-categories.json";
+import { currentUserIsOverseer } from "../integrations/overseerAccess.js";
 import degreeData from "../data/scavenging/creation/degree-reduction.json";
 import type {
   ItemCategoryRange,
@@ -261,7 +262,7 @@ export async function generateScavengerLocation(params: {
     warnings: warnings.length ? warnings : undefined,
   };
 
-  if (params.sceneId && game.user?.isGM) {
+  if (params.sceneId && currentUserIsOverseer()) {
     const scene = getSceneDocument(params.sceneId);
     const sceneName = scene?.name?.trim() || params.name;
     return syncSceneLootTables(location, params.sceneId, sceneName, "generate");

@@ -1,4 +1,5 @@
 import { WASTELANDER_ITEMS_PACK } from "../constants.js";
+import { findCompendiumUuidByName } from "./compendiumLookup.js";
 import type { ResolvedEquipmentLine } from "../wizard/equipmentRules.js";
 
 /** Fallout item compendiums used for starting equipment lookups. */
@@ -119,11 +120,36 @@ function equipmentLookupCandidates(text: string): string[] {
   return out;
 }
 
+/** Guess Fallout item type from a gear label (weapon vs ammo). */
+export function inferPreferredItemType(name: string): string | undefined {
+  const lower = name.trim().toLowerCase();
+  if (
+    /\b(round|rounds|ammo|ammunition|fuel|cartridge|shells?|missiles?|flares?)\b/.test(
+      lower,
+    )
+  ) {
+    return "ammo";
+  }
+  if (
+    /\b(pistol|rifle|gun|revolver|shotgun|knife|machete|bat|sword|axe|hammer|spear|flamer|laser|plasma|minigun|grenade|mine|pipe|cannon|launcher|cleaver)\b/.test(
+      lower,
+    )
+  ) {
+    return "weapon";
+  }
+  return undefined;
+}
+
 function pickPreferredMatch(
   lineText: string,
   matches: CompendiumItemIndexEntry[],
 ): CompendiumItemIndexEntry {
   const lower = lineText.toLowerCase();
+  const preferType = inferPreferredItemType(lineText);
+  if (preferType) {
+    const typed = matches.find((m) => m.type === preferType);
+    if (typed) return typed;
+  }
   if (/\bmod\b/.test(lower)) {
     const mod = matches.find((m) => m.type === "robot_mod");
     if (mod) return mod;
@@ -144,8 +170,19 @@ function pickPreferredMatch(
 /**
  * Build a searchable index of gear items from Fallout compendiums (longest names first).
  */
+function indexMissingExpectedWeapons(
+  index: CompendiumItemIndexEntry[],
+): boolean {
+  const weaponsPack = game.packs.get("fallout.weapons");
+  if (!weaponsPack) return false;
+  return !index.some((entry) => entry.type === "weapon");
+}
+
 export async function buildEquipmentItemIndex(): Promise<CompendiumItemIndexEntry[]> {
-  if (cachedIndex) return cachedIndex;
+  if (cachedIndex && !indexMissingExpectedWeapons(cachedIndex)) {
+    return cachedIndex;
+  }
+  cachedIndex = null;
 
   const byKey = new Map<string, CompendiumItemIndexEntry>();
 
@@ -195,6 +232,43 @@ export function findExactCompendiumMatch(
   return undefined;
 }
 
+const GEAR_PACK_FALLBACK: Record<string, string> = {
+  weapon: "fallout.weapons",
+  ammo: "fallout.ammunition",
+  apparel: "fallout.apparel",
+  consumable: "fallout.consumables",
+};
+
+/** Resolve a gear label to a compendium row, with pack fallback when the cache index is incomplete. */
+export async function resolveGearCompendiumMatch(
+  name: string,
+  index: CompendiumItemIndexEntry[],
+): Promise<CompendiumItemIndexEntry | undefined> {
+  const preferType = inferPreferredItemType(name);
+  let match = findExactCompendiumMatch(name, index);
+  if (match && preferType && match.type !== preferType) {
+    match = undefined;
+  }
+  if (match?.uuid) return match;
+
+  const packId = preferType ? GEAR_PACK_FALLBACK[preferType] : undefined;
+  if (packId) {
+    for (const candidate of equipmentLookupCandidates(name)) {
+      const uuid = await findCompendiumUuidByName(packId, candidate, preferType);
+      if (uuid) {
+        return {
+          name: candidate,
+          uuid,
+          type: preferType,
+          tooltip: candidate,
+        };
+      }
+    }
+  }
+
+  return findExactCompendiumMatch(name, index);
+}
+
 function findCompendiumMatches(
   text: string,
   index: CompendiumItemIndexEntry[],
@@ -235,9 +309,10 @@ export function enrichEquipmentLine(
     typeof line === "string" ? { text: line } : line;
   const lookupText = resolved.compendiumName ?? resolved.text;
 
-  const exact = resolved.compendiumName
-    ? findExactCompendiumMatch(resolved.compendiumName, index)
-    : undefined;
+  const exact = findExactCompendiumMatch(lookupText, index);
+  if (resolved.compendiumName && !exact) {
+    return { text: resolved.text, tooltip: "", hasCompendium: false };
+  }
   const matches = exact ? [exact] : findCompendiumMatches(lookupText, index);
 
   if (!matches.length) {

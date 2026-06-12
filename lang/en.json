@@ -584,7 +584,7 @@
         "GmResetHint": "Clears persisted player search and loot rolls for this scene (players must search again).",
         "GmResetSearchDone": "Player search progress cleared for this scene.",
         "GmOutcomeSet": "Player scavenge state set ({outcome}).",
-        "GmOnlyMutation": "Only the GM can update scavenge state.",
+        "GmOnlyMutation": "Only the Overseer (GM or Assistant GM) can update scavenge state.",
         "GmOffline": "No GM is connected to process this action.",
         "SocketUnavailable": "Socket API unavailable.",
         "AlreadySucceeded": "Search already succeeded for this location.",
@@ -600,6 +600,171 @@
         "LuckShiftLimit": "Luck shift cannot exceed ±{max} for this location.",
         "NoLuck": "No luck points remaining.",
         "NoLuckForJump": "Need {cost} Luck to choose that result (you have {have})."
+      }
+    },
+    "NpcGen": {
+      "Title": "Friendly NPC Generator",
+      "WindowTitle": "Friendly NPC Generator",
+      "Tooltip": "Generate friendly NPC",
+      "Finish": "Finish — create actor & journal",
+      "ActorData": {
+        "Title": "Rolled traits (NPC generator)"
+      },
+      "AiPrompt": {
+        "Copy": "Copy AI biography prompt",
+        "Copied": "AI biography prompt copied to clipboard.",
+        "FallbackHint": "Clipboard access was blocked. Select all and copy the prompt below, then paste it into ChatGPT, Gemini, or another AI chat.",
+        "TextareaLabel": "AI biography prompt",
+        "Dismiss": "Close"
+      },
+      "Generate": "Generate",
+      "Reroll": "Reroll",
+      "Reset": "Reset",
+      "Picker": {
+        "Hint": "Or choose a result from the roll table:",
+        "Range": "Range",
+        "Result": "Result",
+        "Table": "Table",
+        "OddD20": "odd d20",
+        "EvenD20": "even d20"
+      },
+      "Success": "Created friendly NPC: {name}",
+      "TablesNotReadyHint": "Import Wanderer oracle tables first (Configure Settings → Wastelander → Import oracle roll tables).",
+      "Diagnostics": {
+        "ConsoleHint": "Open the browser console (F12) — filter All or Errors, not just Errors — or run: game.modules.get(\"wastelander\").api.debugNpcGenTables()",
+        "Rolling": "Generating…",
+        "RollBlockedTables": "Roll table missing — see status above.",
+        "TableOk": "{table} is ready ({count} results).",
+        "TableFound": "{table} found in {expected} (result count unavailable until roll).",
+        "NoActiveStep": "No active roll step.",
+        "NoRollAction": "No roll action for step \"{step}\".",
+        "TableNotImported": "{table} was not found. Expected location: {expected}.",
+        "TableWrongFolder": "{table} exists in \"{path}\" but must be in {expected}.",
+        "TableEmpty": "{table} in \"{path}\" has no results — re-import oracle tables.",
+        "WandererFolderMissing": "Folder \"{expected}\" does not exist. Run Import Wanderer oracle roll tables."
+      },
+      "Type": {
+        "Normal": "Normal",
+        "Notable": "Notable",
+        "Major": "Major"
+      },
+      "Gender": {
+        "Masculine": "Masculine (odd)",
+        "Feminine": "Feminine (even)"
+      },
+      "RollChat": {
+        "GenderLabel": "NPC gender (d20)",
+        "GenderDetail": "Rolled {face} ({parity}) → {gender}",
+        "DemeanorParityLabel": "NPC demeanor parity (d20)",
+        "DemeanorParityDetail": "Rolled {face} → {table}",
+        "OddsTable": "NPC Demeanor (Odds)",
+        "EvensTable": "NPC Demeanor (Evens)",
+        "NpcTypeLabel": "NPC type (d20)",
+        "NpcTypeDetail": "Rolled {face} → {npcType}",
+        "StartingAmmo": "NPC starting ammunition"
+      },
+      "Steps": {
+        "gender": "Gender (presentation)",
+        "givenName": "Given name",
+        "surname": "Surname",
+        "age": "Age",
+        "demeanor": "Demeanor",
+        "distinctiveFeature1": "Distinctive feature (1)",
+        "distinctiveFeature2": "Distinctive feature (2)",
+        "profession": "Profession",
+        "secret": "Secret",
+        "truth": "Truth",
+        "npcType": "NPC type",
+        "gear": "Gear",
+        "review": "Review"
+      },
+      "Gear": {
+        "Title": "Starting gear",
+        "Hint": "Gear from profession and demeanor mappings. Distinctive-feature gear is still applied on Finish.",
+        "NoMappedGear": "No profession or demeanor gear mapped for this NPC.",
+        "AddCombatGear": "Add combat gear",
+        "DenizenSelect": "Denizen",
+        "DenizenPlaceholder": "Choose a denizen…",
+        "DenizenPreview": "Preview — {name}",
+        "DenizenApproved": "Added combat gear",
+        "Approve": "Approve gear",
+        "NoDenizens": "No denizen actors found under Actors → Denizens of the Wasteland (non-creature, non-robot). Import denizens first.",
+        "NoDenizenItems": "That denizen has no copyable gear items on their sheet.",
+        "DenizenActorMissing": "Could not find the selected denizen actor. Re-select from the list.",
+        "ItemCount": "{count} items"
+      },
+      "Roll": {
+        "gender": "Roll gender (d20)",
+        "givenName": "Roll given name",
+        "surname": "Roll surname",
+        "age": "Roll age",
+        "demeanor": "Roll demeanor (d20 + table)",
+        "distinctiveFeature1": "Roll distinctive feature (1)",
+        "distinctiveFeature2": "Roll distinctive feature (2)",
+        "profession": "Roll profession",
+        "secret": "Roll secret",
+        "truth": "Roll truth",
+        "npcType": "Roll NPC type (d20)"
+      },
+      "Review": {
+        "Title": "Review & overrides",
+        "Name": "Name",
+        "Profession": "Profession",
+        "Age": "Age",
+        "Level": "Level",
+        "NpcType": "NPC type",
+        "Special": "SPECIAL",
+        "Hp": "HP",
+        "Tags": "Tag skills"
+      },
+      "Journal": {
+        "Title": "Generated Friendly NPCs"
+      },
+      "Settings": {
+        "JournalId": "NPC generator journal id",
+        "GearMappingsMenuName": "NPC gear mappings",
+        "GearMappingsMenuLabel": "Configure NPC gear mappings",
+        "GearMappingsMenuHint": "Edit starting gear granted by profession and demeanor when finishing the friendly NPC generator.",
+        "GearMappingsMenuTitle": "NPC gear mappings",
+        "GearMappingsIntro": "Maps rolled profession and demeanor to fixed compendium items and optional Wanderer loot table rolls.",
+        "GearMappingsFormatHint": "Fixed items: comma-separated Fallout compendium names (Caps grants +25 caps). Append @10+5dc to ammo items to roll quantity (e.g. 10mm Pistol, 10mm Round@10+5dc). Loot rolls: table:count pairs (e.g. Chems:1, Supplies:2). Distinctive feature gear stays in the module data file.",
+        "GearMappingsItemsPlaceholder": "10mm Pistol, 10mm Round@10+5dc",
+        "GearMappingsProfessionsTitle": "Professions",
+        "GearMappingsDemeanorTitle": "Demeanor",
+        "GearMappingsLabel": "Oracle label",
+        "GearMappingsItems": "Fixed items",
+        "GearMappingsRolls": "Loot table rolls",
+        "GearMappingsRollsPlaceholder": "Chems:1",
+        "GearMappingsAddProfession": "Add profession",
+        "GearMappingsAddDemeanor": "Add demeanor",
+        "GearMappingsRemoveRow": "Remove row",
+        "GearMappingsSave": "Save gear mappings",
+        "GearMappingsReset": "Reset to module defaults",
+        "AiPromptTemplate": {
+          "MenuName": "NPC generator AI biography prompt",
+          "MenuLabel": "Configure NPC AI biography prompt",
+          "MenuHint": "Edit the instruction text prepended to the Copy AI biography prompt output. Rolled traits are appended automatically.",
+          "MenuTitle": "NPC AI biography prompt",
+          "Intro": "Customize the instructions sent to ChatGPT, Gemini, or other AI tools when you use Copy AI biography prompt in the friendly NPC generator. The rolled trait list (name, demeanor, secret, stats, etc.) is always appended after this text.",
+          "Label": "Prompt instructions",
+          "Save": "Save prompt",
+          "ResetDefaults": "Reset to default",
+          "Saved": "NPC AI biography prompt saved.",
+          "Reset": "NPC AI biography prompt reset to default."
+        },
+        "GearMappingsSaved": "NPC gear mappings saved.",
+        "GearMappingsResetDone": "NPC gear mappings reset to module defaults.",
+        "GearMappingsNoRows": "Add at least one profession or demeanor row before saving."
+      },
+      "Errors": {
+        "GmOnly": "Only the Overseer (GM or Assistant GM) can generate friendly NPCs.",
+        "MissingTable": "Roll table not found: {table}",
+        "EmptyDraw": "Empty result from table: {table}",
+        "TablesNotReady": "Missing Wanderer tables: {tables}",
+        "GearNotFound": "Gear item not found in compendium: {item}",
+        "GearWrongType": "Gear item \"{item}\" resolved to {actual} instead of {expected}",
+        "GearNotAdded": "Could not add gear item to NPC: {item}",
+        "GearTableMissing": "Could not roll gear table: {table}"
       }
     }
   }

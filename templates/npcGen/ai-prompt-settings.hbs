@@ -1,0 +1,23 @@
+<div class="wastelander-npc-gen-ai-prompt-settings">
+  <p class="wastelander-npc-gen-ai-prompt-settings-intro">
+    {{localize "WASTELANDER.NpcGen.Settings.AiPromptTemplate.Intro"}}
+  </p>
+
+  <label class="wastelander-npc-gen-ai-prompt-settings-label">
+    <span>{{localize "WASTELANDER.NpcGen.Settings.AiPromptTemplate.Label"}}</span>
+    <textarea
+      name="npcGenAiPromptTemplate"
+      class="wastelander-npc-gen-ai-prompt-settings-textarea"
+      rows="10"
+    >{{template}}</textarea>
+  </label>
+
+  <div class="wastelander-npc-gen-ai-prompt-settings-actions">
+    <button type="button" class="wastelander-btn-primary" data-action="saveTemplate">
+      {{localize "WASTELANDER.NpcGen.Settings.AiPromptTemplate.Save"}}
+    </button>
+    <button type="button" class="wastelander-btn-secondary" data-action="resetDefaults">
+      {{localize "WASTELANDER.NpcGen.Settings.AiPromptTemplate.ResetDefaults"}}
+    </button>
+  </div>
+</div>

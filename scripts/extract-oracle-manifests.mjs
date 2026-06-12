@@ -25,6 +25,7 @@ import {
 const ROOT = join(fileURLToPath(new URL(".", import.meta.url)), "..");
 const MANIFEST_DIR = join(ROOT, "scripts/oracle/manifests");
 const STAGING_DIR = join(ROOT, "scripts/oracle/manifests-staging");
+const GROUPS_PATH = join(ROOT, "scripts/oracle/groups.json");
 const STAGING_DIFF_PATH = join(STAGING_DIR, "staging-diff.md");
 const DEFAULT_PDF = join(
   ROOT,
@@ -44,8 +45,9 @@ function printHelp() {
 
 Usage:
   npm run extract:oracle                         Extract all tables
-  npm run extract:oracle -- --table <slug>       Extract one table
-  npm run extract:oracle -- --list               List extraction profiles
+  npm run extract:oracle -- generate-npc         Extract a section group (see groups.json)
+  npm run extract:oracle -- --table <slug>       Extract one table or group
+  npm run extract:oracle -- --list               List extraction profiles and groups
   npm run extract:oracle -- --dump-pages 162     Debug positioned text
   npm run extract:oracle -- --dump-pages 162-165
   npm run extract:oracle -- --diff <slug>        Compare draft to existing manifest (no writes)
@@ -108,6 +110,86 @@ function parseArgs(argv) {
   }
 
   return { pdfPath, tableKeys, list, help, dumpPages, diffSlug };
+}
+
+async function readTableGroups() {
+  try {
+    const raw = await readFile(GROUPS_PATH, "utf8");
+    const parsed = JSON.parse(raw);
+    /** @type {Map<string, string[]>} */
+    const groups = new Map();
+    for (const [groupKey, slugs] of Object.entries(parsed)) {
+      groups.set(
+        slugify(groupKey),
+        slugs.map((slug) => slugify(String(slug))),
+      );
+    }
+    return groups;
+  } catch (err) {
+    if (err && typeof err === "object" && "code" in err && err.code === "ENOENT") {
+      return new Map();
+    }
+    throw err;
+  }
+}
+
+/**
+ * @param {typeof profiles} allProfiles
+ * @param {string[]} tableKeys
+ * @param {Map<string, string[]>} groups
+ */
+function resolveProfiles(allProfiles, tableKeys, groups) {
+  if (tableKeys.length === 0) return allProfiles;
+
+  const bySlug = new Map(allProfiles.map((p) => [String(p.slug), p]));
+  /** @type {typeof profiles} */
+  const selected = [];
+  const seen = new Set();
+  /** @type {string[]} */
+  const missing = [];
+
+  for (const key of tableKeys) {
+    const normalized = slugify(key);
+    const groupSlugs = groups.get(normalized);
+    if (groupSlugs) {
+      for (const slug of groupSlugs) {
+        const profile = bySlug.get(slug);
+        if (!profile) {
+          console.warn(`Skipping ${slug} — no extraction profile (group: ${key})`);
+          continue;
+        }
+        if (!seen.has(slug)) {
+          seen.add(slug);
+          selected.push(profile);
+        }
+      }
+      continue;
+    }
+
+    const profile = bySlug.get(normalized);
+    if (!profile) {
+      missing.push(key);
+      continue;
+    }
+    if (!seen.has(normalized)) {
+      seen.add(normalized);
+      selected.push(profile);
+    }
+  }
+
+  if (missing.length > 0) {
+    const availableGroups = [...groups.keys()]
+      .map((g) => `  - ${g}  (${groups.get(g)?.length ?? 0} tables)`)
+      .join("\n");
+    const groupSection = availableGroups
+      ? `\n\nSection groups:\n${availableGroups}`
+      : "";
+    throw new Error(
+      `No profiles matched: ${missing.join(", ")}. Use --list.${groupSection}`,
+    );
+  }
+
+  return selected;
 }
 
 /**
@@ -277,11 +359,21 @@ async function main() {
   }
 
   if (list) {
+    const groups = await readTableGroups();
     console.log("Extraction profiles:\n");
     for (const p of profiles) {
       console.log(`  ${p.slug}`);
       console.log(`    layout: ${p.layout}`);
-      console.log(`    ${p.startHeading} → ${p.endHeading ?? "(end)"}\n`);
+      const start = p.startHeading ?? "(page slice)";
+      const end = p.endHeading ?? "(end)";
+      console.log(`    ${start} → ${end}\n`);
+    }
+    if (groups.size > 0) {
+      console.log("Section groups (extract all tables in a section):\n");
+      for (const [groupKey, slugs] of groups) {
+        console.log(`  ${groupKey}`);
+        console.log(`    ${slugs.join(", ")}\n`);
+      }
     }
     return;
   }
@@ -305,10 +397,8 @@ async function main() {
   }
 
   const allItems = await extractAppendixItems(doc);
-  const selected =
-    tableKeys.length > 0
-      ? profiles.filter((p) => tableKeys.includes(String(p.slug)))
-      : profiles;
+  const groups = await readTableGroups();
+  const selected = resolveProfiles(profiles, tableKeys, groups);
 
   if (!selected.length) {
     throw new Error(

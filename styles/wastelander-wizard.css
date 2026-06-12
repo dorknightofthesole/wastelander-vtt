@@ -3091,6 +3091,16 @@
   box-sizing: border-box;
 }
 
+.wastelander-loot-cap-settings-app .wastelander-npc-gear-mappings-table input[type="text"] {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.wastelander-loot-cap-settings-app .wastelander-npc-gear-mappings-table td:first-child {
+  min-width: 8rem;
+}
+
 .wastelander-loot-cap-settings-app .wastelander-loot-cap-preview {
   margin: 0;
   padding-left: 1.25rem;
@@ -3401,4 +3411,624 @@
   width: 1rem;
   height: 1rem;
   margin-right: 0.25rem;
+}
+
+/* Friendly NPC generator (Overseer) */
+.wastelander-npc-gen-app {
+  min-width: 620px;
+  min-height: 640px;
+}
+
+.wastelander-npc-gen-app,
+.wastelander-npc-gen-app .wastelander-wizard-layout,
+.wastelander-npc-gen-app .wastelander-npc-gen-layout,
+.wastelander-npc-gen-app .window-header {
+  color: lightyellow;
+}
+
+.wastelander-npc-gen-app .window-content {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.wastelander-npc-gen-app [data-application-part="body"] {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.wastelander-npc-gen-app .wastelander-wizard-layout,
+.wastelander-npc-gen-app .wastelander-npc-gen-layout {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  align-items: stretch;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-sidebar {
+  flex: 0 0 20rem;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 0.4rem 0 0.5rem;
+  overflow: hidden;
+  border-right: 1px solid var(--wstl-amber-muted);
+  border-bottom: none;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-sidebar-title {
+  margin: 0;
+  padding: 0.55rem 0.45rem 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: lightyellow;
+  text-shadow: 0 0 10px var(--wstl-amber-glow);
+  border-bottom: 1px solid var(--wstl-amber-muted);
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-step-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overflow-anchor: none;
+  padding: 0 0.25rem 0.5rem 0.35rem;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-step-item {
+  display: grid;
+  grid-template-columns: 1.35rem 1fr;
+  gap: 0.15rem 0.4rem;
+  align-items: start;
+  margin: 0 0 0.2rem;
+  padding: 0.28rem 0.3rem;
+  color: lightyellow;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-step-item.active {
+  color: lightyellow;
+  background: rgba(var(--wstl-accent-rgb), 0.08);
+  box-shadow: inset 2px 0 0 var(--wstl-amber);
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-step-item.complete:not(.active) {
+  color: lightyellow;
+}
+
+.wastelander-npc-gen-app .wastelander-step-number,
+.wastelander-npc-gen-app .wastelander-step-label {
+  color: lightyellow;
+}
+
+.wastelander-npc-gen-app .wastelander-step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.2rem;
+  height: 1.2rem;
+  border: 1px solid var(--wstl-amber-muted);
+  font-size: 11px;
+  line-height: 1;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-step-item.active .wastelander-step-number {
+  border-color: lightyellow;
+  color: lightyellow;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-step-item .wastelander-step-label {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+  line-height: 1.2;
+}
+
+.wastelander-npc-gen-app .wastelander-main {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-step-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overflow-anchor: none;
+  padding-bottom: 0.75rem;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-footer {
+  flex: 0 0 auto;
+  margin-top: auto;
+  padding: 0.65rem 0.85rem;
+  border-top: 1px solid var(--color-border-light-primary, #444);
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-footer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-gear h3,
+.wastelander-npc-gen-app .wastelander-npc-gen-gear-section-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: lightyellow;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-gear-hint,
+.wastelander-npc-gen-app .wastelander-npc-gen-gear-empty {
+  margin: 0 0 1rem;
+  font-size: 0.88em;
+  color: lightyellow;
+  opacity: 0.9;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-gear-section {
+  margin-bottom: 1rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--color-border-light-primary, #444);
+  border-radius: 4px;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-gear-preview {
+  background: rgba(var(--wstl-accent-rgb), 0.06);
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-gear-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-gear-item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  padding: 0.2rem 0;
+  color: #fff;
+  font-size: 0.92em;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-gear-item-detail {
+  color: lightyellow;
+  opacity: 0.85;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-gear-add-combat {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border-light-primary, #444);
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-gear-denizen-select {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+  color: lightyellow;
+  font-size: 0.9em;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-gear-denizen-select select {
+  color: lightyellow;
+  max-width: 100%;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-approve-gear-btn {
+  margin-top: 0.5rem;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-step h3,
+.wastelander-npc-gen-app .wastelander-npc-gen-review h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: lightyellow;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-result,
+.wastelander-npc-gen-app .wastelander-npc-gen-result-value {
+  margin: 0 0 1rem;
+  font-size: 1.05rem;
+  color: #fff;
+}
+
+.wastelander-npc-gen-app .wastelander-wizard-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.wastelander-npc-gen-app .wastelander-btn-primary,
+.wastelander-npc-gen-app .wastelander-btn-secondary {
+  padding: 0.4rem 0.85rem;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: var(--wstl-font);
+  font-size: var(--wstl-btn-font-size);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.wastelander-npc-gen-app .wastelander-btn-primary {
+  color: lightyellow;
+  background: var(--wstl-amber-muted, #8b6914);
+  border: 1px solid var(--wstl-amber-bright, #e8c170);
+}
+
+.wastelander-npc-gen-app .wastelander-btn-secondary {
+  color: lightyellow;
+  background: transparent;
+  border: 1px solid var(--wstl-amber-muted, #6b5a2a);
+}
+
+.wastelander-npc-gen-app .wastelander-btn-primary:disabled,
+.wastelander-npc-gen-app .wastelander-btn-secondary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-roll-block {
+  margin-top: 0.75rem;
+  color: lightyellow;
+  font-size: 0.9em;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-table-status,
+.wastelander-npc-gen-app .wastelander-npc-gen-table-status-row,
+.wastelander-npc-gen-app .wastelander-npc-gen-table-status-label,
+.wastelander-npc-gen-app .wastelander-npc-gen-table-status-detail {
+  color: lightyellow;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-table-status {
+  margin-bottom: 1rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--color-border-light-primary, #444);
+  border-radius: 4px;
+  font-size: 0.88em;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-table-status-row {
+  margin: 0.25rem 0;
+  display: grid;
+  grid-template-columns: 11rem 1fr;
+  gap: 0.5rem;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-table-status-row.is-ok {
+  opacity: 0.85;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-table-status-row.is-warn {
+  color: lightyellow;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-table-status-row:not(.is-ok):not(.is-warn) {
+  color: lightyellow;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-table-status-label {
+  font-weight: 600;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-warning,
+.wastelander-npc-gen-app .wastelander-hint {
+  color: lightyellow;
+  margin-bottom: 1rem;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-summary {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 1rem;
+  margin: 1rem 0;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-overrides {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-overrides label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  color: lightyellow;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-overrides select,
+.wastelander-npc-gen-app .wastelander-wizard-actions button {
+  color: lightyellow;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-summary dt,
+.wastelander-npc-gen-app .wastelander-npc-gen-summary dd,
+.wastelander-npc-gen-app .wastelander-npc-gen-stats-preview,
+.wastelander-npc-gen-app .wastelander-npc-gen-stats-preview strong,
+.wastelander-npc-gen-app .wastelander-npc-gen-stats-preview p {
+  color: lightyellow;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-stats-preview {
+  margin: 1rem 0;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border-light-primary, #444);
+  border-radius: 4px;
+}
+
+.wastelander-npc-gen-app .wastelander-step-value,
+.wastelander-npc-gen-app .wastelander-npc-gen-step-value-btn {
+  grid-column: 2;
+  display: block;
+  font-size: 0.9em;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: none;
+  color: #fff;
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-step-value-btn {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.35);
+  text-underline-offset: 2px;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-step-value-btn:hover,
+.wastelander-npc-gen-app .wastelander-npc-gen-step-value-btn:focus-visible {
+  color: #fff;
+  text-decoration-color: rgba(255, 255, 255, 0.85);
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-step-item.focused .wastelander-npc-gen-step-value-btn,
+.wastelander-npc-gen-app .wastelander-npc-gen-step-item.focused .wastelander-step-value {
+  text-decoration-color: var(--wstl-amber-bright, #e8c170);
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-step-detail {
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-border-light-primary, #444);
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-step-detail-header h3 {
+  margin-bottom: 0.35rem;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-picker-hint {
+  margin: 0 0 0.5rem;
+  font-size: 0.85em;
+  color: lightyellow;
+  opacity: 0.9;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-picker-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88em;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-picker-table th,
+.wastelander-npc-gen-app .wastelander-npc-gen-picker-table td {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--color-border-light-primary, #444);
+  text-align: left;
+  vertical-align: top;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-picker-table th {
+  color: lightyellow;
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-picker-range,
+.wastelander-npc-gen-app .wastelander-npc-gen-picker-table-name {
+  color: lightyellow;
+  white-space: nowrap;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-picker-row.is-selected {
+  background: rgba(var(--wstl-accent-rgb), 0.12);
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-picker-row.is-selected .wastelander-npc-gen-picker-choice {
+  font-weight: 700;
+  color: #fff;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-picker-choice {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.35);
+  text-underline-offset: 2px;
+  font: inherit;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-picker-choice:hover,
+.wastelander-npc-gen-app .wastelander-npc-gen-picker-choice:focus-visible {
+  text-decoration-color: rgba(255, 255, 255, 0.9);
+}
+
+/* Keep NPC generator side-by-side; wizard responsive rule stacks panels. */
+@media (max-width: 640px) {
+  .wastelander-npc-gen-app .wastelander-wizard-layout {
+    flex-direction: row;
+  }
+
+  .wastelander-npc-gen-app .wastelander-npc-gen-sidebar {
+    flex: 0 0 14rem;
+    border-right: 1px solid var(--wstl-amber-muted);
+    border-bottom: none;
+    padding-bottom: 0.5rem;
+  }
+}
+
+/* NPC generator — actor Data tab + journal roll summary */
+.wastelander-npc-gen-actor-data {
+  margin: 0 0 1rem;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border-light-primary, #444);
+  border-radius: 4px;
+}
+
+.wastelander-npc-gen-traits-table,
+.wastelander-npc-gen-journal .npc-gen-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9em;
+}
+
+.wastelander-npc-gen-traits-table thead th,
+.wastelander-npc-gen-journal .npc-gen-table thead th {
+  display: none;
+}
+
+.wastelander-npc-gen-traits-table .wastelander-npc-gen-field-label,
+.wastelander-npc-gen-journal .npc-gen-table .wastelander-npc-gen-field-label {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.35rem 0.75rem 0.35rem 0;
+  font-weight: 600;
+  white-space: nowrap;
+  width: 38%;
+}
+
+.wastelander-npc-gen-journal .npc-gen-table .wastelander-npc-gen-field-label {
+  padding-left: 0.75rem;
+}
+
+.wastelander-npc-gen-traits-table .wastelander-npc-gen-field-value,
+.wastelander-npc-gen-journal .npc-gen-table .wastelander-npc-gen-field-value {
+  vertical-align: top;
+  padding: 0.35rem 0;
+}
+
+.wastelander-npc-gen-field-detail {
+  opacity: 0.85;
+  font-size: 0.92em;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-ai-prompt-panel {
+  margin: 0.75rem 0 0;
+  padding: 0.75rem;
+  border: 1px solid var(--wstl-amber-muted, #6b5a2a);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-ai-prompt-hint {
+  margin: 0 0 0.5rem;
+  color: lightyellow;
+  font-size: 0.9em;
+}
+
+.wastelander-npc-gen-app .wastelander-npc-gen-ai-prompt-text {
+  display: block;
+  width: 100%;
+  min-height: 12rem;
+  margin: 0 0 0.5rem;
+  padding: 0.5rem;
+  font-family: var(--font-monospace, monospace);
+  font-size: 0.82em;
+  line-height: 1.45;
+  color: lightyellow;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--color-border-light-primary, #444);
+  border-radius: 4px;
+  resize: vertical;
+}
+
+.wastelander-npc-gen-ai-prompt-settings-app .wastelander-npc-gen-ai-prompt-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.5rem;
+}
+
+.wastelander-npc-gen-ai-prompt-settings-app .wastelander-npc-gen-ai-prompt-settings-intro {
+  margin: 0;
+  color: lightyellow;
+  font-size: 0.92em;
+  line-height: 1.45;
+}
+
+.wastelander-npc-gen-ai-prompt-settings-app .wastelander-npc-gen-ai-prompt-settings-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  color: lightyellow;
+}
+
+.wastelander-npc-gen-ai-prompt-settings-app .wastelander-npc-gen-ai-prompt-settings-textarea {
+  width: 100%;
+  min-height: 14rem;
+  padding: 0.5rem;
+  font-family: var(--font-monospace, monospace);
+  font-size: 0.85em;
+  line-height: 1.45;
+  color: lightyellow;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--color-border-light-primary, #444);
+  border-radius: 4px;
+  resize: vertical;
+}
+
+.wastelander-npc-gen-ai-prompt-settings-app .wastelander-npc-gen-ai-prompt-settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
