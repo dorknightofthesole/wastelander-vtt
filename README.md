@@ -1,6 +1,6 @@
 # Wastelander
 
-A Foundry VTT module for **[Fallout: The Roleplaying Game](https://github.com/Muttley/foundryvtt-fallout)** (2d20). Wastelander adds a guided character builder, chat combat-dice rolls, a full scavenging toolkit, and denizen import tooling — all aligned with the Core Rulebook and GM Screen booklet.
+A Foundry VTT module for **[Fallout: The Roleplaying Game](https://github.com/Muttley/foundryvtt-fallout)** (2d20). Character creation wizard, Wasteland Wanderer friendly NPC generator, GM Screen scavenging (locations, scene loot tables, journal), player search & AP loot rolls, optional caps/rarity filtering, combat dice, denizen import, and oracle roll-table import.
 
 **Requires:** [Fallout 2d20 system](https://github.com/Muttley/foundryvtt-fallout) · Foundry VTT v13+
 
@@ -15,13 +15,13 @@ All copyright assets included in the module are owned by Modiphius Entertainment
 ## Features
 
 - **Guided character creation** — Step-by-step wizard (origin, S.P.E.C.I.A.L., skills, perks, equipment); PDF export/import with licensed Modiphius sheets
+- **Friendly NPC generator (Overseer)** — Step-by-step **Wasteland Wanderer** NPC rolls; Core Rulebook Character stat blocks (Normal/Notable/Major), journal page, and actor — requires the licensed *Wasteland Wanderer* book (see **NPC generation**)
 - **Combat dice roller** — Chat-bar CD roller with effect-face highlighting
 - **Scavenging scene generation (Overseer)** — Location generator with inhabitants, obstacles, and hazards; per-scene loot RollTables under **Roll Tables → Wastelander → Scenes**; auto-updated Scavenger journal
   - **Loot filtering** — Optional caps or rarity limits by location level when tables are built or reset (default: no filter — “The New Vegas Option”)
   - **Scene loot tables** — Booklet tables materialized per scene (with filtering applied on build/reset); Overseers can edit rows, formulas, and items in Foundry for custom, scene-specific loot
 - **Scavenging (players)** — Search team rolls, min/AP loot on scene tables, Luck Point shifts, server-validated actions
 - **Denizen import** — Bring your own NPC actor JSON into the world for inhabitant rosters
-- **Friendly NPC generator (Overseer)** — Step-by-step Wasteland Wanderer rolls; builds Core Rulebook Character stat blocks (Normal/Notable/Major), journal page, and actor
 - **Oracle tables** — Build/import Wasteland Wanderer roll tables from your licensed PDF (local tooling)
 - **Bundled compendiums** — Custom scavenging items and roll tables included with the module
 
@@ -68,6 +68,48 @@ Open from any player **character** or **robot** actor sheet (Wastelander menu �
 
 ---
 
+## NPC generation (Overseer)
+
+**Scene toolbar → Tokens → user-plus icon** (GM only). Rolls **Wasteland Wanderer** *Generate NPC* tables step by step, builds a Core Rulebook **Character** stat block (Normal / Notable / Major), creates an actor under **Actors → Wastelander → Generated NPCs**, adds a journal page, and opens the actor sheet.
+
+This feature is driven by oracle roll tables from the licensed **Fallout 2d20 Wasteland Wanderer** book. Wastelander does not ship that book’s table text; you must own the PDF and run the local extract/build workflow before the generator can roll in Foundry.
+
+### Prerequisites
+
+1. Licensed **Wasteland Wanderer** PDF at  
+   `docs/reference/source/Fallout-2d20-Wasteland-Wanderer.pdf`  
+   (see **Oracle roll tables** below if you have not set this up yet).
+
+2. Build the **generate-npc** oracle tables and bundle them into the module:
+
+```bash
+# 1. Extract manifests from the PDF (first time, or after profile changes)
+npm run extract:oracle -- generate-npc
+
+# 2. Build Foundry RollTable JSON → src/data/oracle/*.json
+npm run build:oracle -- generate-npc
+
+# 3. Bundle oracle JSON into dist/wastelander.mjs
+npm run build
+```
+
+3. **Import into Foundry (GM):**  
+   **Configure Settings → Module Settings → Wastelander → Import Wanderer oracle roll tables** → Run.
+
+   Tables appear under **Roll Tables → Wastelander → Wanderer** (names, surnames, age, demeanor, distinctive features, profession, secret, truth, and related *Generate NPC* tables). Re-run import after rebuilding to update existing tables by name.
+
+### Using the generator
+
+- **Generate** — Auto-rolls every step (gender d20, Wanderer tables, NPC type) and lands on **Review**.
+- **Sidebar** — Click any completed step to inspect, reroll, or pick manually from the table.
+- **Gear** — Preview profession/demeanor starting gear; optionally add combat gear from imported **Denizens of the Wasteland** actors.
+- **Review** — Override level and NPC type (Normal / Notable / Major) before **Finish**.
+- **Finish** — Creates the actor, syncs the shared **Generated Friendly NPCs** journal, resets the wizard, and opens the new actor sheet.
+
+Further detail (roll order, stat budgets, gear mappings, AI biography prompt): [docs/reference/friendly-npc-generator.md](docs/reference/friendly-npc-generator.md).
+
+---
+
 ## Combat dice (chat)
 
 A quick **Roll combat dice** control in the chat bar (Fallout effect-face icon) opens a small dialog for rolling any number of CD without typing `/r Ndc` macros.
@@ -78,14 +120,6 @@ A quick **Roll combat dice** control in the chat bar (Fallout effect-face icon) 
 - **Chat card** — Each die face is shown with Fallout CD art; effect faces (5 and 6) are highlighted. Summary line: **Total N | X Effects** (damage-plaq styling).
 
 Useful for perks and abilities that key off individual CD results (such as whether an effect was rolled), not just the numeric total.
-
----
-
-## Friendly NPC generator (Overseer)
-
-**Scene toolbar → Tokens → user-plus icon** (GM only). Rolls Wasteland Wanderer **Generate NPC** tables step by step, then builds a Core Rulebook **Character** stat block (Normal / Notable / Major), creates an actor under **Wastelander → Generated NPCs**, and adds a journal page.
-
-Requires Wanderer oracle tables imported first. See [docs/reference/friendly-npc-generator.md](docs/reference/friendly-npc-generator.md).
 
 ---
 
@@ -277,7 +311,7 @@ To refresh pack data from your Foundry world after editing compendiums, see [pac
 |------------------|----------|
 | [foundryvtt-fallout](https://github.com/Muttley/foundryvtt-fallout) | **Required** — actors, compendiums, AP tracker, sheets |
 | Simple Calendar Reborn | Advance world time after scavenging |
-| Licensed Modiphius PDFs | Character sheet export; Wasteland Wanderer oracle table extraction (local build) |
+| Licensed Modiphius PDFs | Character sheet export; **Wasteland Wanderer** oracle extraction and NPC generator (local build) |
 | Bundled `wastelander.items` / `wastelander.wastelander` | Custom scavenging items and roll tables (included with module) |
 
 ---

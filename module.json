@@ -1,7 +1,7 @@
 {
   "id": "wastelander",
   "title": "Wastelander",
-  "description": "Fallout 2d20 toolkit — character creation wizard and more.",
+  "description": "Foundry VTT module for Fallout: The Roleplaying Game (2d20). Character creation wizard, Wasteland Wanderer friendly NPC generator, GM Screen scavenging (locations, scene loot tables, journal), player search & AP loot rolls, optional caps/rarity filtering, combat dice, denizen import, and oracle roll-table import.",
   "version": "0.1.0",
   "compatibility": {
     "minimum": "13",

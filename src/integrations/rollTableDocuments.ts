@@ -375,3 +375,40 @@ export async function upsertRollTableInFolder(
     return undefined;
   }
 }
+
+type SidebarTabApp = {
+  rendered?: boolean;
+  render?: (force?: boolean) => Promise<unknown>;
+};
+
+function rollTablesSidebarTabs(): SidebarTabApp[] {
+  const uiRef = ui as {
+    tables?: SidebarTabApp;
+    sidebar?: {
+      tabs?: Record<string, SidebarTabApp | undefined>;
+      tab?: Record<string, SidebarTabApp | undefined>;
+    };
+  };
+  const tabs = uiRef.sidebar?.tabs ?? uiRef.sidebar?.tab ?? {};
+  const candidates = [
+    uiRef.tables,
+    tabs.tables,
+    tabs.table,
+    tabs.rolltables,
+    tabs.rollTables,
+  ];
+  return candidates.filter((tab): tab is SidebarTabApp => tab != null);
+}
+
+/** Re-render the Roll Tables sidebar after silent document creates (`render: false`). */
+export async function refreshRollTablesSidebar(force = true): Promise<void> {
+  for (const tab of rollTablesSidebarTabs()) {
+    if (!tab.render) continue;
+    try {
+      await tab.render(force);
+      return;
+    } catch {
+      // Try the next known Roll Tables tab reference.
+    }
+  }
+}

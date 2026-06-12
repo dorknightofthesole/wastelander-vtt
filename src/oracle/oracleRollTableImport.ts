@@ -5,6 +5,7 @@ import {
   ensureRollTableFolder,
   findWorldRollTableByName,
   getRollTableDocument,
+  refreshRollTablesSidebar,
   rollTableResultCount,
   rollTableResultIds,
   ROLL_TABLE_CREATE_OPTIONS,
@@ -198,6 +199,10 @@ export async function importBundledOracleRollTables(): Promise<OracleRollTableIm
       result.failed += 1;
       result.errors.push(data.name ?? "(unnamed)");
     }
+  }
+
+  if (result.created > 0 || result.updated > 0) {
+    await refreshRollTablesSidebar(true);
   }
 
   return result;

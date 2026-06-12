@@ -1,6 +1,7 @@
 import { MODULE_ID, MODULE_PATH } from "../constants.js";
 import {
   closeAllRenderedActorSheets,
+  getWorldActor,
 } from "../integrations/falloutActor.js";
 import { currentUserIsOverseer } from "../integrations/overseerAccess.js";
 import { t } from "../integrations/i18n.js";
@@ -552,6 +553,7 @@ export default class NpcGeneratorApp extends HandlebarsApplicationMixin(
         t("WASTELANDER.NpcGen.Success", { name: actor.name }),
       );
       await this.#resetGenerator();
+      await getWorldActor(actor.id).sheet?.render?.(true);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : String(error);

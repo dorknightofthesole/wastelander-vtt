@@ -1,4 +1,5 @@
 import { MODULE_ID } from "../constants.js";
+import { refreshActorsSidebar } from "../integrations/falloutActor.js";
 import { ITEM_CREATE_OMIT_KEYS } from "../integrations/fallout.js";
 import { t } from "../integrations/i18n.js";
 import { currentUserIsOverseer } from "../integrations/overseerAccess.js";
@@ -349,6 +350,10 @@ export async function importBundledDenizens(): Promise<DenizenImportResult> {
       result.failed += 1;
       result.errors.push(data.name ?? "(unnamed)");
     }
+  }
+
+  if (result.created > 0 || result.skipped > 0) {
+    await refreshActorsSidebar(true);
   }
 
   return result;

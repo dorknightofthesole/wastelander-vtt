@@ -40,6 +40,7 @@ declare const ui: {
     error: (message: string) => void;
   };
   actors?: { rendered?: boolean; render?: (force?: boolean) => Promise<unknown> };
+  tables?: { rendered?: boolean; render?: (force?: boolean) => Promise<unknown> };
   sidebar?: {
     tabs?: Record<string, { rendered?: boolean; render?: (force?: boolean) => Promise<unknown> } | undefined>;
     tab?: Record<string, { rendered?: boolean; render?: (force?: boolean) => Promise<unknown> } | undefined>;
