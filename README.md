@@ -74,6 +74,10 @@ Open from any player **character** or **robot** actor sheet (Wastelander menu �
 
 This feature is driven by oracle roll tables from the licensed **Fallout 2d20 Wasteland Wanderer** book. Wastelander does not ship that book’s table text; you must own the PDF and run the local extract/build workflow before the generator can roll in Foundry.
 
+![Friendly NPC generator — Wanderer rolls, gear mappings, and denizen combat gear](assets/readme/npc-generator-gear.png)
+
+*Gear step: profession/demeanor starting gear, optional denizen combat gear, and **Copy AI biography prompt** before Finish.*
+
 ### Prerequisites
 
 1. Licensed **Wasteland Wanderer** PDF at  
