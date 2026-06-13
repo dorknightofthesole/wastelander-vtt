@@ -3869,8 +3869,7 @@
   background: rgba(0, 0, 0, 0.2);
 }
 
-.wastelander-npc-gen-app .wastelander-npc-gen-picker-range,
-.wastelander-npc-gen-app .wastelander-npc-gen-picker-table-name {
+.wastelander-npc-gen-app .wastelander-npc-gen-picker-range {
   color: lightyellow;
   white-space: nowrap;
 }

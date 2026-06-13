@@ -60,13 +60,51 @@ function findActorFolder(
   return undefined;
 }
 
+function folderCacheKey(name: string, parentId: string | null): string {
+  return `${parentId ?? ""}\0${name}`;
+}
+
+function getActorFolderById(folderId: string): Folder | undefined {
+  const folder = game.folders.get(folderId);
+  if (!folder || folder.type !== "Actor") return undefined;
+  return folder;
+}
+
+/** Drop cached ids when the folder was removed or renamed in the sidebar. */
+function readValidCachedFolderId(
+  cacheKey: string,
+  name: string,
+  parentId: string | null,
+): string | undefined {
+  const cached = folderIdCache.get(cacheKey);
+  if (!cached) return undefined;
+  const folder = getActorFolderById(cached);
+  if (!folder || folder.name !== name || folderParentId(folder) !== parentId) {
+    folderIdCache.delete(cacheKey);
+    return undefined;
+  }
+  return cached;
+}
+
+function purgeFolderCacheEntriesForParent(parentId: string): void {
+  for (const [key] of folderIdCache) {
+    if (key.startsWith(`${parentId}\0`)) folderIdCache.delete(key);
+  }
+}
+
 async function ensureActorFolder(
   name: string,
   parentId: string | null,
 ): Promise<string | undefined> {
-  const cacheKey = `${parentId ?? ""}\0${name}`;
-  const cached = folderIdCache.get(cacheKey);
-  if (cached) return cached;
+  const cacheKey = folderCacheKey(name, parentId);
+  const validated = readValidCachedFolderId(cacheKey, name, parentId);
+  if (validated) return validated;
+
+  if (parentId != null && !getActorFolderById(parentId)) {
+    purgeFolderCacheEntriesForParent(parentId);
+    folderIdCache.delete(cacheKey);
+    return undefined;
+  }
 
   const existing = findActorFolder(name, parentId);
   if (existing) {
@@ -84,9 +122,20 @@ async function ensureActorFolder(
 }
 
 async function ensureGeneratedNpcFolderId(): Promise<string | undefined> {
-  const rootId = await ensureActorFolder(GENERATED_NPCS_ROOT, null);
-  if (!rootId) return undefined;
-  return ensureActorFolder(GENERATED_NPCS_FOLDER, rootId);
+  let rootId = await ensureActorFolder(GENERATED_NPCS_ROOT, null);
+  if (!rootId) {
+    folderIdCache.delete(folderCacheKey(GENERATED_NPCS_ROOT, null));
+    rootId = await ensureActorFolder(GENERATED_NPCS_ROOT, null);
+  }
+  if (!rootId || !getActorFolderById(rootId)) return undefined;
+
+  let folderId = await ensureActorFolder(GENERATED_NPCS_FOLDER, rootId);
+  if (!folderId) {
+    purgeFolderCacheEntriesForParent(rootId);
+    folderIdCache.delete(folderCacheKey(GENERATED_NPCS_FOLDER, rootId));
+    folderId = await ensureActorFolder(GENERATED_NPCS_FOLDER, rootId);
+  }
+  return folderId && getActorFolderById(folderId) ? folderId : undefined;
 }
 
 async function applyNpcSkills(
@@ -188,6 +237,9 @@ async function createFriendlyNpcActorInner(
   if (!name) throw new Error("NPC name is incomplete.");
 
   const folderId = await ensureGeneratedNpcFolderId();
+  // Sync sidebar folder tree before filing the actor (silent folder creates).
+  await refreshActorsSidebar(true);
+
   const biographyHtml = renderNpcBiographyHtml(state, stats);
   const npcGenFields = buildNpcGenFieldRows(state, stats);
 
@@ -208,21 +260,23 @@ async function createFriendlyNpcActorInner(
   if (!created) throw new Error("Failed to create NPC actor.");
 
   const actorId = created.id;
-  const actor = getWorldActor(actorId);
 
-  if (folderId) {
-    await updateWorldActor(actorId, { folder: folderId });
+  const actorUpdate = buildActorSystemUpdate(
+    stats,
+    biographyHtml,
+    state.rolls.profession,
+  );
+  if (folderId && getActorFolderById(folderId)) {
+    actorUpdate.folder = folderId;
+  } else if (folderId) {
+    console.warn(
+      `${MODULE_ID} | Generated NPCs folder id ${folderId} is missing; actor left at directory root.`,
+    );
   }
 
-  await updateWorldActor(
-    actorId,
-    buildActorSystemUpdate(stats, biographyHtml, state.rolls.profession),
-  );
+  await updateWorldActor(actorId, actorUpdate);
 
-  await applyNpcSkills(actor, stats);
-  await applyNpcGear(actor, state.rolls, state.gear);
-
-  await actor.setFlag(MODULE_ID, "npcGen", {
+  const npcGenFlag = {
     generatedAt: Date.now(),
     friendly: true,
     rulebookSection: "characters-p337",
@@ -232,11 +286,43 @@ async function createFriendlyNpcActorInner(
     gear: state.gear,
     stats,
     fields: npcGenFields,
-  });
+  };
 
-  await syncNpcJournalPage(actor, state, stats);
+  // Persist rolled traits before skills/gear so the Data tab survives partial failures.
+  await getWorldActor(actorId).setFlag(MODULE_ID, "npcGen", npcGenFlag);
+
+  const applyWarnings: string[] = [];
+
+  try {
+    await applyNpcSkills(getWorldActor(actorId), stats);
+  } catch (error) {
+    applyWarnings.push("skills");
+    console.warn(`${MODULE_ID} | NPC skill apply failed for ${name}`, error);
+  }
+
+  try {
+    await applyNpcGear(getWorldActor(actorId), state.rolls, state.gear);
+  } catch (error) {
+    applyWarnings.push("gear");
+    console.warn(`${MODULE_ID} | NPC gear apply failed for ${name}`, error);
+  }
+
+  try {
+    await syncNpcJournalPage(getWorldActor(actorId), state, stats);
+  } catch (error) {
+    applyWarnings.push("journal");
+    console.warn(`${MODULE_ID} | NPC journal sync failed for ${name}`, error);
+  }
+
+  if (applyWarnings.length) {
+    console.warn(
+      `${MODULE_ID} | Created friendly NPC "${name}" with incomplete apply steps: ${applyWarnings.join(", ")}`,
+    );
+  }
 
   await refreshActorsSidebar(true);
+
+  const actor = getWorldActor(actorId);
 
   if (options?.openSheet) {
     await actor.sheet?.render?.(true);

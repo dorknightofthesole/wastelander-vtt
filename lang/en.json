@@ -682,6 +682,7 @@
         "Title": "Starting gear",
         "Hint": "Gear from profession and demeanor mappings. Distinctive-feature gear is still applied on Finish.",
         "NoMappedGear": "No profession or demeanor gear mapped for this NPC.",
+        "NoStartingGear": "No starting gear",
         "AddCombatGear": "Add combat gear",
         "DenizenSelect": "Denizen",
         "DenizenPlaceholder": "Choose a denizen…",

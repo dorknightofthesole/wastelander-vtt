@@ -1,6 +1,9 @@
 import { t } from "../integrations/i18n.js";
 import { DENIZENS_ROOT_FOLDER } from "../scavenging/denizenBookFolders.js";
 import {
+  hasDemeanorGearMapping,
+  hasProfessionGearMapping,
+  isGearSpecEmpty,
   resolveDemeanorGear,
   resolveProfessionGear,
   type GearItemSpec,
@@ -106,28 +109,50 @@ function gearSpecToRows(spec: GearSpec | undefined): NpcGearDisplayRow[] {
   return rows;
 }
 
+function appendMappedGearSection(
+  sections: NpcGearDisplaySection[],
+  id: "profession" | "demeanor",
+  title: string | null,
+  spec: GearSpec | undefined,
+  hasMapping: boolean,
+): void {
+  const rows = gearSpecToRows(spec);
+  if (rows.length) {
+    sections.push({ id, title: title?.trim() || id, rows });
+    return;
+  }
+  if (hasMapping && isGearSpecEmpty(spec)) {
+    sections.push({
+      id,
+      title: title?.trim() || id,
+      rows: [
+        {
+          label: t("WASTELANDER.NpcGen.Gear.NoStartingGear"),
+          detail: "",
+        },
+      ],
+    });
+  }
+}
+
 export function buildProfessionDemeanorGearSections(
   rolls: NpcGeneratorRolls,
 ): NpcGearDisplaySection[] {
   const sections: NpcGearDisplaySection[] = [];
-  const profession = resolveProfessionGear(rolls.profession);
-  const professionRows = gearSpecToRows(profession);
-  if (professionRows.length) {
-    sections.push({
-      id: "profession",
-      title: rolls.profession?.trim() || "Profession",
-      rows: professionRows,
-    });
-  }
-  const demeanor = resolveDemeanorGear(rolls.demeanor);
-  const demeanorRows = gearSpecToRows(demeanor);
-  if (demeanorRows.length) {
-    sections.push({
-      id: "demeanor",
-      title: rolls.demeanor?.trim() || "Demeanor",
-      rows: demeanorRows,
-    });
-  }
+  appendMappedGearSection(
+    sections,
+    "profession",
+    rolls.profession,
+    resolveProfessionGear(rolls.profession),
+    hasProfessionGearMapping(rolls.profession),
+  );
+  appendMappedGearSection(
+    sections,
+    "demeanor",
+    rolls.demeanor,
+    resolveDemeanorGear(rolls.demeanor),
+    hasDemeanorGearMapping(rolls.demeanor),
+  );
   return sections;
 }
 
@@ -181,8 +206,13 @@ export function buildDenizenGearSection(
 
 export function countPlannedGearItems(state: NpcGeneratorState): number {
   let count = 0;
-  for (const section of buildProfessionDemeanorGearSections(state.rolls)) {
-    count += section.rows.length;
+  const { rolls } = state;
+  for (const spec of [
+    resolveProfessionGear(rolls.profession),
+    resolveDemeanorGear(rolls.demeanor),
+  ]) {
+    if (isGearSpecEmpty(spec)) continue;
+    count += (spec?.items?.length ?? 0) + (spec?.rolls?.length ?? 0);
   }
   count += state.gear.denizenCombatItems.length;
   return count;

@@ -62,6 +62,11 @@ export function normalizeGearItem(raw: unknown): GearItemSpec | null {
   return item;
 }
 
+export function isGearSpecEmpty(gear: GearSpec | undefined): boolean {
+  if (!gear) return true;
+  return !(gear.items?.length || gear.rolls?.length);
+}
+
 export function normalizeGearSpec(raw: unknown): GearSpec | undefined {
   if (!raw || typeof raw !== "object") return undefined;
   const input = raw as { items?: unknown; rolls?: unknown };
@@ -138,6 +143,38 @@ export function getNpcGearMappingsConfig(): NpcGearMappingsConfig {
     : getDefaultNpcGearMappingsConfig();
 }
 
+function findGearMappingKey(
+  table: Record<string, NpcGearMappingRow>,
+  overrides: Record<string, NpcGearMappingRow> | undefined,
+  label: string | null,
+): string | null {
+  if (!label) return null;
+  const trimmed = label.trim();
+  const lower = trimmed.toLowerCase();
+
+  if (overrides && trimmed in overrides) return trimmed;
+  if (overrides) {
+    for (const key of Object.keys(overrides)) {
+      if (key.trim().toLowerCase() === lower) return key;
+    }
+  }
+
+  if (trimmed in table) return trimmed;
+  for (const key of Object.keys(table)) {
+    if (key.trim().toLowerCase() === lower) return key;
+  }
+
+  return null;
+}
+
+function hasGearMappingInMaps(
+  table: Record<string, NpcGearMappingRow>,
+  overrides: Record<string, NpcGearMappingRow> | undefined,
+  label: string | null,
+): boolean {
+  return findGearMappingKey(table, overrides, label) != null;
+}
+
 function resolveGearFromMaps(
   table: Record<string, NpcGearMappingRow>,
   overrides: Record<string, NpcGearMappingRow> | undefined,
@@ -164,6 +201,22 @@ function resolveGearFromMaps(
   }
 
   return undefined;
+}
+
+export function hasProfessionGearMapping(profession: string | null): boolean {
+  const bundled = getBundledNpcGearMappings();
+  const config = getNpcGearMappingsConfig();
+  return hasGearMappingInMaps(
+    bundled.professions,
+    config.professions,
+    profession,
+  );
+}
+
+export function hasDemeanorGearMapping(demeanor: string | null): boolean {
+  const bundled = getBundledNpcGearMappings();
+  const config = getNpcGearMappingsConfig();
+  return hasGearMappingInMaps(bundled.demeanor, config.demeanor, demeanor);
 }
 
 export function resolveProfessionGear(profession: string | null): GearSpec | undefined {

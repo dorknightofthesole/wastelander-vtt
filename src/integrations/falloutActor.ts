@@ -89,9 +89,8 @@ export async function refreshActorsSidebar(force = true): Promise<void> {
     if (!tab.render) continue;
     try {
       await tab.render(force);
-      return;
     } catch {
-      // Try the next known Actors tab reference.
+      // Try remaining Actors tab references.
     }
   }
 }

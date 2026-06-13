@@ -5,7 +5,7 @@ import {
   getCompendiumItem,
   isEquippableFalloutGear,
 } from "../integrations/fallout.js";
-import { resolveActorId, updateWorldActor } from "../integrations/falloutActor.js";
+import { resolveActorId, updateWorldActor, getWorldActor } from "../integrations/falloutActor.js";
 import {
   buildEquipmentItemIndex,
   clearEquipmentItemIndexCache,
@@ -24,6 +24,7 @@ import {
 import type { ResolvedEquipmentLine } from "../wizard/equipmentRules.js";
 import { getWeaponAmmoBundleByWeaponName } from "../wizard/weaponAmmoBundles.js";
 import {
+  isGearSpecEmpty,
   resolveDemeanorGear,
   resolveFeatureGear,
   resolveProfessionGear,
@@ -79,7 +80,8 @@ async function addGearLineToActor(
   line: ResolvedEquipmentLine,
   index: CompendiumItemIndexEntry[],
 ): Promise<void> {
-  const lookupName = line.compendiumName ?? line.text;
+  const lookupName = (line.compendiumName ?? line.text)?.trim();
+  if (!lookupName) return;
   const match = await resolveGearCompendiumMatch(lookupName, index);
   if (!match?.uuid) {
     ui.notifications?.warn(
@@ -125,7 +127,10 @@ async function addGearItem(
   item: GearItemSpec,
   index: CompendiumItemIndexEntry[],
 ): Promise<void> {
-  if (normalizeKey(item.name) === "caps") {
+  const itemName = item.name?.trim();
+  if (!itemName) return;
+
+  if (normalizeKey(itemName) === "caps") {
     const sys = actor.system as { currency?: { caps?: number } };
     const current = Number(sys.currency?.caps ?? 0);
     await updateWorldActor(resolveActorId(actor), {
@@ -134,7 +139,7 @@ async function addGearItem(
     return;
   }
 
-  await addGearLineToActor(actor, gearItemToLine(item), index);
+  await addGearLineToActor(actor, gearItemToLine({ ...item, name: itemName }), index);
 }
 
 async function addLootWeaponWithAmmo(
@@ -181,7 +186,7 @@ async function applyGearSpec(
   gear: GearSpec | undefined,
   index: CompendiumItemIndexEntry[],
 ): Promise<void> {
-  if (!gear) return;
+  if (isGearSpecEmpty(gear)) return;
   for (const item of gear.items ?? []) {
     await addGearItem(actor, item, index);
   }
@@ -222,21 +227,23 @@ export async function applyNpcGear(
   rolls: NpcGeneratorRolls,
   gear?: NpcGeneratorGearState,
 ): Promise<void> {
+  const parent = getWorldActor(resolveActorId(actor));
+
   clearEquipmentItemIndexCache();
   const index = await buildEquipmentItemIndex();
 
-  await applyGearSpec(actor, resolveProfessionGear(rolls.profession), index);
-  await applyGearSpec(actor, resolveDemeanorGear(rolls.demeanor), index);
+  await applyGearSpec(parent, resolveProfessionGear(rolls.profession), index);
+  await applyGearSpec(parent, resolveDemeanorGear(rolls.demeanor), index);
 
   for (const feature of rolls.distinctiveFeatures) {
-    await applyGearSpec(actor, resolveFeatureGear(feature), index);
+    await applyGearSpec(parent, resolveFeatureGear(feature), index);
   }
 
   for (const item of gear?.denizenCombatItems ?? []) {
-    await addGearItem(actor, item, index);
+    await addGearItem(parent, item, index);
   }
 
-  await favoriteAllWeaponsOnActor(actor);
-  await syncNpcBodyResistanceFromApparel(actor);
-  await actor.setFlag(MODULE_ID, "npcGearApplied", true);
+  await favoriteAllWeaponsOnActor(parent);
+  await syncNpcBodyResistanceFromApparel(parent);
+  await parent.setFlag(MODULE_ID, "npcGearApplied", true);
 }
