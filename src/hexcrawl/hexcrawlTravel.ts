@@ -13,6 +13,7 @@ import {
 import { applyPartyTravelFatigue } from "./applyTravelFatigue.js";
 import {
   appendJourneyLog,
+  appendTraveledHexKey,
   loadHexcrawlSceneState,
   saveHexcrawlSceneState,
   type HexcrawlSceneState,
@@ -271,6 +272,7 @@ export async function processTravelHexEntry(params: {
   state = {
     ...state,
     lastHexKey: params.hexKey,
+    traveledHexKeys: appendTraveledHexKey(state.traveledHexKeys, params.hexKey),
   };
 
   state = await applyTravelMinutes({
@@ -529,7 +531,7 @@ export function applySetStartingHex(
   hexKey: string,
 ): HexcrawlSceneState {
   return appendJourneyLog(
-    { ...state, startingHexKey: hexKey, lastHexKey: hexKey },
+    { ...state, startingHexKey: hexKey, lastHexKey: hexKey, traveledHexKeys: [hexKey] },
     {
       kind: "startingLocationSet",
       travelDay: state.travelDay,
@@ -560,6 +562,7 @@ export function applyResetTravel(
       resetTravelPending: startingHexKey
         ? { tokenId: resetTokenId, untilHexKey: startingHexKey }
         : null,
+      traveledHexKeys: startingHexKey ? [startingHexKey] : [],
     },
     {
       kind: "travelReset",

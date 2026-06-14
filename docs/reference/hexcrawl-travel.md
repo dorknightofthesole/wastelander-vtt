@@ -25,6 +25,22 @@ On each new hex:
 - World clock advances (if Simple Calendar + setting enabled)
 - 1CD is rolled; on Effect, encounter type → detail table
 - **Wasteland Travels** journal updates (one page per scene)
+- A **travel trail** border appears on that hex (see below)
+
+## Travel trail (map overlay)
+
+When hexcrawl is enabled on a hex scene, traveled hexes show an amber **border-only** outline aligned to Foundry's hex grid. The overlay sits below tokens and is not selectable.
+
+| Event | Trail on map |
+| --- | --- |
+| Set starting hex | Starting hex outlined |
+| Enter hex during travel | Hex added to trail; current hex highlighted |
+| Set camp / new travel day | Trail **persists** (cumulative breadcrumb) |
+| Reset travel | Trail resets to starting hex only |
+| Clear journal | Trail **cleared** from map (travel position unchanged) |
+| Disable hexcrawl | Trail hidden (data retained) |
+
+Trail state is stored in scene flags as `traveledHexKeys` and syncs to all connected clients when travel state updates.
 
 ## Navigation (MVP)
 

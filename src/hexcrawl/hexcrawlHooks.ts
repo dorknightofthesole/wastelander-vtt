@@ -5,6 +5,7 @@ import { registerEncounterSettings } from "../encounters/encounterSettings.js";
 import HexcrawlTravelApp from "./HexcrawlTravelApp.js";
 import { HEXCRAWL_SCENE_STATE_FLAG, loadHexcrawlSceneState } from "./hexcrawlScenePersist.js";
 import { registerHexcrawlSettings } from "./hexcrawlSettings.js";
+import { registerHexcrawlTrailOverlay } from "./hexcrawlTrailOverlay.js";
 import { getActiveSceneId } from "../scavenging/scenePersist.js";
 import { collectMovementHexKeys, validateSingleHexTravelMove } from "./hexCoords.js";
 import {
@@ -127,6 +128,7 @@ async function handleTokenHexTravel(
 export function registerHexcrawlHooks(): void {
   registerHexcrawlSettings();
   registerEncounterSettings();
+  registerHexcrawlTrailOverlay();
 
   Hooks.on("getSceneControlButtons", (controls: SceneControlsRecord) => {
     if (!controls || typeof controls !== "object") return;

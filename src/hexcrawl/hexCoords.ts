@@ -261,6 +261,28 @@ export function parseHexKey(hexKey: string): { i: number; j: number } | null {
   return { i, j };
 }
 
+/** Canvas pixel vertices for a hex grid cell (aligned with Foundry's grid renderer). */
+export function hexVerticesForKey(
+  hexKey: string,
+): { x: number; y: number }[] | null {
+  const offset = parseHexKey(hexKey);
+  if (!offset) return null;
+
+  const grid = (globalThis as { canvas?: { grid?: HexGrid & {
+    isHexagonal?: boolean;
+    getVertices?: (coords: { i: number; j: number }) => { x: number; y: number }[];
+  } } }).canvas?.grid;
+  if (!grid?.isHexagonal || typeof grid.getVertices !== "function") return null;
+
+  const vertices = grid.getVertices(offset);
+  if (!Array.isArray(vertices) || vertices.length < 3) return null;
+
+  const points = vertices.filter(
+    (point) => Number.isFinite(point.x) && Number.isFinite(point.y),
+  );
+  return points.length >= 3 ? points : null;
+}
+
 /** Top-left pixel position for placing a token on a hex grid cell. */
 export function tokenPositionForHexKey(
   hexKey: string,

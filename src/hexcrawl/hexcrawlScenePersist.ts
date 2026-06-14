@@ -76,6 +76,8 @@ export type HexcrawlSceneState = {
   /** True after Pass/Fail is chosen for the current pending day end. */
   courseCheckResolved: boolean;
   journeyLog: JourneyLogEntry[];
+  /** Hex keys outlined on the map travel trail (border overlay). */
+  traveledHexKeys: string[];
   updatedAt: number;
 };
 
@@ -103,8 +105,14 @@ export function defaultHexcrawlState(sceneId: string): HexcrawlSceneState {
     pendingDayEnd: false,
     courseCheckResolved: false,
     journeyLog: [],
+    traveledHexKeys: [],
     updatedAt: Date.now(),
   };
+}
+
+function normalizeTraveledHexKeys(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.filter((key): key is string => typeof key === "string" && key.length > 0);
 }
 
 function normalizeJourneyLog(raw: unknown): JourneyLogEntry[] {
@@ -178,8 +186,14 @@ export function normalizeHexcrawlState(
     pendingDayEnd: Boolean(data.pendingDayEnd),
     courseCheckResolved: Boolean(data.courseCheckResolved),
     journeyLog: normalizeJourneyLog(data.journeyLog),
+    traveledHexKeys: normalizeTraveledHexKeys(data.traveledHexKeys),
     updatedAt: typeof data.updatedAt === "number" ? data.updatedAt : Date.now(),
   };
+}
+
+export function appendTraveledHexKey(keys: string[], hexKey: string): string[] {
+  if (keys.includes(hexKey)) return keys;
+  return [...keys, hexKey];
 }
 
 export function loadHexcrawlSceneState(sceneId: string): HexcrawlSceneState | null {

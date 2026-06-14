@@ -571,7 +571,7 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
     );
     if (!proceed) return;
 
-    await this.#mutate((state) => ({ ...state, journeyLog: [] }));
+    await this.#mutate((state) => ({ ...state, journeyLog: [], traveledHexKeys: [] }));
     ui.notifications.info(t("WASTELANDER.Hexcrawl.Notify.JournalCleared"));
   }
 
