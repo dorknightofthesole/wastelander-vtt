@@ -18,6 +18,7 @@ import {
   saveHexcrawlSceneState,
   type HexcrawlSceneState,
 } from "./hexcrawlScenePersist.js";
+import { findSceneTokenIdForActor } from "./hexCoords.js";
 import { getSceneMilesPerHex } from "./sceneGrid.js";
 import { filterHexcrawlTravelRoleActorIds } from "./partyTravel.js";
 import {
@@ -56,6 +57,21 @@ export function isResetTravelSuppressed(sceneId: string): boolean {
   return Boolean(state?.resetTravelPending);
 }
 
+export function resolveTravelTokenId(
+  sceneId: string,
+  state: Pick<HexcrawlSceneState, "travelTokenId" | "navigatorActorId">,
+): string | null {
+  const scene = (game as { scenes?: { get: (id: string) => { tokens?: { get: (id: string) => unknown } } | undefined } })
+    .scenes?.get(sceneId);
+  if (state.travelTokenId && scene?.tokens?.get(state.travelTokenId)) {
+    return state.travelTokenId;
+  }
+  if (state.navigatorActorId) {
+    return findSceneTokenIdForActor(sceneId, state.navigatorActorId);
+  }
+  return state.travelTokenId;
+}
+
 export function shouldConstrainTravelTokenMove(
   sceneId: string,
   tokenId: string,
@@ -63,7 +79,8 @@ export function shouldConstrainTravelTokenMove(
   if (isResetTravelSuppressed(sceneId)) return false;
   const state = loadHexcrawlSceneState(sceneId);
   if (!state?.enabled || state.arrived) return false;
-  if (!state.travelTokenId || state.travelTokenId !== tokenId) return false;
+  const travelTokenId = resolveTravelTokenId(sceneId, state);
+  if (!travelTokenId || travelTokenId !== tokenId) return false;
   return true;
 }
 
@@ -253,7 +270,11 @@ export async function processTravelHexEntry(params: {
   if (!state?.enabled || state.arrived) return;
   if (resetTravelActiveScenes.has(params.sceneId) || state.resetTravelPending) return;
 
-  if (state.travelTokenId !== params.tokenId) return;
+  const travelTokenId = resolveTravelTokenId(params.sceneId, state);
+  if (!travelTokenId || travelTokenId !== params.tokenId) return;
+  if (travelTokenId !== state.travelTokenId) {
+    state = { ...state, travelTokenId };
+  }
   if (state.lastHexKey === params.hexKey) return;
 
   const mph = resolvePartyTravelMph(
@@ -579,11 +600,7 @@ export function resolveNavigatorTokenId(
   sceneId: string,
   state: Pick<HexcrawlSceneState, "navigatorActorId" | "travelTokenId">,
 ): string | null {
-  if (state.navigatorActorId) {
-    const navigatorTokenId = findSceneTokenIdForActor(sceneId, state.navigatorActorId);
-    if (navigatorTokenId) return navigatorTokenId;
-  }
-  return state.travelTokenId;
+  return resolveTravelTokenId(sceneId, state);
 }
 
 export async function moveTokenToHexKey(

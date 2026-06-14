@@ -1,0 +1,36 @@
+---
+description: Run npm test (and build) after major implementation work before finishing
+alwaysApply: true
+---
+
+# Test after major revisions
+
+After any **major revision**, run the test suite and fix failures before you tell the user the work is done.
+
+## What counts as major
+
+- Implementing or finishing a **plan** (including phased/multi-step features)
+- Touching **3+ source files** in one task, or changing shared state, hooks, or persistence
+- Refactors, regressions, or bug fixes that span a feature area (e.g. hexcrawl, wizard, scavenging)
+- Adding or changing **Vitest** tests, `package.json` scripts, or build config
+
+Trivial edits (copy, a one-line fix in an isolated file, docs-only) do not require tests unless the user asks.
+
+## Required commands
+
+Run in the repo root, in order:
+
+1. `npm test` — must pass (Vitest: `src/**/*.test.ts`)
+2. `npm run build` — run when TypeScript/sources under `src/` changed; must pass
+
+Use the Shell tool yourself; do not only suggest the user run tests.
+
+## When tests fail
+
+- Fix the code or update tests if expectations changed intentionally
+- Re-run `npm test` until green
+- Mention any new/updated tests in the summary
+
+## When adding behavior
+
+Prefer a small regression test for non-trivial logic (state merge/split, rules math, validation). Skip tests only for purely presentational or Foundry-only UI glue unless the user opts out.

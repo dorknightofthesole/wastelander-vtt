@@ -12,6 +12,8 @@ import { getWorldClockLabel } from "../integrations/worldClock.js";
 
 export const HEXCRAWL_SCENE_STATE_FLAG = "hexcrawlSceneState";
 export const HEXCRAWL_JOURNAL_PAGE_FLAG = "hexcrawlJournalPageId";
+/** Orphan from an abandoned cross-scene experiment — cleared when saving v1 scene state. */
+const HEXCRAWL_JOURNEY_STATE_FLAG = "hexcrawlJourneyState";
 
 export type JourneyLogKind =
   | "enabled"
@@ -146,65 +148,140 @@ function normalizeResetTravelPending(
   return { tokenId: data.tokenId, untilHexKey: data.untilHexKey };
 }
 
+function loadLegacyWorldJourney(): Record<string, unknown> | null {
+  const raw = (game as { world?: { getFlag?: (scope: string, key: string) => unknown } })
+    .world?.getFlag?.(MODULE_ID, HEXCRAWL_JOURNEY_STATE_FLAG);
+  if (!raw || typeof raw !== "object") return null;
+  return raw as Record<string, unknown>;
+}
+
+function shouldMergeWorldJourney(
+  sceneId: string,
+  data: Record<string, unknown>,
+): boolean {
+  if (data.version === 2) return true;
+  const journey = loadLegacyWorldJourney();
+  if (!journey) return false;
+  const activeSceneId =
+    typeof journey.activeSceneId === "string" ? journey.activeSceneId : null;
+  if (activeSceneId && activeSceneId !== sceneId) return false;
+  const hasLocalParty =
+    Array.isArray(data.partyActorIds) && data.partyActorIds.length > 0;
+  const hasLocalHours =
+    typeof data.hoursTraveledToday === "number" && data.hoursTraveledToday > 0;
+  const hasLocalLog =
+    Array.isArray(data.journeyLog) && data.journeyLog.length > 0;
+  return !hasLocalParty && !hasLocalHours && !hasLocalLog;
+}
+
+function coalesceSplitPayload(
+  raw: Record<string, unknown>,
+  sceneId: string,
+): Record<string, unknown> {
+  const journey = loadLegacyWorldJourney() ?? {};
+  return { ...journey, ...raw, version: 1, sceneId };
+}
+
+/**
+ * Before persisting UI edits, re-read the scene flag and keep travel-hook progress
+ * so dropdown/close saves cannot zero hours or drop journal entries.
+ */
+export function prepareHexcrawlStateForSave(
+  pending: HexcrawlSceneState,
+  sceneId: string,
+): HexcrawlSceneState {
+  const fresh = loadHexcrawlSceneState(sceneId);
+  if (!fresh) return pending;
+
+  const usePendingProgress =
+    pending.journeyLog.length > fresh.journeyLog.length ||
+    pending.hoursTraveledToday > fresh.hoursTraveledToday + 0.001 ||
+    pending.traveledHexKeys.length > fresh.traveledHexKeys.length;
+
+  return {
+    ...(usePendingProgress ? pending : fresh),
+    enabled: pending.enabled,
+    travelEventMode: pending.travelEventMode,
+    partyActorIds: pending.partyActorIds,
+    navigatorActorId: pending.navigatorActorId,
+    navigationConditionId: pending.navigationConditionId,
+    baseDifficulty: pending.baseDifficulty,
+    currentDifficulty: pending.currentDifficulty,
+    courseStatus: pending.courseStatus,
+    maxHoursPerDay: pending.maxHoursPerDay,
+    arrived: pending.arrived,
+    pendingDayEnd: pending.pendingDayEnd,
+    courseCheckResolved: pending.courseCheckResolved,
+    trailOverlayColor: pending.trailOverlayColor,
+    startingHexKey: pending.startingHexKey ?? fresh.startingHexKey,
+  };
+}
+
 export function normalizeHexcrawlState(
   raw: unknown,
   sceneId: string,
 ): HexcrawlSceneState {
   const base = defaultHexcrawlState(sceneId);
   if (!raw || typeof raw !== "object") return base;
-  const data = raw as Partial<HexcrawlSceneState>;
+
+  let data = raw as Record<string, unknown>;
+  if (shouldMergeWorldJourney(sceneId, data)) {
+    data = coalesceSplitPayload(data, sceneId);
+  }
+
+  const row = data as Partial<HexcrawlSceneState>;
   const navigationConditionId =
-    typeof data.navigationConditionId === "string"
-      ? data.navigationConditionId
+    typeof row.navigationConditionId === "string"
+      ? row.navigationConditionId
       : base.navigationConditionId;
   const condition = navigationConditionById(navigationConditionId);
   const baseDifficulty =
-    typeof data.baseDifficulty === "number"
-      ? data.baseDifficulty
+    typeof row.baseDifficulty === "number"
+      ? row.baseDifficulty
       : (condition?.baseDifficulty ?? base.baseDifficulty);
 
   return {
     ...base,
-    enabled: Boolean(data.enabled),
-    travelEventMode: normalizeTravelEventMode(data.travelEventMode),
+    enabled: Boolean(row.enabled),
+    travelEventMode: normalizeTravelEventMode(row.travelEventMode),
     travelTokenId:
-      typeof data.travelTokenId === "string" ? data.travelTokenId : null,
-    partyActorIds: Array.isArray(data.partyActorIds)
-      ? data.partyActorIds.filter((id) => typeof id === "string")
+      typeof row.travelTokenId === "string" ? row.travelTokenId : null,
+    partyActorIds: Array.isArray(row.partyActorIds)
+      ? row.partyActorIds.filter((id) => typeof id === "string")
       : [],
     navigatorActorId:
-      typeof data.navigatorActorId === "string" ? data.navigatorActorId : null,
+      typeof row.navigatorActorId === "string" ? row.navigatorActorId : null,
     navigationConditionId,
     baseDifficulty,
     currentDifficulty:
-      typeof data.currentDifficulty === "number"
-        ? data.currentDifficulty
+      typeof row.currentDifficulty === "number"
+        ? row.currentDifficulty
         : baseDifficulty,
-    courseStatus: data.courseStatus === "lost" ? "lost" : "onCourse",
+    courseStatus: row.courseStatus === "lost" ? "lost" : "onCourse",
     maxHoursPerDay:
-      typeof data.maxHoursPerDay === "number" && data.maxHoursPerDay > 0
-        ? Math.min(12, Math.floor(data.maxHoursPerDay))
+      typeof row.maxHoursPerDay === "number" && row.maxHoursPerDay > 0
+        ? Math.min(12, Math.floor(row.maxHoursPerDay))
         : base.maxHoursPerDay,
     hoursTraveledToday:
-      typeof data.hoursTraveledToday === "number"
-        ? Math.max(0, data.hoursTraveledToday)
+      typeof row.hoursTraveledToday === "number"
+        ? Math.max(0, row.hoursTraveledToday)
         : 0,
     travelDay:
-      typeof data.travelDay === "number" && data.travelDay >= 1
-        ? Math.floor(data.travelDay)
+      typeof row.travelDay === "number" && row.travelDay >= 1
+        ? Math.floor(row.travelDay)
         : 1,
-    lastHexKey: typeof data.lastHexKey === "string" ? data.lastHexKey : null,
+    lastHexKey: typeof row.lastHexKey === "string" ? row.lastHexKey : null,
     startingHexKey:
-      typeof data.startingHexKey === "string" ? data.startingHexKey : null,
-    resetTravelPending: normalizeResetTravelPending(data.resetTravelPending),
-    arrived: Boolean(data.arrived),
-    pendingDayEnd: Boolean(data.pendingDayEnd),
-    courseCheckResolved: Boolean(data.courseCheckResolved),
-    journeyLog: normalizeJourneyLog(data.journeyLog),
-    traveledHexKeys: normalizeTraveledHexKeys(data.traveledHexKeys),
-    trailOverlayColor: normalizeTrailOverlayColor(data.trailOverlayColor),
-    trailCleared: Boolean(data.trailCleared),
-    updatedAt: typeof data.updatedAt === "number" ? data.updatedAt : Date.now(),
+      typeof row.startingHexKey === "string" ? row.startingHexKey : null,
+    resetTravelPending: normalizeResetTravelPending(row.resetTravelPending),
+    arrived: Boolean(row.arrived),
+    pendingDayEnd: Boolean(row.pendingDayEnd),
+    courseCheckResolved: Boolean(row.courseCheckResolved),
+    journeyLog: normalizeJourneyLog(row.journeyLog),
+    traveledHexKeys: normalizeTraveledHexKeys(row.traveledHexKeys),
+    trailOverlayColor: normalizeTrailOverlayColor(row.trailOverlayColor),
+    trailCleared: Boolean(row.trailCleared),
+    updatedAt: typeof row.updatedAt === "number" ? row.updatedAt : Date.now(),
   };
 }
 
@@ -261,11 +338,18 @@ export async function saveHexcrawlSceneState(
   if (!scene?.setFlag) return;
   const payload: HexcrawlSceneState = {
     ...state,
+    version: 1,
     updatedAt: Date.now(),
   };
   await scene.setFlag(MODULE_ID, HEXCRAWL_SCENE_STATE_FLAG, payload, {
     merge: false,
   });
+  const world = (game as {
+    world?: { unsetFlag?: (scope: string, key: string) => Promise<unknown> };
+  }).world;
+  if (world?.unsetFlag) {
+    await world.unsetFlag(MODULE_ID, HEXCRAWL_JOURNEY_STATE_FLAG);
+  }
   scheduleHexcrawlJournalSync(state.sceneId);
 }
 

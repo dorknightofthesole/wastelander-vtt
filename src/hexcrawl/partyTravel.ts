@@ -121,6 +121,17 @@ export function resolvePartyTravelRoles(actorIds: string[]): PartyTravelRoles {
   };
 }
 
+export function mergePartyActorIdsWithScene(
+  partyActorIds: string[],
+  sceneActorIds: string[],
+): string[] {
+  if (!sceneActorIds.length) return partyActorIds;
+  if (!partyActorIds.length) return [...sceneActorIds];
+  const merged = new Set(partyActorIds);
+  for (const id of sceneActorIds) merged.add(id);
+  return [...merged];
+}
+
 export function syncPartyTravelState(
   state: HexcrawlSceneState,
   sceneId: string,

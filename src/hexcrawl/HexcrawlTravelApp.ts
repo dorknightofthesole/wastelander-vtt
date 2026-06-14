@@ -1,4 +1,4 @@
-import { MODULE_PATH } from "../constants.js";
+import { MODULE_ID, MODULE_PATH } from "../constants.js";
 import { t } from "../integrations/i18n.js";
 import { currentUserIsOverseer } from "../integrations/overseerAccess.js";
 import { invokeFalloutPartySleep } from "../integrations/falloutPartySleep.js";
@@ -11,6 +11,7 @@ import {
   defaultHexcrawlState,
   ensureStartingHexInTrail,
   loadHexcrawlSceneState,
+  prepareHexcrawlStateForSave,
   saveHexcrawlSceneState,
   type HexcrawlSceneState,
 } from "./hexcrawlScenePersist.js";
@@ -32,6 +33,7 @@ import {
   addActorToPartyIds,
   buildPartyMemberRows,
   canAddActorToParty,
+  mergePartyActorIdsWithScene,
   removeActorFromPartyIds,
   resolveActorIdFromDrop,
   resolvePartyTravelRoles,
@@ -85,7 +87,7 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
       resetTravel: HexcrawlTravelApp.#onResetTravel,
       openJournal: HexcrawlTravelApp.#onOpenJournal,
       clearJournal: HexcrawlTravelApp.#onClearJournal,
-      switchTab: HexcrawlTravelApp.#onSwitchTab,
+      switchTab: HexcrawlTravelApp.onSwitchTab,
       removePartyMember: HexcrawlTravelApp.#onRemovePartyMember,
     },
   };
@@ -112,23 +114,27 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
       }
     }
 
-    if (HexcrawlTravelApp.#open) {
-      HexcrawlTravelApp.#open.#playerView = !isOverseer;
-      if (HexcrawlTravelApp.#open.#playerView) {
-        HexcrawlTravelApp.#open.#activeTab = "party";
-      }
-      if (HexcrawlTravelApp.#open.#sceneId !== sceneId) {
+    try {
+      if (HexcrawlTravelApp.#open) {
+        HexcrawlTravelApp.#open.#playerView = !isOverseer;
+        if (HexcrawlTravelApp.#open.#playerView) {
+          HexcrawlTravelApp.#open.#activeTab = "party";
+        }
         await HexcrawlTravelApp.#open.#bindScene(sceneId);
+        return HexcrawlTravelApp.#open.render(true);
       }
-      return HexcrawlTravelApp.#open.render(true);
-    }
 
-    const app = new HexcrawlTravelApp();
-    app.#playerView = !isOverseer;
-    if (app.#playerView) app.#activeTab = "party";
-    HexcrawlTravelApp.#open = app;
-    await app.#bindScene(sceneId);
-    return app.render(true);
+      const app = new HexcrawlTravelApp();
+      app.#playerView = !isOverseer;
+      if (app.#playerView) app.#activeTab = "party";
+      HexcrawlTravelApp.#open = app;
+      await app.#bindScene(sceneId);
+      return app.render(true);
+    } catch (error) {
+      console.error(`${MODULE_ID} | hexcrawl travel app failed to open`, error);
+      ui.notifications.error(t("WASTELANDER.Hexcrawl.Notify.OpenFailed"));
+      HexcrawlTravelApp.#open = null;
+    }
   }
 
   static rebindForScene(sceneId: string): void {
@@ -197,10 +203,11 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
   async #bindScene(sceneId: string): Promise<void> {
     this.#sceneId = sceneId;
     const loaded = loadHexcrawlSceneState(sceneId) ?? defaultHexcrawlState(sceneId);
-    let next = loaded;
-    if (!next.partyActorIds.length) {
-      next = { ...next, partyActorIds: buildInitialPartyActorIds(sceneId) };
-    }
+    const sceneParty = buildInitialPartyActorIds(sceneId);
+    let next = {
+      ...loaded,
+      partyActorIds: mergePartyActorIdsWithScene(loaded.partyActorIds, sceneParty),
+    };
     next = syncPartyTravelState(next, sceneId);
     next = this.#withTravelTokenSync(next);
     this.#state = next;
@@ -254,10 +261,12 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
   }
 
   async #persistNow(): Promise<void> {
-    if (!this.#state) return;
+    if (!this.#state || !this.#sceneId) return;
+    const toSave = prepareHexcrawlStateForSave(this.#state, this.#sceneId);
+    this.#state = toSave;
     HexcrawlTravelApp.#skipExternalRefresh = true;
     try {
-      await saveHexcrawlSceneState(this.#state);
+      await saveHexcrawlSceneState(toSave);
     } finally {
       HexcrawlTravelApp.#skipExternalRefresh = false;
     }
@@ -590,17 +599,18 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
     ui.notifications.info(t("WASTELANDER.Hexcrawl.Notify.JournalCleared"));
   }
 
-  static #onSwitchTab(
+  static onSwitchTab(
     this: HexcrawlTravelApp,
     _event: Event,
     target: HTMLElement,
   ): void {
-    if (!currentUserIsOverseer()) return;
-    const tab = target.dataset.tab as HexcrawlTab | undefined;
+    if (this.#playerView) return;
+    const el = target.closest<HTMLElement>("[data-tab]") ?? target;
+    const tab = el.dataset.tab as HexcrawlTab | undefined;
     if (tab !== "scene" && tab !== "party") return;
     if (this.#activeTab === tab) return;
     this.#activeTab = tab;
-    void this.render();
+    void this.render(true);
   }
 
   static async #onSetStartingLocation(this: HexcrawlTravelApp): Promise<void> {

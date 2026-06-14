@@ -147,6 +147,9 @@ export function registerHexcrawlHooks(): void {
       icon: "fa-solid fa-map",
       button: true,
       visible: true,
+      onClick: () => {
+        void HexcrawlTravelApp.renderOpen();
+      },
       onChange: () => {
         void HexcrawlTravelApp.renderOpen();
       },

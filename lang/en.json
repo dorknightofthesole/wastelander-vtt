@@ -392,6 +392,7 @@
       },
       "Notify": {
         "NoScene": "Open a scene to configure hexcrawl travel.",
+        "OpenFailed": "Could not open the hexcrawl travel window.",
         "DayEnd": "Maximum travel hours reached for this day.",
         "JournalSyncError": "Could not update Wasteland Travels journal: {error}",
         "NoTravelHex": "Could not read the travel token's current hex. Select a travel token on a hex grid.",
