@@ -272,6 +272,7 @@ export async function processTravelHexEntry(params: {
   state = {
     ...state,
     lastHexKey: params.hexKey,
+    trailCleared: false,
     traveledHexKeys: appendTraveledHexKey(state.traveledHexKeys, params.hexKey),
   };
 
@@ -531,7 +532,7 @@ export function applySetStartingHex(
   hexKey: string,
 ): HexcrawlSceneState {
   return appendJourneyLog(
-    { ...state, startingHexKey: hexKey, lastHexKey: hexKey, traveledHexKeys: [hexKey] },
+    { ...state, startingHexKey: hexKey, lastHexKey: hexKey, trailCleared: false, traveledHexKeys: [hexKey] },
     {
       kind: "startingLocationSet",
       travelDay: state.travelDay,
@@ -563,6 +564,7 @@ export function applyResetTravel(
         ? { tokenId: resetTokenId, untilHexKey: startingHexKey }
         : null,
       traveledHexKeys: startingHexKey ? [startingHexKey] : [],
+      trailCleared: false,
     },
     {
       kind: "travelReset",

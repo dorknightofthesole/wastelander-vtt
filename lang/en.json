@@ -259,6 +259,8 @@
       "TravelSettings": "Travel settings",
       "SceneGridDistance": "Grid distance (scene)",
       "TravelEvents": "Travel events",
+      "TrailOverlayColor": "Travel trail color",
+      "TrailOverlayColorHint": "Border color for traveled hexes on the map. Applies immediately to the current trail.",
       "TravelEventMode": {
         "hexEntry": "On entering a new hex",
         "hourChange": "On hour change"

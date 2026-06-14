@@ -79,6 +79,18 @@
             {{/each}}
           </select>
         </div>
+        <div class="wastelander-field-row wastelander-hexcrawl-trail-color">
+          <label for="hexcrawl-trail-overlay-color">{{strings.trailOverlayColor}}</label>
+          <input
+            id="hexcrawl-trail-overlay-color"
+            type="color"
+            name="trailOverlayColor"
+            value="{{state.trailOverlayColor}}"
+            data-field="trailOverlayColor"
+            title="{{strings.trailOverlayColor}}"
+          />
+        </div>
+        <p class="wastelander-scavenger-hint">{{strings.trailOverlayColorHint}}</p>
       </section>
 
       <section class="wastelander-hexcrawl-section">

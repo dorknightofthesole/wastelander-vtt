@@ -9,6 +9,7 @@ import { openHexcrawlJournalPage } from "./hexcrawlJournalSync.js";
 import {
   appendJourneyLog,
   defaultHexcrawlState,
+  ensureStartingHexInTrail,
   loadHexcrawlSceneState,
   saveHexcrawlSceneState,
   type HexcrawlSceneState,
@@ -72,7 +73,7 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
       title: "WASTELANDER.Hexcrawl.WindowTitle",
       icon: "fa-solid fa-map",
     },
-    position: { width: 520, height: 840 },
+    position: { width: 520, height: 890 },
     actions: {
       coursePass: HexcrawlTravelApp.#onCoursePass,
       courseFail: HexcrawlTravelApp.#onCourseFail,
@@ -341,6 +342,8 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
         travelSettings: t("WASTELANDER.Hexcrawl.TravelSettings"),
         sceneGridDistance: t("WASTELANDER.Hexcrawl.SceneGridDistance"),
         travelEvents: t("WASTELANDER.Hexcrawl.TravelEvents"),
+        trailOverlayColor: t("WASTELANDER.Hexcrawl.TrailOverlayColor"),
+        trailOverlayColorHint: t("WASTELANDER.Hexcrawl.TrailOverlayColorHint"),
         maxHours: t("WASTELANDER.Hexcrawl.MaxHours"),
         currentMph: t("WASTELANDER.Hexcrawl.CurrentMph"),
         partyDropHint: t("WASTELANDER.Hexcrawl.PartyDropHint"),
@@ -405,6 +408,12 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
         }));
         break;
       }
+      case "trailOverlayColor": {
+        const color = el.value.trim();
+        if (!/^#[0-9a-fA-F]{6}$/.test(color)) return;
+        void this.#mutate((state) => ({ ...state, trailOverlayColor: color.toLowerCase() }));
+        break;
+      }
       default:
         break;
     }
@@ -425,6 +434,7 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
         },
       );
       if (enabled) next = this.#withTravelTokenSync(next);
+      if (enabled) next = ensureStartingHexInTrail(next);
       return next;
     });
     if (enabled && this.#sceneId && this.#state) {
@@ -571,7 +581,12 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
     );
     if (!proceed) return;
 
-    await this.#mutate((state) => ({ ...state, journeyLog: [], traveledHexKeys: [] }));
+    await this.#mutate((state) => ({
+      ...state,
+      journeyLog: [],
+      traveledHexKeys: [],
+      trailCleared: true,
+    }));
     ui.notifications.info(t("WASTELANDER.Hexcrawl.Notify.JournalCleared"));
   }
 

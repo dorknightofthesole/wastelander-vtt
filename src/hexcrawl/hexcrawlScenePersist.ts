@@ -78,8 +78,14 @@ export type HexcrawlSceneState = {
   journeyLog: JourneyLogEntry[];
   /** Hex keys outlined on the map travel trail (border overlay). */
   traveledHexKeys: string[];
+  /** CSS hex color for the map travel trail overlay (e.g. #863e0e). */
+  trailOverlayColor: string;
+  /** True after journal clear until the next trail update (hex entry, set starting, reset). */
+  trailCleared: boolean;
   updatedAt: number;
 };
+
+export const DEFAULT_TRAIL_OVERLAY_COLOR = "#863e0e";
 
 export function defaultHexcrawlState(sceneId: string): HexcrawlSceneState {
   const condition = NAVIGATION_CONDITIONS[0];
@@ -106,8 +112,17 @@ export function defaultHexcrawlState(sceneId: string): HexcrawlSceneState {
     courseCheckResolved: false,
     journeyLog: [],
     traveledHexKeys: [],
+    trailOverlayColor: DEFAULT_TRAIL_OVERLAY_COLOR,
+    trailCleared: false,
     updatedAt: Date.now(),
   };
+}
+
+function normalizeTrailOverlayColor(raw: unknown): string {
+  if (typeof raw !== "string") return DEFAULT_TRAIL_OVERLAY_COLOR;
+  const trimmed = raw.trim();
+  if (/^#[0-9a-fA-F]{6}$/.test(trimmed)) return trimmed.toLowerCase();
+  return DEFAULT_TRAIL_OVERLAY_COLOR;
 }
 
 function normalizeTraveledHexKeys(raw: unknown): string[] {
@@ -187,7 +202,42 @@ export function normalizeHexcrawlState(
     courseCheckResolved: Boolean(data.courseCheckResolved),
     journeyLog: normalizeJourneyLog(data.journeyLog),
     traveledHexKeys: normalizeTraveledHexKeys(data.traveledHexKeys),
+    trailOverlayColor: normalizeTrailOverlayColor(data.trailOverlayColor),
+    trailCleared: Boolean(data.trailCleared),
     updatedAt: typeof data.updatedAt === "number" ? data.updatedAt : Date.now(),
+  };
+}
+
+/** Unique trail hex keys in draw order; includes starting hex when missing from persisted trail. */
+export function resolveTrailHexKeys(
+  state: Pick<HexcrawlSceneState, "traveledHexKeys" | "startingHexKey" | "trailCleared">,
+): string[] {
+  if (state.trailCleared && state.traveledHexKeys.length === 0) return [];
+
+  const keys: string[] = [];
+  const seen = new Set<string>();
+  for (const hexKey of state.traveledHexKeys) {
+    if (seen.has(hexKey)) continue;
+    seen.add(hexKey);
+    keys.push(hexKey);
+  }
+
+  if (keys.length === 0 && state.startingHexKey) {
+    return [state.startingHexKey];
+  }
+
+  if (state.startingHexKey && !seen.has(state.startingHexKey)) {
+    keys.unshift(state.startingHexKey);
+  }
+  return keys;
+}
+
+export function ensureStartingHexInTrail(state: HexcrawlSceneState): HexcrawlSceneState {
+  if (!state.startingHexKey) return state;
+  return {
+    ...state,
+    trailCleared: false,
+    traveledHexKeys: appendTraveledHexKey(state.traveledHexKeys, state.startingHexKey),
   };
 }
 

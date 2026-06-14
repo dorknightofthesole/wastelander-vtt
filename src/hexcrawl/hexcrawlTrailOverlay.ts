@@ -2,6 +2,7 @@ import { MODULE_ID } from "../constants.js";
 import { getActiveSceneId } from "../scavenging/scenePersist.js";
 import { hexVerticesForKey } from "./hexCoords.js";
 import { loadHexcrawlSceneState, type HexcrawlSceneState } from "./hexcrawlScenePersist.js";
+import { trailHexKeysForState, trailStyleForHex } from "./hexcrawlTrailStyles.js";
 
 type Point = { x: number; y: number };
 
@@ -41,12 +42,6 @@ type PixiNamespace = {
 
 const TRAIL_CONTAINER_NAME = "wastelander-hexcrawl-trail";
 
-const TRAIL_STYLE = {
-  current: { color: 0xe8c547, width: 3, alpha: 0.95 },
-  starting: { color: 0x9a7b2e, width: 2, alpha: 0.75 },
-  traveled: { color: 0xc9a227, width: 2, alpha: 0.8 },
-} as const;
-
 let trailContainer: PixiContainer | null = null;
 let boundSceneId: string | null = null;
 
@@ -56,12 +51,6 @@ function getCanvas(): CanvasLike | null {
 
 function getPixi(): PixiNamespace | null {
   return (globalThis as { PIXI?: PixiNamespace }).PIXI ?? null;
-}
-
-function trailStyleForHex(hexKey: string, state: HexcrawlSceneState) {
-  if (hexKey === state.lastHexKey) return TRAIL_STYLE.current;
-  if (hexKey === state.startingHexKey) return TRAIL_STYLE.starting;
-  return TRAIL_STYLE.traveled;
 }
 
 function strokeHexOutline(
@@ -117,9 +106,10 @@ function drawTrailForState(state: HexcrawlSceneState): void {
 
   container.removeChildren();
 
-  if (!state.enabled || state.traveledHexKeys.length === 0) return;
+  const hexKeys = trailHexKeysForState(state);
+  if (!state.enabled || hexKeys.length === 0) return;
 
-  for (const hexKey of state.traveledHexKeys) {
+  for (const hexKey of hexKeys) {
     const vertices = hexVerticesForKey(hexKey);
     if (!vertices) continue;
 

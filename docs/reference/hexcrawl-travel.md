@@ -37,10 +37,12 @@ When hexcrawl is enabled on a hex scene, traveled hexes show an amber **border-o
 | Enter hex during travel | Hex added to trail; current hex highlighted |
 | Set camp / new travel day | Trail **persists** (cumulative breadcrumb) |
 | Reset travel | Trail resets to starting hex only |
-| Clear journal | Trail **cleared** from map (travel position unchanged) |
+| Clear journal | Trail **cleared** from map (starting hex hidden until next travel or set starting) |
 | Disable hexcrawl | Trail hidden (data retained) |
 
-Trail state is stored in scene flags as `traveledHexKeys` and syncs to all connected clients when travel state updates.
+Trail state is stored in scene flags as `traveledHexKeys` and syncs to all connected clients when travel state updates. The starting hex is always outlined when set, even if it was not yet visited during travel. Revisiting a hex does not duplicate its border.
+
+Overseers can change **Travel trail color** in the Scene tab under Travel settings; the new color applies immediately to all outlined hexes on the map.
 
 ## Navigation (MVP)
 

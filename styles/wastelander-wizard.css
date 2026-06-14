@@ -4130,6 +4130,10 @@
   font-size: inherit;
 }
 
+.wastelander-hexcrawl-app .wastelander-hexcrawl-trail-color {
+  padding-top: 10px;
+}
+
 .wastelander-hexcrawl-app .wastelander-hexcrawl-actions {
   display: flex;
   flex-wrap: wrap;
