@@ -1,0 +1,11 @@
+<div class="wastelander-chat-card wastelander-hexcrawl-encounter">
+  <h3>{{strings.header}}</h3>
+  <p>{{strings.cd}}</p>
+  {{#if triggered}}
+    {{#if strings.type}}<p>{{strings.type}}</p>{{/if}}
+    {{#if encounterName}}<p><strong>{{encounterName}}</strong></p>{{/if}}
+    {{#if encounterDescription}}<p>{{encounterDescription}}</p>{{/if}}
+  {{else}}
+    <p><em>{{localize "WASTELANDER.Hexcrawl.Encounters.NoEffect"}}</em></p>
+  {{/if}}
+</div>

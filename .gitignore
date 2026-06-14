@@ -19,6 +19,10 @@ scripts/oracle/manifests/*.json
 !scripts/oracle/manifests/*.example.json
 scripts/oracle/manifests-staging/
 src/data/oracle/*.json
+scripts/encounters/manifests/*.json
+!scripts/encounters/manifests/*.example.json
+scripts/encounters/manifests-staging/
+src/data/encounters/*.json
 assets/tokens/*
 
 # Diagnostic reports (https://nodejs.org/api/report.html)

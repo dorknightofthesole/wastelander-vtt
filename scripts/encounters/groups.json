@@ -1,0 +1,10 @@
+{
+  "gm-toolkit-encounter-tables": [
+    "random-encounter-type",
+    "random-ordinary-encounters",
+    "random-object-encounters",
+    "random-campsite-encounters",
+    "random-choke-point-encounters",
+    "random-factions-animosity"
+  ]
+}

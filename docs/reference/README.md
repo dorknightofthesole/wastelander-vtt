@@ -15,3 +15,5 @@ Commit this file with the repo so the design target stays with the codebase.
 **Rules PDF:** See [rulebook-sources.md](./rulebook-sources.md) for the local char-creation extract path (not in git).
 
 **Oracle roll tables:** See [oracle-rolltables.md](./oracle-rolltables.md). Requires `docs/reference/source/Fallout-2d20-Wasteland-Wanderer.pdf` (local, gitignored). Workflow: `npm run extract:oracle` → review manifests → `npm run build:oracle`.
+
+**Hexcrawl encounters:** See [hexcrawl-travel.md](./hexcrawl-travel.md). Requires `docs/reference/source/Fallout-2d20-GM-Toolkit.pdf`. Workflow: `npm run extract:encounters` → `npm run build:encounters`.

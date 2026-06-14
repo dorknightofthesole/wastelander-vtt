@@ -11,6 +11,8 @@ export type WorldClockAdvanceResult =
       advanced: true;
       minutes: number;
       clockLabel?: string;
+      clockBefore?: string;
+      clockAfter?: string;
     }
   | {
       ok: true;
@@ -41,6 +43,20 @@ function getSimpleCalendarApi(): SimpleCalendarApi | undefined {
   return sc?.api;
 }
 
+export function formatWorldClockDisplay(
+  display: WorldClockDateTimeDisplay | null | undefined,
+): string | undefined {
+  if (!display) return undefined;
+  const label = [display.date, display.time].filter(Boolean).join(" ").trim();
+  return label || undefined;
+}
+
+/** Current in-game date/time label from Simple Calendar, if available. */
+export function getWorldClockLabel(): string | undefined {
+  const api = getSimpleCalendarApi();
+  return formatWorldClockDisplay(api?.currentDateTimeDisplay?.());
+}
+
 export function isWorldClockAvailable(): boolean {
   return typeof getSimpleCalendarApi()?.changeDate === "function";
 }
@@ -60,6 +76,8 @@ export function advanceWorldClockMinutes(minutes: number): WorldClockAdvanceResu
     return { ok: true, advanced: false, reason: "unavailable" };
   }
 
+  const clockBefore = formatWorldClockDisplay(api.currentDateTimeDisplay?.());
+
   const hours = Math.floor(total / 60);
   const remainder = total % 60;
   const interval: {
@@ -78,13 +96,14 @@ export function advanceWorldClockMinutes(minutes: number): WorldClockAdvanceResu
     };
   }
 
-  const display = api.currentDateTimeDisplay?.();
-  const clockLabel = [display?.date, display?.time].filter(Boolean).join(" ");
+  const clockAfter = formatWorldClockDisplay(api.currentDateTimeDisplay?.());
 
   return {
     ok: true,
     advanced: true,
     minutes: total,
-    clockLabel: clockLabel || undefined,
+    clockLabel: clockAfter,
+    clockBefore,
+    clockAfter,
   };
 }

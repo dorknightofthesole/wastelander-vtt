@@ -19,6 +19,7 @@ Paths in-repo (gitignored under `docs/reference/source/*.pdf`) or on Eddie’s m
 |-----|-----|
 | `docs/reference/source/Fallout-Core-Rulebook.pdf` | Scavenging play + loot tables (Ch.5); character creation |
 | `docs/reference/source/Fallout-GM-Screen-Booklet.pdf` | **Creating scavenging locations** (pp.17–19), loot tables on screen (pp.8–16) |
+| `docs/reference/source/Fallout-2d20-GM-Toolkit.pdf` | **Hexcrawl travel** (pp.9–17), **random encounters** (pp.20–24) |
 
 Char-creation extract (machine copy):
 

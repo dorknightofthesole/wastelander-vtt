@@ -1,0 +1,314 @@
+type GridOffset = { i: number; j: number };
+
+type HexGrid = {
+  isGridless?: boolean;
+  isHexagonal?: boolean;
+  isSquare?: boolean;
+  pointToCube?: (point: { x: number; y: number }) => { q: number; r: number; s: number };
+  cubeToOffset?: (cube: { q: number; r: number; s: number }) => GridOffset;
+  testAdjacency?: (a: GridOffset, b: GridOffset) => boolean;
+  getAdjacentOffsets?: (offset: GridOffset) => GridOffset[];
+  size?: number;
+  sizeX?: number;
+  sizeY?: number;
+};
+
+type TokenDimensions = {
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  getOccupiedGridSpaceOffsets?: (
+    data?: Partial<{ x: number; y: number; width: number; height: number }>,
+  ) => GridOffset[];
+  getSize?: (data?: Partial<{ width: number; height: number }>) => {
+    width: number;
+    height: number;
+  };
+};
+
+type MovementWaypoint = {
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+};
+
+type TokenMovementSectionLike = {
+  waypoints?: MovementWaypoint[];
+};
+
+type TokenMovementLike = {
+  origin?: MovementWaypoint;
+  passed?: MovementWaypoint[] | TokenMovementSectionLike;
+  destination?: MovementWaypoint;
+};
+
+function isMovementWaypoint(row: unknown): row is MovementWaypoint {
+  if (!row || typeof row !== "object") return false;
+  const waypoint = row as MovementWaypoint;
+  return Number.isFinite(waypoint.x) && Number.isFinite(waypoint.y);
+}
+
+function movementWaypointsFromSection(section: unknown): MovementWaypoint[] {
+  if (!section) return [];
+  if (Array.isArray(section)) {
+    return section.filter(isMovementWaypoint);
+  }
+  if (typeof section === "object") {
+    const waypoints = (section as TokenMovementSectionLike).waypoints;
+    if (Array.isArray(waypoints)) {
+      return waypoints.filter(isMovementWaypoint);
+    }
+  }
+  return [];
+}
+
+function movementWaypointsFromOperation(movement: TokenMovementLike): MovementWaypoint[] {
+  const passed = movementWaypointsFromSection(movement.passed);
+  if (passed.length > 0) return passed;
+
+  const destination = movement.destination;
+  if (isMovementWaypoint(destination)) return [destination];
+  return [];
+}
+
+type HexagonalGridStatic = {
+  cubeRound?: (cube: { q: number; r: number; s: number }) => { q: number; r: number; s: number };
+};
+
+function formatHexKey(offset: GridOffset): string | null {
+  if (!Number.isFinite(offset.i) || !Number.isFinite(offset.j)) return null;
+  return `${offset.i},${offset.j}`;
+}
+
+function hexKeyFromGridAtPoint(
+  grid: HexGrid,
+  point: { x: number; y: number },
+): string | null {
+  if (grid.isGridless) return null;
+  if (!grid.pointToCube || !grid.cubeToOffset) return null;
+
+  const cube = grid.pointToCube(point);
+  const HexagonalGrid = (
+    globalThis as { foundry?: { grid?: { HexagonalGrid?: HexagonalGridStatic } } }
+  ).foundry?.grid?.HexagonalGrid;
+  const rounded = HexagonalGrid?.cubeRound ? HexagonalGrid.cubeRound(cube) : cube;
+  return formatHexKey(grid.cubeToOffset(rounded));
+}
+
+function tokenCenterPixels(
+  doc: TokenDimensions,
+  position?: MovementWaypoint,
+): { x: number; y: number } | null {
+  const x = position?.x ?? doc.x;
+  const y = position?.y ?? doc.y;
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+
+  const width = position?.width ?? doc.width ?? 1;
+  const height = position?.height ?? doc.height ?? 1;
+  if (typeof doc.getSize === "function") {
+    const size = doc.getSize({ width, height });
+    return { x: x + size.width / 2, y: y + size.height / 2 };
+  }
+
+  const grid = (globalThis as { canvas?: { grid?: HexGrid } }).canvas?.grid;
+  const cellW = grid?.sizeX ?? grid?.size ?? 100;
+  const cellH = grid?.sizeY ?? grid?.size ?? 100;
+  return { x: x + (width * cellW) / 2, y: y + (height * cellH) / 2 };
+}
+
+/** Grid offset for a token document at an optional snapped position. */
+export function getHexKeyFromTokenDocument(
+  doc: TokenDimensions,
+  position?: MovementWaypoint,
+): string | null {
+  const x = position?.x ?? doc.x;
+  const y = position?.y ?? doc.y;
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+
+  const width = position?.width ?? doc.width ?? 1;
+  const height = position?.height ?? doc.height ?? 1;
+
+  if (typeof doc.getOccupiedGridSpaceOffsets === "function") {
+    const offsets = doc.getOccupiedGridSpaceOffsets({ x, y, width, height });
+    const primary = offsets[0];
+    if (primary) {
+      const key = formatHexKey(primary);
+      if (key) return key;
+    }
+  }
+
+  const center = tokenCenterPixels(doc, position);
+  if (!center) return null;
+
+  const grid = (globalThis as { canvas?: { grid?: HexGrid } }).canvas?.grid;
+  if (!grid) return null;
+  return hexKeyFromGridAtPoint(grid, center);
+}
+
+type CanvasToken = {
+  document?: TokenDimensions & { x?: number; y?: number; width?: number; height?: number };
+  center?: { x: number; y: number };
+};
+
+/** @deprecated Prefer getHexKeyFromTokenDocument with the TokenDocument. */
+export function getTokenHexKey(token: CanvasToken): string | null {
+  const doc = token.document;
+  if (doc && typeof doc.getOccupiedGridSpaceOffsets === "function") {
+    return getHexKeyFromTokenDocument(doc);
+  }
+
+  const center = token.center ?? (doc ? tokenCenterPixels(doc) : null);
+  if (!center) return null;
+
+  const grid = (globalThis as { canvas?: { grid?: HexGrid } }).canvas?.grid;
+  if (!grid) return null;
+  return hexKeyFromGridAtPoint(grid, center);
+}
+
+/** Distinct hex keys crossed by a v13 token movement, in path order. */
+export function collectMovementHexKeys(
+  doc: TokenDimensions,
+  movement: TokenMovementLike,
+): string[] {
+  const rows = movementWaypointsFromOperation(movement);
+
+  const keys: string[] = [];
+  let previous: string | null = null;
+  for (const waypoint of rows) {
+    const key = getHexKeyFromTokenDocument(doc, waypoint);
+    if (!key || key === previous) continue;
+    keys.push(key);
+    previous = key;
+  }
+  return keys;
+}
+
+function canvasGrid(): HexGrid | null {
+  return (globalThis as { canvas?: { grid?: HexGrid } }).canvas?.grid ?? null;
+}
+
+/** Whether two grid cells share an edge (one step on hex or square grids). */
+export function areAdjacentHexKeys(fromHexKey: string, toHexKey: string): boolean {
+  if (fromHexKey === toHexKey) return true;
+
+  const from = parseHexKey(fromHexKey);
+  const to = parseHexKey(toHexKey);
+  if (!from || !to) return false;
+
+  const grid = canvasGrid();
+  if (!grid || grid.isGridless) return true;
+
+  if (typeof grid.testAdjacency === "function") {
+    return grid.testAdjacency(from, to);
+  }
+
+  if (typeof grid.getAdjacentOffsets === "function") {
+    return grid.getAdjacentOffsets(from).some((offset) => offset.i === to.i && offset.j === to.j);
+  }
+
+  return false;
+}
+
+export type SingleHexMoveValidation = {
+  allowed: boolean;
+  reason?: "multi-hex" | "not-adjacent";
+};
+
+/**
+ * Hard constraint for hexcrawl travel: the travel token may enter at most one new
+ * grid space per drag, and that space must be adjacent to the origin.
+ */
+export function validateSingleHexTravelMove(
+  doc: TokenDimensions,
+  movement: TokenMovementLike,
+): SingleHexMoveValidation {
+  const grid = canvasGrid();
+  if (!grid || grid.isGridless) return { allowed: true };
+
+  const originHex = movement.origin
+    ? getHexKeyFromTokenDocument(doc, movement.origin)
+    : getHexKeyFromTokenDocument(doc);
+  const destHex = movement.destination
+    ? getHexKeyFromTokenDocument(doc, movement.destination)
+    : null;
+
+  if (!originHex || !destHex) return { allowed: true };
+  if (originHex === destHex) return { allowed: true };
+
+  const pathHexKeys = collectMovementHexKeys(doc, movement);
+  const newHexes = pathHexKeys.filter((key) => key !== originHex);
+  if (newHexes.length > 1) return { allowed: false, reason: "multi-hex" };
+  if (newHexes.length === 1 && newHexes[0] !== destHex) {
+    return { allowed: false, reason: "multi-hex" };
+  }
+
+  if (!areAdjacentHexKeys(originHex, destHex)) {
+    return { allowed: false, reason: "not-adjacent" };
+  }
+
+  return { allowed: true };
+}
+
+export type { TokenMovementLike };
+
+export function parseHexKey(hexKey: string): { i: number; j: number } | null {
+  const [iRaw, jRaw] = hexKey.split(",");
+  const i = Number(iRaw);
+  const j = Number(jRaw);
+  if (!Number.isFinite(i) || !Number.isFinite(j)) return null;
+  return { i, j };
+}
+
+/** Top-left pixel position for placing a token on a hex grid cell. */
+export function tokenPositionForHexKey(
+  hexKey: string,
+): { x: number; y: number } | null {
+  const offset = parseHexKey(hexKey);
+  if (!offset) return null;
+
+  const grid = (globalThis as { canvas?: { grid?: HexGrid & {
+    getTopLeftPoint?: (coords: { i: number; j: number }) => { x: number; y: number };
+  } } }).canvas?.grid;
+  if (!grid?.getTopLeftPoint) return null;
+
+  const point = grid.getTopLeftPoint(offset);
+  if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) return null;
+  return { x: point.x, y: point.y };
+}
+
+export function findSceneTokenIdForActor(
+  sceneId: string,
+  actorId: string,
+): string | null {
+  const scene = (game as { scenes?: { get: (id: string) => SceneLike | undefined } })
+    .scenes?.get(sceneId);
+  if (!scene?.tokens) return null;
+
+  for (const token of scene.tokens) {
+    if (token.actorId === actorId) return token.id;
+  }
+  return null;
+}
+
+type SceneLike = {
+  tokens: Iterable<{
+    id: string;
+    actorId: string | null;
+  }> & {
+    get?: (id: string) => TokenDimensions & { id: string; actorId: string | null };
+  };
+};
+
+export function seedLastHexKeyFromTravelToken(
+  state: { travelTokenId: string | null; lastHexKey: string | null },
+  sceneId: string,
+): string | null {
+  if (!state.travelTokenId) return state.lastHexKey;
+  const scene = (game as { scenes?: { get: (id: string) => SceneLike | undefined } })
+    .scenes?.get(sceneId);
+  const tokenDoc = scene?.tokens?.get?.(state.travelTokenId);
+  if (!tokenDoc) return state.lastHexKey;
+  return getHexKeyFromTokenDocument(tokenDoc) ?? state.lastHexKey;
+}

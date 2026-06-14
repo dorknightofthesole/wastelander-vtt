@@ -13,7 +13,11 @@
     "build:oracle:list": "node scripts/build-oracle-rolltables.mjs --list",
     "extract:oracle": "node scripts/extract-oracle-manifests.mjs",
     "extract:oracle:list": "node scripts/extract-oracle-manifests.mjs --list",
-    "extract:oracle:dump": "node scripts/extract-oracle-manifests.mjs --dump-pages"
+    "extract:oracle:dump": "node scripts/extract-oracle-manifests.mjs --dump-pages",
+    "build:encounters": "node scripts/build-encounter-rolltables.mjs",
+    "build:encounters:list": "node scripts/build-encounter-rolltables.mjs --list",
+    "extract:encounters": "node scripts/extract-encounter-manifests.mjs",
+    "extract:encounters:list": "node scripts/extract-encounter-manifests.mjs --list"
   },
   "devDependencies": {
     "pdfjs-dist": "^6.0.227",

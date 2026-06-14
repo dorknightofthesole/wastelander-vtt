@@ -8,6 +8,11 @@ import {
   getBundledOracleRollTableCount,
   importBundledOracleRollTables,
 } from "./oracle/oracleRollTableImport.js";
+import {
+  getBundledEncounterRollTableCount,
+  importBundledEncounterRollTables,
+} from "./encounters/encounterRollTableImport.js";
+import { registerHexcrawlHooks } from "./hexcrawl/hexcrawlHooks.js";
 import { registerOracleSettings } from "./oracle/oracleSettings.js";
 import { getBundledDenizenCount, importBundledDenizens } from "./scavenging/denizenImport.js";
 import { registerCombatDiceChatButton } from "./integrations/combatDiceChatButton.js";
@@ -28,6 +33,7 @@ Hooks.once("init", () => {
   registerActorSheetControlHooks();
   registerCombatDiceChatButton();
   registerScavengingHooks();
+  registerHexcrawlHooks();
   registerNpcGeneratorHooks();
   registerOracleSettings();
   console.log(`${MODULE_ID} | initializing`);
@@ -41,6 +47,8 @@ Hooks.once("ready", () => {
     bundledDenizenCount: getBundledDenizenCount,
     importOracleRollTables: importBundledOracleRollTables,
     bundledOracleRollTableCount: getBundledOracleRollTableCount,
+    importEncounterRollTables: importBundledEncounterRollTables,
+    bundledEncounterRollTableCount: getBundledEncounterRollTableCount,
     /** Console diagnostics for NPC generator roll tables (optional step id). */
     debugNpcGenTables: (step?: NpcGenStepId) => {
       const state =

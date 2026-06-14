@@ -5,6 +5,10 @@ import {
   handlePlayerSearchSocket,
   isPlayerSearchSocketRequest,
 } from "./playerSearchActions.js";
+import {
+  handlePlayerHexcrawlSocket,
+  isPlayerHexcrawlSocketRequest,
+} from "../hexcrawl/playerHexcrawlActions.js";
 import ScavengerLocationApp from "./ScavengerLocationApp.js";
 import ScavengerSearchApp from "./ScavengerSearchApp.js";
 import { registerDenizenImportHooks } from "./registerDenizenImportHooks.js";
@@ -58,6 +62,10 @@ export function registerScavengingHooks(): void {
       };
     };
     const handler = (data: unknown, _userId: string): void => {
+      if (isPlayerHexcrawlSocketRequest(data as Parameters<typeof isPlayerHexcrawlSocketRequest>[0])) {
+        void handlePlayerHexcrawlSocket(data as Parameters<typeof handlePlayerHexcrawlSocket>[0]);
+        return;
+      }
       if (!currentUserIsOverseer()) return;
       if (isPlayerSearchSocketRequest(data as Parameters<typeof isPlayerSearchSocketRequest>[0])) {
         void handlePlayerSearchSocket(

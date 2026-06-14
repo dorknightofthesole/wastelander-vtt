@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 
-/** @typedef {{ text: string, x: number, y: number, page: number }} TextItem */
+/** @typedef {{ text: string, x: number, y: number, page: number, fontName?: string }} TextItem */
 
 const APPENDIX_PDF_START = 160;
 const APPENDIX_PDF_END = 230;
@@ -42,6 +42,7 @@ export async function extractPageItems(doc, pageNum) {
       x: Math.round(x),
       y: Math.round(y),
       page: pageNum,
+      fontName: String(item.fontName ?? ""),
     });
   }
   return items;

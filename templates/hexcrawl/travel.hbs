@@ -1,0 +1,153 @@
+<div class="wastelander-hexcrawl-layout{{#unless isOverseer}} wastelander-hexcrawl-player-view{{/unless}}">
+  <div class="wastelander-hexcrawl-body">
+    {{#if journalReady}}
+    <div class="wastelander-hexcrawl-journal-bar">
+      <button type="button" class="wastelander-btn-secondary" data-action="openJournal">
+        <i class="fas fa-book" aria-hidden="true"></i> {{strings.openJournal}}
+      </button>
+    </div>
+    {{/if}}
+
+    {{#if state.enabled}}
+    <div class="wastelander-hexcrawl-status-bar">
+      <div class="wastelander-hexcrawl-status-left">
+        <span class="wastelander-hexcrawl-badge {{courseStatusClass}}">{{courseStatusLabel}}</span>
+        <span class="wastelander-hexcrawl-difficulty-value">{{strings.difficulty}}: {{state.currentDifficulty}}</span>
+      </div>
+      <div class="wastelander-hexcrawl-status-right">
+        <span class="wastelander-hexcrawl-travel-speed">{{strings.currentMph}}: {{partyMph}} mph</span>
+        {{#if maxHoursActorName}}
+        <span class="wastelander-hexcrawl-max-hours">{{strings.maxHours}}: {{state.maxHoursPerDay}} ({{maxHoursActorName}})</span>
+        {{else}}
+        <span class="wastelander-hexcrawl-max-hours">{{strings.maxHours}}: {{state.maxHoursPerDay}}</span>
+        {{/if}}
+      </div>
+    </div>
+    {{/if}}
+
+    {{#if isOverseer}}
+    <nav class="wastelander-scavenger-tabs wastelander-hexcrawl-tabs" role="tablist">
+      <button type="button" role="tab" class="wastelander-scavenger-tab{{#if tabScene}} is-active{{/if}}" data-action="switchTab" data-tab="scene" aria-selected="{{tabScene}}">
+        {{strings.tabScene}}
+      </button>
+      <button type="button" role="tab" class="wastelander-scavenger-tab{{#if tabParty}} is-active{{/if}}" data-action="switchTab" data-tab="party" aria-selected="{{tabParty}}">
+        {{strings.tabParty}}
+      </button>
+    </nav>
+    {{/if}}
+
+    {{#if isOverseer}}
+    {{#if tabScene}}
+    <div class="wastelander-scavenger-tab-panel wastelander-hexcrawl-tab-panel" role="tabpanel">
+      <section class="wastelander-hexcrawl-section wastelander-hexcrawl-enable">
+        <label class="wastelander-field-checkbox">
+          <input type="checkbox" name="enabled" {{#if state.enabled}}checked{{/if}} data-field="enabled" />
+          <span>{{strings.enableLabel}}</span>
+        </label>
+      </section>
+
+      {{#if state.enabled}}
+      <section class="wastelander-hexcrawl-section wastelander-hexcrawl-progress">
+        <div class="wastelander-hexcrawl-progress-header">
+          <h3>{{strings.progress}}</h3>
+        </div>
+        <p>{{strings.travelDay}}: {{state.travelDay}}</p>
+        <p>{{strings.hoursToday}}: {{hoursTodayLabel}} / {{state.maxHoursPerDay}}</p>
+        <p>{{strings.startingHex}}: {{startingHexLabel}}</p>
+        <p>{{strings.lastHex}}: {{lastHexLabel}}</p>
+        {{#if state.arrived}}
+          <p class="wastelander-hexcrawl-badge arrived">{{strings.arrived}}</p>
+        {{/if}}
+        {{#if state.pendingDayEnd}}
+          <p class="wastelander-hexcrawl-pending-day-end">{{strings.pendingDayEnd}}</p>
+        {{/if}}
+        <div class="wastelander-hexcrawl-actions">
+          <button type="button" class="wastelander-btn-primary" data-action="coursePass" {{#unless courseChecksEnabled}}disabled{{/unless}}>{{strings.coursePass}}</button>
+          <button type="button" class="wastelander-btn-secondary" data-action="courseFail" {{#unless courseChecksEnabled}}disabled{{/unless}}>{{strings.courseFail}}</button>
+          <button type="button" class="wastelander-btn-secondary" data-action="confirmDayEnd" {{#unless confirmDayEndEnabled}}disabled{{/unless}}>{{strings.confirmDayEnd}}</button>
+        </div>
+      </section>
+
+      <section class="wastelander-hexcrawl-section">
+        <h3>{{strings.travelSettings}}</h3>
+        <p class="wastelander-scavenger-hint">{{strings.sceneGridDistance}}: {{sceneGridDistanceLabel}}</p>
+        <div class="wastelander-field-row">
+          <label>{{strings.travelEvents}}</label>
+          <select name="travelEventMode" data-field="travelEventMode">
+            {{#each travelEventModeOptions}}
+              <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+            {{/each}}
+          </select>
+        </div>
+      </section>
+
+      <section class="wastelander-hexcrawl-section">
+        <h3>{{strings.navigation}}</h3>
+        <div class="wastelander-field-row">
+          <label>{{strings.navigationCondition}}</label>
+          <select name="navigationConditionId" data-field="navigationConditionId">
+            {{#each navigationOptions}}
+              <option value="{{id}}" {{#if selected}}selected{{/if}}>{{label}} ({{baseDifficulty}})</option>
+            {{/each}}
+          </select>
+        </div>
+      </section>
+      {{/if}}
+    </div>
+    {{/if}}
+    {{/if}}
+
+    {{#if showPartyPanel}}
+    <div class="wastelander-scavenger-tab-panel wastelander-hexcrawl-tab-panel" role="tabpanel">
+      {{#if state.enabled}}
+      <section class="wastelander-hexcrawl-section">
+        <div class="wastelander-hexcrawl-party-dropzone" data-hexcrawl-party-drop>
+          {{#if partyRows.length}}
+          <ul class="wastelander-hexcrawl-party-list">
+            {{#each partyRows}}
+            <li class="wastelander-hexcrawl-party-member">
+              <span class="wastelander-hexcrawl-party-member-name">{{actorName}}</span>
+              <span class="wastelander-hexcrawl-party-roles">
+                {{#if isNavigator}}<span class="wastelander-hexcrawl-badge role-navigator">{{../strings.roleNavigator}}</span>{{/if}}
+                {{#if isPace}}<span class="wastelander-hexcrawl-badge role-pace">{{../strings.rolePace}}</span>{{/if}}
+                {{#if setsMaxHours}}<span class="wastelander-hexcrawl-badge role-hours">{{../strings.roleMaxHours}}</span>{{/if}}
+              </span>
+              {{#if canRemove}}
+              <button type="button" class="wastelander-hexcrawl-party-remove" data-action="removePartyMember" data-actor-id="{{actorId}}" title="{{../strings.removeMember}}" aria-label="{{../strings.removeMember}}">
+                <i class="fas fa-times" aria-hidden="true"></i>
+              </button>
+              {{/if}}
+            </li>
+            {{/each}}
+          </ul>
+          <p class="wastelander-scavenger-hint wastelander-hexcrawl-party-drop-hint">{{strings.partyDropHint}}</p>
+          {{else}}
+          <p class="wastelander-hexcrawl-party-drop-empty">{{strings.partyDropHint}}</p>
+          {{/if}}
+        </div>
+      </section>
+      {{/if}}
+    </div>
+    {{/if}}
+  </div>
+
+  {{#if isOverseer}}
+  {{#if state.enabled}}
+  {{#if tabScene}}
+  <div class="wastelander-hexcrawl-scene-bar">
+    <button type="button" class="wastelander-btn-secondary" data-action="clearJournal" {{#unless journalHasEntries}}disabled{{/unless}}>{{strings.clearJournal}}</button>
+  </div>
+  {{/if}}
+  <footer class="wastelander-hexcrawl-footer">
+    <button type="button" class="wastelander-btn-secondary" data-action="setStartingLocation">{{strings.setStartingLocation}}</button>
+    <button type="button" class="wastelander-btn-secondary" data-action="setCamp">{{strings.setCamp}}</button>
+    {{#if state.arrived}}
+      <button type="button" class="wastelander-btn-primary" data-action="resumeTravel">{{strings.resumeTravel}}</button>
+    {{else}}
+      <button type="button" class="wastelander-btn-primary" data-action="markArrival">{{strings.markArrival}}</button>
+    {{/if}}
+    <button type="button" class="wastelander-btn-secondary" data-action="resetTravel">{{strings.resetTravel}}</button>
+  </footer>
+  {{/if}}
+  {{/if}}
+</div>

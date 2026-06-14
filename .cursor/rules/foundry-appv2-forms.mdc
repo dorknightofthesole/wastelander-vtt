@@ -1,0 +1,52 @@
+---
+description: Foundry ApplicationV2 form controls — prevent dropdowns closing on click
+globs: src/**/*App.ts,templates/**/*.hbs
+alwaysApply: false
+---
+
+# ApplicationV2 form controls
+
+## The bug
+
+`<select>`, `<input type="checkbox">`, and `<input type="number">` wired through the ApplicationV2 **`actions` map** + `data-action` fire on **click**, not **change**. Foundry re-renders before the native control finishes → dropdowns snap shut, checkboxes may not toggle.
+
+This recurs on every new UI unless form fields are wired differently from buttons.
+
+## Rules
+
+1. **`actions` map: buttons only** (`<button type="button">`). Never register select/input handlers there.
+2. **Form fields: `change` listener in `_onRender`**. Bind once per root element (`dataset.*Bound = "1"`).
+3. **Markup**: use `data-field="fieldName"` on selects and inputs. `data-action` on form controls is allowed only when handled **exclusively** in the `change` listener (not in `actions`) — e.g. scavenging `data-action="updateField"`.
+4. **Avoid `tag: "form"`** on ApplicationV2 unless native form submit is required.
+
+## Reference implementations
+
+- `src/scavenging/ScavengerLocationApp.ts` — `updateField`, `toggleParty` on `change`
+- `src/npcGen/NpcGeneratorApp.ts` — `data-npc-gen-select` on `change`
+- `src/hexcrawl/HexcrawlTravelApp.ts` — `data-field` only
+
+## Template
+
+```hbs
+{{!-- BAD: handler in actions map --}}
+<select data-action="pickToken">...</select>
+
+{{!-- GOOD --}}
+<select name="travelTokenId" data-field="travelTokenId">...</select>
+```
+
+## Handler sketch
+
+```typescript
+protected override async _onRender(context, options) {
+  await super._onRender(context, options);
+  const root = this.#rootElement();
+  if (!root || root.dataset.myAppBound === "1") return;
+  root.dataset.myAppBound = "1";
+  root.addEventListener("change", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement) || !target.dataset.field) return;
+    void this.#onFieldChange(target);
+  });
+}
+```

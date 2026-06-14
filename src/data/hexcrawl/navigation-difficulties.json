@@ -1,0 +1,27 @@
+[
+  {
+    "id": "clear-trail",
+    "label": "Clear Trail",
+    "baseDifficulty": 1
+  },
+  {
+    "id": "large-landmarks",
+    "label": "Large Landmarks",
+    "baseDifficulty": 2
+  },
+  {
+    "id": "small-landmarks",
+    "label": "Small Landmarks",
+    "baseDifficulty": 3
+  },
+  {
+    "id": "known-direction",
+    "label": "Known Direction",
+    "baseDifficulty": 4
+  },
+  {
+    "id": "gut-feeling",
+    "label": "Gut Feeling",
+    "baseDifficulty": 5
+  }
+]

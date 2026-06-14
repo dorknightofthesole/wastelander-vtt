@@ -4031,3 +4031,316 @@
   flex-wrap: wrap;
   gap: 0.5rem;
 }
+
+/* Hexcrawl travel */
+.wastelander-hexcrawl-app .window-content,
+.wastelander-hexcrawl-app [data-application-part="body"] {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.wastelander-hexcrawl-app .wastelander-hexcrawl-layout {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  gap: 0;
+  font-family: var(--wstl-font);
+  font-size: var(--font-size-14, 14px);
+  color: lightyellow;
+}
+
+.wastelander-hexcrawl-app .wastelander-hexcrawl-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overflow-anchor: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 1rem 1.25rem 0.75rem;
+}
+
+.wastelander-hexcrawl-app .wastelander-hexcrawl-tabs {
+  flex: 0 0 auto;
+  margin: 0 0 0.75rem;
+}
+
+.wastelander-hexcrawl-app .wastelander-hexcrawl-journal-bar {
+  flex: 0 0 auto;
+  margin: 0 0 0.75rem;
+}
+
+.wastelander-hexcrawl-app .wastelander-hexcrawl-journal-bar .wastelander-btn-secondary {
+  width: 100%;
+}
+
+.wastelander-hexcrawl-app .wastelander-hexcrawl-progress-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.wastelander-hexcrawl-app .wastelander-hexcrawl-progress-header h3 {
+  margin: 0;
+  font-size: inherit;
+  color: lightyellow;
+}
+
+.wastelander-hexcrawl-app .wastelander-hexcrawl-progress p {
+  margin: 0.2rem 0;
+  font-size: inherit;
+}
+
+.wastelander-hexcrawl-app .wastelander-hexcrawl-progress .wastelander-scavenger-warning {
+  font-size: 0.85em;
+}
+
+.wastelander-hexcrawl-app .wastelander-hexcrawl-tab-panel {
+  padding: 0 0.25rem;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.wastelander-hexcrawl-app .wastelander-hexcrawl-tab-panel > .wastelander-hexcrawl-section:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.wastelander-hexcrawl-app .wastelander-hexcrawl-section {
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--color-border-light-primary, #444);
+}
+
+.wastelander-hexcrawl-app .wastelander-hexcrawl-section h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  color: lightyellow;
+}
+
+.wastelander-hexcrawl-app .wastelander-field-row label {
+  font-size: inherit;
+}
+
+.wastelander-hexcrawl-app .wastelander-hexcrawl-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.wastelander-hexcrawl-app .wastelander-hexcrawl-course-difficulty {
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+.wastelander-hexcrawl-app .wastelander-hexcrawl-status-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin: 10px 0;
+  font-size: inherit;
+}
+
+.wastelander-hexcrawl-app .wastelander-hexcrawl-status-left,
+.wastelander-hexcrawl-app .wastelander-hexcrawl-status-right {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.wastelander-hexcrawl-app .wastelander-hexcrawl-status-right {
+  margin-left: auto;
+  text-align: right;
+  color: lightyellow;
+}
+
+.wastelander-hexcrawl-app .wastelander-hexcrawl-course-status-top {
+  flex: 0 0 auto;
+  margin: 10px 0;
+  font-size: inherit;
+}
+
+.wastelander-hexcrawl-app .wastelander-hexcrawl-difficulty-value {
+  color: #fff;
+}
+
+.wastelander-hexcrawl-app .wastelander-hexcrawl-pending-day-end {
+  margin: 0.75rem 0;
+  padding: 0.5rem 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.wastelander-hexcrawl-app .wastelander-hexcrawl-player-view {
+  min-height: 0;
+}
+
+.wastelander-hexcrawl-app .wastelander-hexcrawl-scene-bar {
+  flex: 0 0 auto;
+  padding: 0.75rem 1.25rem 0;
+}
+
+.wastelander-hexcrawl-app .wastelander-hexcrawl-scene-bar .wastelander-btn-secondary {
+  width: 100%;
+  margin: 0;
+}
+
+.wastelander-hexcrawl-app .wastelander-hexcrawl-footer {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  padding: 0.75rem 1.25rem 1rem;
+  border-top: 1px solid var(--color-border-light-primary, #444);
+  background: var(--color-bg-primary, #1a1a1a);
+}
+
+.wastelander-hexcrawl-app .wastelander-hexcrawl-footer .wastelander-btn-primary,
+.wastelander-hexcrawl-app .wastelander-hexcrawl-footer .wastelander-btn-secondary {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+}
+
+.wastelander-hexcrawl-app .wastelander-hexcrawl-progress .wastelander-hexcrawl-badge {
+  font-size: inherit;
+}
+
+.wastelander-hexcrawl-badge {
+  display: inline-block;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+.wastelander-hexcrawl-badge.wastelander-hexcrawl-on-course {
+  background: rgba(80, 160, 80, 0.35);
+  color: #cfc;
+}
+
+.wastelander-hexcrawl-badge.wastelander-hexcrawl-lost {
+  background: rgba(180, 80, 80, 0.35);
+  color: #fcc;
+}
+
+.wastelander-hexcrawl-badge.arrived {
+  background: rgba(80, 120, 200, 0.35);
+  color: #cdf;
+}
+
+.wastelander-hexcrawl-journal-log {
+  margin: 0.5rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.wastelander-hexcrawl-journal-when {
+  display: inline-block;
+  margin-right: 0.15rem;
+  font-size: 0.88em;
+  color: var(--color-text-light-secondary, #aaa);
+  white-space: nowrap;
+}
+
+.wastelander-hexcrawl-journal-desc {
+  margin: 0.25rem 0 0.5rem;
+  font-size: 0.9em;
+  opacity: 0.9;
+}
+
+.wastelander-hexcrawl-party-dropzone {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 4.5rem;
+  padding: 0.75rem;
+  border: 1px dashed var(--color-border-light-primary, #555);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.wastelander-hexcrawl-party-dropzone.is-dragover {
+  border-color: var(--wstl-amber, #c9a227);
+  background: rgba(201, 162, 39, 0.08);
+}
+
+.wastelander-hexcrawl-party-drop-empty {
+  margin: 0;
+  text-align: center;
+  color: var(--color-text-light-secondary, #aaa);
+}
+
+.wastelander-hexcrawl-party-drop-hint {
+  margin: 0;
+}
+
+.wastelander-hexcrawl-party-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.wastelander-hexcrawl-party-member {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.wastelander-hexcrawl-party-member-name {
+  font-weight: 600;
+}
+
+.wastelander-hexcrawl-party-roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.wastelander-hexcrawl-badge.role-navigator {
+  background: rgba(80, 120, 200, 0.35);
+  color: #cdf;
+}
+
+.wastelander-hexcrawl-badge.role-pace {
+  background: rgba(160, 120, 60, 0.35);
+  color: #fec;
+}
+
+.wastelander-hexcrawl-badge.role-hours {
+  background: rgba(120, 80, 160, 0.35);
+  color: #dcf;
+}
+
+.wastelander-hexcrawl-party-remove {
+  margin-left: auto;
+  padding: 0.15rem 0.4rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text-light-secondary, #aaa);
+  cursor: pointer;
+}
+
+.wastelander-hexcrawl-party-remove:hover {
+  color: #f88;
+}
