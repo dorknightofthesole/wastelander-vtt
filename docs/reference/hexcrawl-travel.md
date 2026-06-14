@@ -44,6 +44,20 @@ Trail state is stored in scene flags as `traveledHexKeys` and syncs to all conne
 
 Overseers can change **Travel trail color** in the Scene tab under Travel settings; the new color applies immediately to all outlined hexes on the map.
 
+## Cross-scene border travel
+
+Optional **Scene connections** (North / South / East / West) link this map to adjacent overworld scenes. Links are **one-way** — configure both scenes for round-trip travel.
+
+When the **navigator token** is dragged past the **background image** edge toward a configured link:
+
+1. The last in-bounds hex counts as normal travel (hours, encounters, journal).
+2. Party, navigation settings, travel day, hours today, trail color, and journal continue on the **target** scene.
+3. The navigator is placed on the **opposite border** of the target map (pixel-proximity matching along the shared edge).
+4. The target scene’s trail starts fresh at the entry hex; the target keeps its own scene links and starting hex (if set).
+5. Foundry activates the linked scene.
+
+If a direction has no link configured, dragging off the image behaves as before (move blocked). Maps with different grid offsets may need aligned borders for best entry-hex matching.
+
 ## Navigation (MVP)
 
 - Set **Navigation difficulty** from GM Toolkit conditions (base difficulty).

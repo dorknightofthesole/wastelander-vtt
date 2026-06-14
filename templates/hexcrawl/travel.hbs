@@ -104,6 +104,22 @@
           </select>
         </div>
       </section>
+
+      <section class="wastelander-hexcrawl-section">
+        <h3>{{strings.sceneConnections}}</h3>
+        <p class="wastelander-scavenger-hint">{{strings.sceneConnectionsHint}}</p>
+        {{#each sceneLinkRows}}
+        <div class="wastelander-field-row">
+          <label>{{label}}</label>
+          <select name="sceneLinks-{{direction}}" data-field="sceneLinks.{{direction}}">
+            <option value="">{{../strings.sceneLinkNone}}</option>
+            {{#each options}}
+              <option value="{{id}}" {{#if selected}}selected{{/if}}>{{name}}</option>
+            {{/each}}
+          </select>
+        </div>
+        {{/each}}
+      </section>
       {{/if}}
     </div>
     {{/if}}

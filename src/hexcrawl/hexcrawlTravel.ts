@@ -9,6 +9,7 @@ import {
   findSceneTokenIdForActor,
   getHexKeyFromTokenDocument,
   tokenPositionForHexKey,
+  tokenPositionForHexKeyOnScene,
 } from "./hexCoords.js";
 import { applyPartyTravelFatigue } from "./applyTravelFatigue.js";
 import {
@@ -613,7 +614,7 @@ export async function moveTokenToHexKey(
   const tokenDoc = scene?.tokens?.get(tokenId);
   if (!tokenDoc?.update) return false;
 
-  const position = tokenPositionForHexKey(hexKey);
+  const position = tokenPositionForHexKeyOnScene(sceneId, hexKey);
   if (!position) return false;
 
   await tokenDoc.update(position);

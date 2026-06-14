@@ -300,6 +300,39 @@ export function tokenPositionForHexKey(
   return { x: point.x, y: point.y };
 }
 
+/** Token position for a hex on a specific scene (uses scene grid when canvas is elsewhere). */
+export function tokenPositionForHexKeyOnScene(
+  sceneId: string,
+  hexKey: string,
+): { x: number; y: number } | null {
+  const canvas = (globalThis as { canvas?: { scene?: { id?: string } } }).canvas;
+  if (canvas?.scene?.id === sceneId) {
+    return tokenPositionForHexKey(hexKey);
+  }
+
+  const offset = parseHexKey(hexKey);
+  if (!offset) return null;
+
+  const scene = (game as {
+    scenes?: {
+      get: (id: string) => {
+        padding?: number;
+        grid?: { size?: number; sizeX?: number; sizeY?: number };
+      } | undefined;
+    };
+  }).scenes?.get(sceneId);
+  if (!scene) return null;
+
+  const padding = scene.padding ?? 0;
+  const grid = scene.grid;
+  const sizeX = grid?.sizeX ?? grid?.size ?? 100;
+  const sizeY = grid?.sizeY ?? grid?.size ?? 100;
+  return {
+    x: padding + offset.i * sizeX,
+    y: padding + offset.j * sizeY,
+  };
+}
+
 export function findSceneTokenIdForActor(
   sceneId: string,
   actorId: string,

@@ -46,6 +46,28 @@ describe("normalizeHexcrawlState v2 repair", () => {
     expect(state.hoursTraveledToday).toBe(1.25);
     expect(state.journeyLog).toHaveLength(1);
     expect(state.travelTokenId).toBe("tok-1");
+    expect(state.sceneLinks).toEqual({});
+  });
+});
+
+describe("normalizeHexcrawlState sceneLinks", () => {
+  it("preserves valid scene link ids on v1 state", () => {
+    const sceneId = "scene-1";
+    const raw = {
+      ...defaultHexcrawlState(sceneId),
+      enabled: true,
+      sceneLinks: { south: "scene-2", east: "", north: "scene-3" },
+    };
+
+    const game = globalThis.game as {
+      scenes?: { get: (id: string) => { getFlag?: (scope: string, key: string) => unknown } | undefined };
+      world?: { getFlag?: (scope: string, key: string) => unknown };
+    };
+    game.scenes = { get: () => undefined };
+    game.world = { getFlag: () => null };
+
+    const state = normalizeHexcrawlState(raw, sceneId);
+    expect(state.sceneLinks).toEqual({ south: "scene-2", north: "scene-3" });
   });
 });
 

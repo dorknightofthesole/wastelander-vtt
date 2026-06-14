@@ -14,6 +14,14 @@ import {
   promptAndExecuteOvertravelMove,
 } from "./overtravelMove.js";
 import {
+  detectBorderCrossIntent,
+  executeSceneCrossing,
+  isSceneCrossingInProgress,
+  markSceneCrossingInProgress,
+  readSceneBackgroundBoundsForScene,
+  unmarkSceneCrossingInProgress,
+} from "./sceneBorderTravel.js";
+import {
   handleResetTravelMovement,
   processTravelHexEntry,
   shouldConstrainTravelTokenMove,
@@ -75,25 +83,30 @@ function blockTravelTokenMove(
     return false;
   }
 
-  const validation = validateSingleHexTravelMove(doc, movement);
-  if (!validation.allowed) {
-    const message =
-      validation.reason === "not-adjacent"
-        ? t("WASTELANDER.Hexcrawl.Notify.OneHexNotAdjacent")
-        : t("WASTELANDER.Hexcrawl.Notify.OneHexOnly");
-    ui.notifications.warn(message);
-    return false;
+  const state = loadHexcrawlSceneState(sceneId);
+  const bounds = state?.enabled ? readSceneBackgroundBoundsForScene(sceneId) : null;
+  const borderCross =
+    state && bounds ? detectBorderCrossIntent(state, doc, movement, bounds) : null;
+
+  if (!borderCross) {
+    const validation = validateSingleHexTravelMove(doc, movement);
+    if (!validation.allowed) {
+      const message =
+        validation.reason === "not-adjacent"
+          ? t("WASTELANDER.Hexcrawl.Notify.OneHexNotAdjacent")
+          : t("WASTELANDER.Hexcrawl.Notify.OneHexOnly");
+      ui.notifications.warn(message);
+      return false;
+    }
   }
 
-  const state = loadHexcrawlSceneState(sceneId);
   if (!state || !needsOvertravelPrompt(state)) return;
 
-  const hexKeys = collectMovementHexKeys(doc, movement);
-  if (!hexKeys.length) return;
-  const destHex = hexKeys[hexKeys.length - 1];
-  if (state.lastHexKey === destHex) return;
+  const hexKey = borderCross?.exitHexKey ?? collectMovementHexKeys(doc, movement).at(-1);
+  if (!hexKey) return;
+  if (state.lastHexKey === hexKey) return;
 
-  if (consumeOvertravelApproval(sceneId, doc.id, destHex)) return;
+  if (consumeOvertravelApproval(sceneId, doc.id, hexKey)) return;
 
   void promptAndExecuteOvertravelMove(doc, movement);
   return false;
@@ -105,10 +118,39 @@ async function handleTokenHexTravel(
 ): Promise<void> {
   if (!currentUserIsOverseer()) return;
   const sceneId = doc.parent?.id;
-  if (!sceneId) return;
+  if (!sceneId || isSceneCrossingInProgress(sceneId)) return;
 
   try {
     if (await handleResetTravelMovement(sceneId, doc, movement)) return;
+
+    const state = loadHexcrawlSceneState(sceneId);
+    const bounds = state?.enabled ? readSceneBackgroundBoundsForScene(sceneId) : null;
+    const borderCross =
+      state && bounds ? detectBorderCrossIntent(state, doc, movement, bounds) : null;
+
+    if (borderCross) {
+      markSceneCrossingInProgress(sceneId);
+      try {
+        const freshState = loadHexcrawlSceneState(sceneId);
+        if (freshState && freshState.lastHexKey !== borderCross.exitHexKey) {
+          await processTravelHexEntry({
+            sceneId,
+            tokenId: doc.id,
+            hexKey: borderCross.exitHexKey,
+          });
+        }
+        await executeSceneCrossing({
+          sourceSceneId: sceneId,
+          direction: borderCross.direction,
+          targetSceneId: borderCross.targetSceneId,
+          exitHexKey: borderCross.exitHexKey,
+          sourceTokenDoc: doc,
+        });
+      } finally {
+        unmarkSceneCrossingInProgress(sceneId);
+      }
+      return;
+    }
 
     const hexKeys = collectMovementHexKeys(doc, movement);
     if (!hexKeys.length) return;

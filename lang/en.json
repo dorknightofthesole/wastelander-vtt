@@ -253,7 +253,7 @@
     "Hexcrawl": {
       "WindowTitle": "Wastelander – Hexcrawl Travel",
       "WindowTitleScene": "Wastelander – Hexcrawl Travel ({scene})",
-      "SceneScope": "Hexcrawl is enabled per scene. Configure travel on this map only.",
+      "SceneScope": "Hexcrawl is enabled per scene. Optionally link N/S/E/W borders to adjacent maps for cross-scene travel.",
       "Tooltip": "Hexcrawl travel",
       "EnableLabel": "Enable hexcrawl on this scene",
       "TravelSettings": "Travel settings",
@@ -261,6 +261,13 @@
       "TravelEvents": "Travel events",
       "TrailOverlayColor": "Travel trail color",
       "TrailOverlayColorHint": "Border color for traveled hexes on the map. Applies immediately to the current trail.",
+      "SceneConnections": "Scene connections",
+      "SceneConnectionsHint": "One-way links. Configure both scenes for round-trip travel. Crossing copies party, hours, and settings to the linked scene.",
+      "SceneLinkNone": "None",
+      "SceneLinkNorth": "North",
+      "SceneLinkSouth": "South",
+      "SceneLinkEast": "East",
+      "SceneLinkWest": "West",
       "TravelEventMode": {
         "hexEntry": "On entering a new hex",
         "hourChange": "On hour change"
@@ -386,6 +393,7 @@
         "Arrival": "Party arrived at destination.",
         "StartingLocationSet": "Starting location set to hex {hex}.",
         "TravelReset": "Travel reset — returned to starting hex {hex}.",
+        "SceneCrossed": "Crossed to adjacent map at hex {hex} ({note}).",
         "Clear": "Clear journal",
         "ClearConfirmTitle": "Clear travel journal?",
         "ClearConfirmBody": "Remove all travel log entries for this scene from Wasteland Travels? Travel progress is not changed."
@@ -406,7 +414,12 @@
         "LostCannotLeave": "The party is lost — pass a course check before leaving this hex.",
         "CampSet": "Camp set — travel day {day} begins.",
         "JournalCleared": "Travel journal cleared for this scene.",
-        "PartySleepUnavailable": "Could not open the Fallout Party Sleep dialog."
+        "PartySleepUnavailable": "Could not open the Fallout Party Sleep dialog.",
+        "SceneLinkMissing": "Linked scene not found.",
+        "SceneLinkBounds": "Could not read the linked scene's map bounds.",
+        "SceneLinkEntryHex": "Could not find an entry hex on the linked scene border.",
+        "SceneLinkToken": "Could not place the navigator token on the linked scene.",
+        "SceneCrossed": "Crossed to {scene} at hex {hex}."
       },
       "Settings": {
         "AdvanceWorldClockName": "Advance world clock on hexcrawl travel",

@@ -28,7 +28,13 @@ export type JourneyLogKind =
   | "courseStatus"
   | "arrival"
   | "startingLocationSet"
-  | "travelReset";
+  | "travelReset"
+  | "sceneCrossed";
+
+export type SceneCardinal = "north" | "south" | "east" | "west";
+
+/** Optional one-way links to adjacent overworld scenes by cardinal direction. */
+export type SceneLinks = Partial<Record<SceneCardinal, string>>;
 
 export type JourneyLogEntry = {
   at: number;
@@ -84,6 +90,7 @@ export type HexcrawlSceneState = {
   trailOverlayColor: string;
   /** True after journal clear until the next trail update (hex entry, set starting, reset). */
   trailCleared: boolean;
+  sceneLinks: SceneLinks;
   updatedAt: number;
 };
 
@@ -116,8 +123,24 @@ export function defaultHexcrawlState(sceneId: string): HexcrawlSceneState {
     traveledHexKeys: [],
     trailOverlayColor: DEFAULT_TRAIL_OVERLAY_COLOR,
     trailCleared: false,
+    sceneLinks: {},
     updatedAt: Date.now(),
   };
+}
+
+const SCENE_CARDINALS: SceneCardinal[] = ["north", "south", "east", "west"];
+
+function normalizeSceneLinks(raw: unknown): SceneLinks {
+  if (!raw || typeof raw !== "object") return {};
+  const row = raw as Record<string, unknown>;
+  const links: SceneLinks = {};
+  for (const direction of SCENE_CARDINALS) {
+    const value = row[direction];
+    if (typeof value === "string" && value.length > 0) {
+      links[direction] = value;
+    }
+  }
+  return links;
 }
 
 function normalizeTrailOverlayColor(raw: unknown): string {
@@ -214,6 +237,7 @@ export function prepareHexcrawlStateForSave(
     courseCheckResolved: pending.courseCheckResolved,
     trailOverlayColor: pending.trailOverlayColor,
     startingHexKey: pending.startingHexKey ?? fresh.startingHexKey,
+    sceneLinks: pending.sceneLinks,
   };
 }
 
@@ -281,6 +305,7 @@ export function normalizeHexcrawlState(
     traveledHexKeys: normalizeTraveledHexKeys(row.traveledHexKeys),
     trailOverlayColor: normalizeTrailOverlayColor(row.trailOverlayColor),
     trailCleared: Boolean(row.trailCleared),
+    sceneLinks: normalizeSceneLinks(row.sceneLinks),
     updatedAt: typeof row.updatedAt === "number" ? row.updatedAt : Date.now(),
   };
 }

@@ -179,6 +179,16 @@ function formatEntry(entry: JourneyLogEntry): string {
           }),
         ),
       );
+    case "sceneCrossed":
+      return formatListItem(
+        entry,
+        escapeHtml(
+          t("WASTELANDER.Hexcrawl.Journal.SceneCrossed", {
+            hex: entry.hexKey ?? "—",
+            note: entry.note ?? "",
+          }),
+        ),
+      );
     default:
       return "";
   }

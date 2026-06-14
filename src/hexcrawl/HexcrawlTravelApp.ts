@@ -44,6 +44,7 @@ import {
   type PlayerHexcrawlSocketAction,
 } from "./playerHexcrawlActions.js";
 import { formatSceneGridDistanceLabel } from "./sceneGrid.js";
+import { applySceneLinkUpdate } from "./sceneBorderTravel.js";
 import {
   clampDifficulty,
   formatHours,
@@ -313,6 +314,26 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
       selected: state.travelEventMode === mode,
     }));
 
+    const sceneOptions = game.scenes
+      .filter((scene) => scene.id !== this.#sceneId)
+      .map((scene) => ({ id: scene.id, name: scene.name }));
+
+    const sceneLinkRows = (
+      [
+        { direction: "north", label: t("WASTELANDER.Hexcrawl.SceneLinkNorth") },
+        { direction: "south", label: t("WASTELANDER.Hexcrawl.SceneLinkSouth") },
+        { direction: "east", label: t("WASTELANDER.Hexcrawl.SceneLinkEast") },
+        { direction: "west", label: t("WASTELANDER.Hexcrawl.SceneLinkWest") },
+      ] as const
+    ).map((row) => ({
+      direction: row.direction,
+      label: row.label,
+      options: sceneOptions.map((scene) => ({
+        ...scene,
+        selected: state.sceneLinks[row.direction] === scene.id,
+      })),
+    }));
+
     const courseStatusLabel =
       state.courseStatus === "lost"
         ? t("WASTELANDER.Hexcrawl.CourseStatus.Lost")
@@ -325,6 +346,7 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
       partyRows,
       navigationOptions,
       travelEventModeOptions,
+      sceneLinkRows,
       sceneGridDistanceLabel: this.#sceneId
         ? formatSceneGridDistanceLabel(this.#sceneId)
         : "—",
@@ -353,6 +375,9 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
         travelEvents: t("WASTELANDER.Hexcrawl.TravelEvents"),
         trailOverlayColor: t("WASTELANDER.Hexcrawl.TrailOverlayColor"),
         trailOverlayColorHint: t("WASTELANDER.Hexcrawl.TrailOverlayColorHint"),
+        sceneConnections: t("WASTELANDER.Hexcrawl.SceneConnections"),
+        sceneConnectionsHint: t("WASTELANDER.Hexcrawl.SceneConnectionsHint"),
+        sceneLinkNone: t("WASTELANDER.Hexcrawl.SceneLinkNone"),
         maxHours: t("WASTELANDER.Hexcrawl.MaxHours"),
         currentMph: t("WASTELANDER.Hexcrawl.CurrentMph"),
         partyDropHint: t("WASTELANDER.Hexcrawl.PartyDropHint"),
@@ -423,8 +448,19 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
         void this.#mutate((state) => ({ ...state, trailOverlayColor: color.toLowerCase() }));
         break;
       }
-      default:
+      default: {
+        if (!field.startsWith("sceneLinks.") || !this.#sceneId) break;
+        void this.#mutate((state) => ({
+          ...state,
+          sceneLinks: applySceneLinkUpdate(
+            state.sceneLinks,
+            field,
+            el.value,
+            this.#sceneId ?? "",
+          ),
+        }));
         break;
+      }
     }
   }
 
