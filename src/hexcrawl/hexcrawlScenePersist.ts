@@ -5,13 +5,77 @@ import {
   navigationConditionById,
   NAVIGATION_CONDITIONS,
   normalizeTravelEventMode,
+  normalizeTravelTerrainType,
   type TravelEventMode,
+  type TravelTerrainType,
 } from "./travelRules.js";
+import {
+  hexHasCover,
+  hexHasDiscoverablePoi,
+  mergeDiscoveredPoiHexKeys,
+  normalizeDiscoveredPoiHexKeys,
+  normalizeHexAnnotations,
+  normalizeHiddenTrailHexKeys,
+  normalizeRevealedHexCoverKeys,
+  setHexCover,
+  type HexAnnotation,
+} from "./hexAnnotations.js";
 import { scheduleHexcrawlJournalSync } from "./hexcrawlJournalSync.js";
+import { clearStagedHexcrawlMapOverlayState, stageHexcrawlMapOverlayState } from "./hexMapOverlayState.js";
+import { debugHexCover } from "./hexCoverDebug.js";
 import { getWorldClockLabel } from "../integrations/worldClock.js";
 
+export type { HexAnnotation };
+
 export const HEXCRAWL_SCENE_STATE_FLAG = "hexcrawlSceneState";
+/** Per-hex map edits — separate flag so cleared icons/terrain are not resurrected by Foundry flag merge. */
+export const HEXCRAWL_HEX_MAP_FLAG = "hexcrawlHexMap";
 export const HEXCRAWL_JOURNAL_PAGE_FLAG = "hexcrawlJournalPageId";
+
+export type HexcrawlHexMapFlag = {
+  hexAnnotations: Record<string, HexAnnotation>;
+  hiddenTrailHexKeys: string[];
+  showTerrainIcons: boolean;
+  updatedAt: number;
+};
+
+function hexMapFlagFromState(
+  state: Pick<
+    HexcrawlSceneState,
+    "hexAnnotations" | "hiddenTrailHexKeys" | "showTerrainIcons" | "updatedAt"
+  >,
+): HexcrawlHexMapFlag {
+  return {
+    hexAnnotations: { ...state.hexAnnotations },
+    hiddenTrailHexKeys: [...state.hiddenTrailHexKeys],
+    showTerrainIcons: state.showTerrainIcons !== false,
+    updatedAt: state.updatedAt,
+  };
+}
+
+function applyHexMapFlag(
+  state: HexcrawlSceneState,
+  raw: unknown,
+  rawRow?: Record<string, unknown>,
+): HexcrawlSceneState {
+  if (!raw || typeof raw !== "object") return state;
+  const row = raw as Partial<HexcrawlHexMapFlag>;
+
+  let annotations = normalizeHexAnnotations(row.hexAnnotations);
+  if (rawRow && "revealedHexCoverKeys" in rawRow) {
+    for (const hexKey of normalizeRevealedHexCoverKeys(rawRow.revealedHexCoverKeys)) {
+      if (!annotations[hexKey]?.hexCoverColor) continue;
+      annotations = setHexCover({ ...state, hexAnnotations: annotations }, hexKey, null).hexAnnotations;
+    }
+  }
+
+  return {
+    ...state,
+    hexAnnotations: annotations,
+    hiddenTrailHexKeys: normalizeHiddenTrailHexKeys(row.hiddenTrailHexKeys),
+    showTerrainIcons: row.showTerrainIcons !== false,
+  };
+}
 /** Orphan from an abandoned cross-scene experiment — cleared when saving v1 scene state. */
 const HEXCRAWL_JOURNEY_STATE_FLAG = "hexcrawlJourneyState";
 
@@ -65,6 +129,8 @@ export type HexcrawlSceneState = {
   sceneId: string;
   enabled: boolean;
   travelEventMode: TravelEventMode;
+  /** GM Toolkit p.9 terrain column for party travel speed. */
+  terrainType: TravelTerrainType;
   travelTokenId: string | null;
   partyActorIds: string[];
   navigatorActorId: string | null;
@@ -91,6 +157,16 @@ export type HexcrawlSceneState = {
   /** True after journal clear until the next trail update (hex entry, set starting, reset). */
   trailCleared: boolean;
   sceneLinks: SceneLinks;
+  /** Per-hex terrain overrides and POI icon ids. */
+  hexAnnotations: Record<string, HexAnnotation>;
+  /** Trail outline hidden for these hex keys (journey log unchanged). */
+  hiddenTrailHexKeys: string[];
+  /** Draw terrain badge icons on annotated hexes (Map overlay). */
+  showTerrainIcons: boolean;
+  /** Hex keys whose POI icons are visible to players (overseers always see all). */
+  discoveredPoiHexKeys: string[];
+  /** Miles traveled since last camp or arrival. */
+  milesTraveledCumulative: number;
   updatedAt: number;
 };
 
@@ -103,6 +179,7 @@ export function defaultHexcrawlState(sceneId: string): HexcrawlSceneState {
     sceneId,
     enabled: false,
     travelEventMode: "hexEntry",
+    terrainType: "normal",
     travelTokenId: null,
     partyActorIds: [],
     navigatorActorId: null,
@@ -124,6 +201,11 @@ export function defaultHexcrawlState(sceneId: string): HexcrawlSceneState {
     trailOverlayColor: DEFAULT_TRAIL_OVERLAY_COLOR,
     trailCleared: false,
     sceneLinks: {},
+    hexAnnotations: {},
+    hiddenTrailHexKeys: [],
+    showTerrainIcons: true,
+    discoveredPoiHexKeys: [],
+    milesTraveledCumulative: 0,
     updatedAt: Date.now(),
   };
 }
@@ -206,25 +288,49 @@ function coalesceSplitPayload(
 }
 
 /**
+ * Pick the travel-progress snapshot that is ahead (hooks, camp, reset vs stale UI).
+ */
+function pickLeadingTravelProgress(
+  pending: HexcrawlSceneState,
+  fresh: HexcrawlSceneState,
+): HexcrawlSceneState {
+  const freshIsAhead =
+    fresh.journeyLog.length > pending.journeyLog.length ||
+    fresh.travelDay > pending.travelDay ||
+    fresh.traveledHexKeys.length > pending.traveledHexKeys.length;
+
+  const pendingIsAhead =
+    pending.journeyLog.length > fresh.journeyLog.length ||
+    (pending.travelDay === fresh.travelDay &&
+      pending.hoursTraveledToday > fresh.hoursTraveledToday + 0.001) ||
+    pending.traveledHexKeys.length > fresh.traveledHexKeys.length;
+
+  if (freshIsAhead && !pendingIsAhead) return fresh;
+  if (pendingIsAhead && !freshIsAhead) return pending;
+  if (freshIsAhead) return fresh;
+  return pending;
+}
+
+/**
  * Before persisting UI edits, re-read the scene flag and keep travel-hook progress
  * so dropdown/close saves cannot zero hours or drop journal entries.
  */
 export function prepareHexcrawlStateForSave(
   pending: HexcrawlSceneState,
   sceneId: string,
+  options?: { preferFreshHexMap?: boolean },
 ): HexcrawlSceneState {
   const fresh = loadHexcrawlSceneState(sceneId);
   if (!fresh) return pending;
 
-  const usePendingProgress =
-    pending.journeyLog.length > fresh.journeyLog.length ||
-    pending.hoursTraveledToday > fresh.hoursTraveledToday + 0.001 ||
-    pending.traveledHexKeys.length > fresh.traveledHexKeys.length;
+  const progressBase = pickLeadingTravelProgress(pending, fresh);
+  const preferFreshHexMap = options?.preferFreshHexMap === true;
 
-  return {
-    ...(usePendingProgress ? pending : fresh),
+  const merged: HexcrawlSceneState = {
+    ...progressBase,
     enabled: pending.enabled,
     travelEventMode: pending.travelEventMode,
+    terrainType: pending.terrainType,
     partyActorIds: pending.partyActorIds,
     navigatorActorId: pending.navigatorActorId,
     navigationConditionId: pending.navigationConditionId,
@@ -238,13 +344,30 @@ export function prepareHexcrawlStateForSave(
     trailOverlayColor: pending.trailOverlayColor,
     startingHexKey: pending.startingHexKey ?? fresh.startingHexKey,
     sceneLinks: pending.sceneLinks,
-    journeyLog:
-      pending.journeyLog.length > fresh.journeyLog.length
-        ? pending.journeyLog
-        : usePendingProgress
-          ? pending.journeyLog
-          : fresh.journeyLog,
+    hexAnnotations: preferFreshHexMap ? fresh.hexAnnotations : pending.hexAnnotations,
+    hiddenTrailHexKeys: preferFreshHexMap
+      ? fresh.hiddenTrailHexKeys
+      : pending.hiddenTrailHexKeys,
+    showTerrainIcons: preferFreshHexMap ? fresh.showTerrainIcons : pending.showTerrainIcons,
+    discoveredPoiHexKeys: mergeDiscoveredPoiHexKeys(
+      pending.discoveredPoiHexKeys,
+      fresh.discoveredPoiHexKeys,
+    ),
   };
+
+  if (pending.trailCleared && pending.journeyLog.length === 0) {
+    return {
+      ...merged,
+      journeyLog: [],
+      traveledHexKeys: [],
+      trailCleared: true,
+      travelDay: pending.travelDay,
+      hoursTraveledToday: pending.hoursTraveledToday,
+      lastHexKey: pending.lastHexKey,
+    };
+  }
+
+  return merged;
 }
 
 export function normalizeHexcrawlState(
@@ -274,6 +397,7 @@ export function normalizeHexcrawlState(
     ...base,
     enabled: Boolean(row.enabled),
     travelEventMode: normalizeTravelEventMode(row.travelEventMode),
+    terrainType: normalizeTravelTerrainType(row.terrainType),
     travelTokenId:
       typeof row.travelTokenId === "string" ? row.travelTokenId : null,
     partyActorIds: Array.isArray(row.partyActorIds)
@@ -312,6 +436,14 @@ export function normalizeHexcrawlState(
     trailOverlayColor: normalizeTrailOverlayColor(row.trailOverlayColor),
     trailCleared: Boolean(row.trailCleared),
     sceneLinks: normalizeSceneLinks(row.sceneLinks),
+    hexAnnotations: normalizeHexAnnotations(row.hexAnnotations),
+    hiddenTrailHexKeys: normalizeHiddenTrailHexKeys(row.hiddenTrailHexKeys),
+    showTerrainIcons: row.showTerrainIcons !== false,
+    discoveredPoiHexKeys: normalizeDiscoveredPoiHexKeys(row.discoveredPoiHexKeys),
+    milesTraveledCumulative:
+      typeof row.milesTraveledCumulative === "number"
+        ? Math.max(0, row.milesTraveledCumulative)
+        : 0,
     updatedAt: typeof row.updatedAt === "number" ? row.updatedAt : Date.now(),
   };
 }
@@ -349,9 +481,98 @@ export function ensureStartingHexInTrail(state: HexcrawlSceneState): HexcrawlSce
   };
 }
 
+export function resetMilesTraveledCumulative(state: HexcrawlSceneState): HexcrawlSceneState {
+  return { ...state, milesTraveledCumulative: 0 };
+}
+
 export function appendTraveledHexKey(keys: string[], hexKey: string): string[] {
   if (keys.includes(hexKey)) return keys;
   return [...keys, hexKey];
+}
+
+function backfillDiscoveredPoisFromTravel(state: HexcrawlSceneState): HexcrawlSceneState {
+  const discovered = normalizeDiscoveredPoiHexKeys(
+    resolveTrailHexKeys(state).filter((hexKey) => hexHasDiscoverablePoi(state, hexKey)),
+  );
+  return { ...state, discoveredPoiHexKeys: discovered };
+}
+
+function coverHexKeys(annotations: Record<string, HexAnnotation>): string[] {
+  return Object.entries(annotations)
+    .filter(([, row]) => row?.hexCoverColor)
+    .map(([key]) => key);
+}
+
+type SceneFlagWriter = {
+  getFlag?: (scope: string, key: string) => unknown;
+  setFlag: (
+    scope: string,
+    key: string,
+    value: unknown,
+    options?: { merge?: boolean },
+  ) => Promise<unknown>;
+  unsetFlag?: (scope: string, key: string) => Promise<unknown>;
+  update?: (data: Record<string, unknown>) => Promise<unknown>;
+};
+
+/**
+ * Foundry merges flag objects instead of replacing them — deleted nested keys survive
+ * setFlag even with merge:false. Unset the flag first, then write the full value.
+ */
+async function replaceSceneModuleFlag(
+  sceneId: string,
+  key: string,
+  value: unknown,
+): Promise<boolean> {
+  const scene = getSceneDocument(sceneId) as SceneFlagWriter | undefined;
+  if (!scene?.setFlag) return false;
+  if (scene.unsetFlag) {
+    await scene.unsetFlag(MODULE_ID, key);
+  }
+  await scene.setFlag(MODULE_ID, key, value, { merge: false });
+  return true;
+}
+
+async function stripMainFlagHexAnnotations(sceneId: string): Promise<void> {
+  const scene = getSceneDocument(sceneId) as SceneFlagWriter | undefined;
+  if (!scene?.getFlag) return;
+
+  const raw = scene.getFlag(MODULE_ID, HEXCRAWL_SCENE_STATE_FLAG);
+  if (!raw || typeof raw !== "object") return;
+
+  const row = raw as Record<string, unknown>;
+  const embedded = row.hexAnnotations;
+  const hasEmbedded =
+    embedded &&
+    typeof embedded === "object" &&
+    Object.keys(embedded as object).length > 0;
+  const hasHidden =
+    Array.isArray(row.hiddenTrailHexKeys) && row.hiddenTrailHexKeys.length > 0;
+  if (!hasEmbedded && !hasHidden) return;
+
+  const flagRoot = `flags.${MODULE_ID}.${HEXCRAWL_SCENE_STATE_FLAG}`;
+  if (scene.update) {
+    await scene.update({
+      [`${flagRoot}.-hexAnnotations`]: null,
+      [`${flagRoot}.-hiddenTrailHexKeys`]: null,
+    });
+  } else {
+    const duplicate = foundry.utils.duplicate(raw) as Record<string, unknown>;
+    delete duplicate.hexAnnotations;
+    delete duplicate.hiddenTrailHexKeys;
+    await replaceSceneModuleFlag(sceneId, HEXCRAWL_SCENE_STATE_FLAG, duplicate);
+  }
+  debugHexCover("stripMainFlagHexAnnotations: cleared embedded map fields from main flag", {
+    sceneId,
+  });
+}
+
+function readHexMapFlagRaw(sceneId: string): HexcrawlHexMapFlag | null {
+  const scene = getSceneDocument(sceneId);
+  if (!scene?.getFlag) return null;
+  const raw = scene.getFlag(MODULE_ID, HEXCRAWL_HEX_MAP_FLAG);
+  if (!raw || typeof raw !== "object") return null;
+  return raw as HexcrawlHexMapFlag;
 }
 
 export function loadHexcrawlSceneState(sceneId: string): HexcrawlSceneState | null {
@@ -359,22 +580,164 @@ export function loadHexcrawlSceneState(sceneId: string): HexcrawlSceneState | nu
   if (!scene) return null;
   const raw = scene.getFlag(MODULE_ID, HEXCRAWL_SCENE_STATE_FLAG);
   if (!raw) return null;
-  return normalizeHexcrawlState(raw, sceneId);
+  const rawRow = raw as Record<string, unknown>;
+  let state = normalizeHexcrawlState(raw, sceneId);
+  const hexMapRaw = scene.getFlag(MODULE_ID, HEXCRAWL_HEX_MAP_FLAG);
+  if (hexMapRaw) {
+    // Map data lives only in hexcrawlHexMap — ignore stale copies embedded in the main flag.
+    state = applyHexMapFlag(
+      { ...state, hexAnnotations: {}, hiddenTrailHexKeys: [] },
+      hexMapRaw,
+      rawRow,
+    );
+  }
+  if (!("discoveredPoiHexKeys" in rawRow)) {
+    state = backfillDiscoveredPoisFromTravel(state);
+  }
+  return state;
+}
+
+export type SaveHexcrawlSceneStateOptions = {
+  /** When false, travel/progress saves leave hexcrawlHexMap unchanged (default true). */
+  writeHexMap?: boolean;
+};
+
+export async function persistHexMapFlag(
+  sceneId: string,
+  map: Pick<HexcrawlHexMapFlag, "hexAnnotations" | "hiddenTrailHexKeys" | "showTerrainIcons">,
+): Promise<boolean> {
+  const payload: HexcrawlHexMapFlag = {
+    hexAnnotations: structuredClone(map.hexAnnotations),
+    hiddenTrailHexKeys: [...map.hiddenTrailHexKeys],
+    showTerrainIcons: map.showTerrainIcons !== false,
+    updatedAt: Date.now(),
+  };
+  const persisted = await replaceSceneModuleFlag(sceneId, HEXCRAWL_HEX_MAP_FLAG, payload);
+  if (!persisted) {
+    debugHexCover("persistHexMapFlag: failed — scene missing or cannot setFlag", { sceneId });
+    return false;
+  }
+  await stripMainFlagHexAnnotations(sceneId);
+
+  const readback = readHexMapFlagRaw(sceneId);
+  debugHexCover("persistHexMapFlag: saved", {
+    sceneId,
+    hexAnnotationKeys: Object.keys(payload.hexAnnotations),
+    coverHexKeysWritten: coverHexKeys(payload.hexAnnotations),
+    coverHexKeysReadback: readback
+      ? coverHexKeys(normalizeHexAnnotations(readback.hexAnnotations))
+      : null,
+    updatedAt: payload.updatedAt,
+  });
+  return true;
+}
+
+/** Delete hex hide covers for one or more keys in a single hex map write. */
+export async function removeHexCoversOnEntry(
+  sceneId: string,
+  hexKeys: string[],
+): Promise<boolean> {
+  const state = loadHexcrawlSceneState(sceneId);
+  if (!state) {
+    debugHexCover("removeHexCoversOnEntry: skip — no scene state", { sceneId, hexKeys });
+    return false;
+  }
+
+  let next = state;
+  const targets = [...new Set(hexKeys)].filter((hexKey) => hexHasCover(next, hexKey));
+  if (!targets.length) {
+    debugHexCover("removeHexCoversOnEntry: skip — no covers on target hexes", {
+      sceneId,
+      hexKeys,
+      coverHexKeys: coverHexKeys(state.hexAnnotations),
+    });
+    return false;
+  }
+
+  for (const hexKey of targets) {
+    next = setHexCover(next, hexKey, null);
+  }
+
+  debugHexCover("removeHexCoversOnEntry: persisting", {
+    sceneId,
+    targets,
+    coverHexKeysBefore: coverHexKeys(state.hexAnnotations),
+    coverHexKeysAfter: coverHexKeys(next.hexAnnotations),
+  });
+
+  const persisted = await persistHexMapFlag(sceneId, {
+    hexAnnotations: next.hexAnnotations,
+    hiddenTrailHexKeys: next.hiddenTrailHexKeys,
+    showTerrainIcons: next.showTerrainIcons,
+  });
+  if (!persisted) return false;
+
+  clearStagedHexcrawlMapOverlayState(sceneId);
+
+  const { refreshHexcrawlMapOverlay } = await import("./hexcrawlMapOverlay.js");
+  await refreshHexcrawlMapOverlay(sceneId, next);
+
+  const { default: HexcrawlTravelApp } = await import("./HexcrawlTravelApp.js");
+  HexcrawlTravelApp.rebindForScene(sceneId, { force: true });
+
+  debugHexCover("removeHexCoversOnEntry: done", {
+    sceneId,
+    targets,
+    remainingCoverHexKeys: coverHexKeys(next.hexAnnotations),
+  });
+  return true;
+}
+
+/** Delete a hex hide cover from the hex map flag and refresh the map overlay. */
+export async function removeHexCoverOnEntry(
+  sceneId: string,
+  hexKey: string,
+): Promise<boolean> {
+  debugHexCover("removeHexCoverOnEntry: start", { sceneId, hexKey });
+  return removeHexCoversOnEntry(sceneId, [hexKey]);
 }
 
 export async function saveHexcrawlSceneState(
   state: HexcrawlSceneState,
-): Promise<void> {
+  options?: SaveHexcrawlSceneStateOptions,
+): Promise<HexcrawlSceneState | null> {
   const scene = getSceneDocument(state.sceneId);
-  if (!scene?.setFlag) return;
+  if (!scene?.setFlag) return null;
+
+  const writeHexMap = options?.writeHexMap !== false;
+  const prepared = prepareHexcrawlStateForSave(state, state.sceneId, {
+    preferFreshHexMap: !writeHexMap,
+  });
   const payload: HexcrawlSceneState = {
-    ...state,
+    ...prepared,
     version: 1,
     updatedAt: Date.now(),
   };
-  await scene.setFlag(MODULE_ID, HEXCRAWL_SCENE_STATE_FLAG, payload, {
-    merge: false,
-  });
+
+  if (!writeHexMap) {
+    const mapFresh = loadHexcrawlSceneState(state.sceneId);
+    if (mapFresh) {
+      payload.hexAnnotations = mapFresh.hexAnnotations;
+      payload.hiddenTrailHexKeys = mapFresh.hiddenTrailHexKeys;
+      payload.showTerrainIcons = mapFresh.showTerrainIcons;
+    }
+  }
+
+  stageHexcrawlMapOverlayState(payload);
+  if (writeHexMap) {
+    const hexMapPayload = {
+      ...hexMapFlagFromState(payload),
+      updatedAt: payload.updatedAt + 1,
+    };
+    await replaceSceneModuleFlag(state.sceneId, HEXCRAWL_HEX_MAP_FLAG, hexMapPayload);
+  }
+  // Hex map edits live only in hexcrawlHexMap — keep main flag free of stale annotations.
+  const mainPayload: HexcrawlSceneState = {
+    ...payload,
+    hexAnnotations: {},
+    hiddenTrailHexKeys: [],
+  };
+  await replaceSceneModuleFlag(state.sceneId, HEXCRAWL_SCENE_STATE_FLAG, mainPayload);
   const world = (game as {
     world?: { unsetFlag?: (scope: string, key: string) => Promise<unknown> };
   }).world;
@@ -382,6 +745,7 @@ export async function saveHexcrawlSceneState(
     await world.unsetFlag(MODULE_ID, HEXCRAWL_JOURNEY_STATE_FLAG);
   }
   scheduleHexcrawlJournalSync(state.sceneId);
+  return payload;
 }
 
 export function appendJourneyLog(

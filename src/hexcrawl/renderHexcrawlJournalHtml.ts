@@ -1,7 +1,7 @@
 import type { HexcrawlSceneState, JourneyLogEntry } from "./hexcrawlScenePersist.js";
 import { t } from "../integrations/i18n.js";
 import { formatSearchDuration } from "../scavenging/searchWorldClock.js";
-import { formatHours } from "./travelRules.js";
+import { formatHours, formatMphWithUnit } from "./travelRules.js";
 
 function escapeHtml(text: string): string {
   return text
@@ -73,7 +73,7 @@ function formatEntry(entry: JourneyLogEntry): string {
         escapeHtml(
           t("WASTELANDER.Hexcrawl.Journal.ClockAdvanced", {
             minutes: entry.minutes ?? 0,
-            mph: entry.mph ?? 0,
+            speed: formatMphWithUnit(entry.mph ?? 0),
           }),
         ),
       );

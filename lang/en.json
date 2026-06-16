@@ -259,6 +259,16 @@
       "TravelSettings": "Travel settings",
       "SceneGridDistance": "Grid distance (scene)",
       "TravelEvents": "Travel events",
+      "TerrainType": "Terrain type",
+      "DefaultTerrain": "Default terrain",
+      "TerrainTypeHint": "Party speed uses the slowest member's AGI on this terrain (GM Toolkit p.9).",
+      "DefaultTerrainHint": "Fallback terrain for hexes without a per-hex override. Set per-hex terrain on the Map tab.",
+      "TerrainTypes": {
+        "open": "Open",
+        "normal": "Normal",
+        "rough": "Rough",
+        "hard": "Hard"
+      },
       "TrailOverlayColor": "Travel trail color",
       "TrailOverlayColorHint": "Border color for traveled hexes on the map. Applies immediately to the current trail.",
       "SceneConnections": "Scene connections",
@@ -276,7 +286,10 @@
       "TravelToken": "Party travel token",
       "SelectToken": "Select token…",
       "MaxHours": "Max hours of travel per day",
-      "CurrentMph": "Current mph",
+      "CurrentMph": "Current MPH",
+      "Terrain": "Terrain",
+      "MilesTraveled": "Miles traveled",
+      "MapShowTerrainIcons": "Show terrain icons",
       "Party": "Party",
       "Navigator": "Navigator",
       "Pace": "Pace",
@@ -309,7 +322,35 @@
       "ResetTravel": "Reset travel",
       "Tabs": {
         "Scene": "Scene Hexcrawl",
-        "Party": "Party"
+        "Party": "Party",
+        "Map": "Map"
+      },
+      "MapTabHint": "Click a hex on the map to edit terrain, hex cover, trail visibility, and POI icons.",
+      "MapSelectHexFirst": "Select a hex on the map first (click the map or set a starting location).",
+      "MapSelectedHex": "Selected hex",
+      "MapTerrain": "Hex terrain",
+      "MapUseDefaultTerrain": "Use scene default",
+      "MapHideTrail": "Hide travel trail",
+      "MapShowTrail": "Show travel trail",
+      "MapHexCover": "Hex cover",
+      "MapHexCoverHint": "Solid fill hiding the map under this hex. The cover is removed from the map when the travel token enters the hex. Click to toggle; change color per hex.",
+      "MapHexCoverColor": "Cover color",
+      "MapPoiIcon": "POI icon",
+      "MapPoiIconHint": "Click an icon to assign it to the selected hex. Click the selected icon again to remove it.",
+      "MapClearHex": "Clear hex data",
+      "MapClearHexConfirmTitle": "Clear hex data?",
+      "MapClearHexConfirmBody": "Remove the terrain override, hex cover, POI icon, and hidden-trail setting for hex {hex}?",
+      "MapClearHexNothing": "This hex has no map data to clear.",
+      "MapEffectiveMph": "Party speed on this hex",
+      "MapPoiIcons": {
+        "ruins": "Ruins",
+        "camp": "Camp",
+        "settlement": "Settlement",
+        "water": "Water",
+        "danger": "Danger",
+        "quest": "Quest",
+        "loot": "Loot",
+        "landmark": "Landmark"
       },
       "PlayerParty": {
         "Tooltip": "Hexcrawl party (players)",
@@ -377,7 +418,7 @@
         "Enabled": "Hexcrawl enabled on this scene.",
         "Disabled": "Hexcrawl disabled on this scene.",
         "HexEntered": "Entered hex {hex}.",
-        "ClockAdvanced": "World clock +{minutes} min at {mph} mph.",
+        "ClockAdvanced": "World clock +{minutes} min at {speed}.",
         "Encounter": "Encounter ({type}): {name}",
         "EncounterNoEffect": "Encounter check: 1CD [{faces}] — no effect.",
         "EncounterError": "Encounter check: 1CD [{faces}] — {error}",
@@ -414,6 +455,7 @@
         "LostCannotLeave": "The party is lost — pass a course check before leaving this hex.",
         "CampSet": "Camp set — travel day {day} begins.",
         "JournalCleared": "Travel journal cleared for this scene.",
+        "MapHexCleared": "Map data cleared for hex {hex}.",
         "PartySleepUnavailable": "Could not open the Fallout Party Sleep dialog.",
         "SceneLinkMissing": "Linked scene not found.",
         "SceneLinkBounds": "Could not read the linked scene's map bounds.",
@@ -424,7 +466,9 @@
       },
       "Settings": {
         "AdvanceWorldClockName": "Advance world clock on hexcrawl travel",
-        "AdvanceWorldClockHint": "When enabled, moving the travel token to a new hex advances Simple Calendar by travel time."
+        "AdvanceWorldClockHint": "When enabled, moving the travel token to a new hex advances Simple Calendar by travel time.",
+        "DebugHexCoverName": "Debug hex cover removal",
+        "DebugHexCoverHint": "Log hex cover removal steps to the browser console (F12). Disable after troubleshooting."
       }
     },
     "Scavenging": {

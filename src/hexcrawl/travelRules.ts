@@ -27,22 +27,70 @@ export const ENCOUNTER_TABLE_BY_TYPE: Record<string, string> = {
   Animosity: "Random Factions for Animosity Encounters",
 };
 
-export function mphForAgi(agi: number): number {
-  if (agi <= 5) return 2;
-  if (agi <= 8) return 3;
-  return 4;
+/** GM Toolkit p.9 terrain columns (open / normal / rough / hard). */
+export type TravelTerrainType = "open" | "normal" | "rough" | "hard";
+
+export const TRAVEL_TERRAIN_TYPES: TravelTerrainType[] = [
+  "open",
+  "normal",
+  "rough",
+  "hard",
+];
+
+/** Miles per hour by AGI band index: 4–5, 6–8, 9+. */
+const TERRAIN_MPH_BY_AGI_BAND: Record<TravelTerrainType, [number, number, number]> = {
+  open: [3, 4.5, 6],
+  normal: [2, 3, 4],
+  rough: [1.5, 2.25, 3],
+  hard: [1, 1.5, 2],
+};
+
+function agiBandIndex(agi: number): number {
+  if (agi <= 5) return 0;
+  if (agi <= 8) return 1;
+  return 2;
 }
 
-export function resolvePartyTravelMph(actorIds: string[]): number {
+export function normalizeTravelTerrainType(raw: unknown): TravelTerrainType {
+  if (raw === "open" || raw === "rough" || raw === "hard") return raw;
+  return "normal";
+}
+
+export function mphForAgiAndTerrain(
+  agi: number,
+  terrain: TravelTerrainType = "normal",
+): number {
+  return TERRAIN_MPH_BY_AGI_BAND[terrain][agiBandIndex(agi)];
+}
+
+/** Normal/clear terrain baseline (GM Toolkit p.9). */
+export function mphForAgi(agi: number): number {
+  return mphForAgiAndTerrain(agi, "normal");
+}
+
+export function resolvePartyTravelMph(
+  actorIds: string[],
+  terrain: TravelTerrainType = "normal",
+): number {
   let slowest = Infinity;
   for (const id of actorIds) {
     const actor = game.actors.get(id);
     if (!actor) continue;
     const system = actor.system as FalloutActorSystemSlice;
     const { agi } = readActorSpecial(system);
-    slowest = Math.min(slowest, mphForAgi(agi));
+    slowest = Math.min(slowest, mphForAgiAndTerrain(agi, terrain));
   }
-  return Number.isFinite(slowest) ? slowest : 3;
+  return Number.isFinite(slowest) ? slowest : mphForAgiAndTerrain(5, terrain);
+}
+
+export function formatMph(mph: number): string {
+  if (Number.isInteger(mph)) return String(mph);
+  return mph.toFixed(2).replace(/\.?0+$/, "");
+}
+
+/** User-facing speed with miles-per-hour initials (always MPH). */
+export function formatMphWithUnit(mph: number): string {
+  return `${formatMph(mph)} MPH`;
 }
 
 export function hexTravelMinutes(milesPerHex: number, mph: number): number {

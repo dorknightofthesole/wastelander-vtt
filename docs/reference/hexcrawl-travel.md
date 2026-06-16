@@ -44,6 +44,32 @@ Trail state is stored in scene flags as `traveledHexKeys` and syncs to all conne
 
 Overseers can change **Travel trail color** in the Scene tab under Travel settings; the new color applies immediately to all outlined hexes on the map.
 
+## Terrain and travel speed
+
+**Default terrain** (Scene tab) is the fallback for hexes without a per-hex override. Party speed uses the slowest member's AGI on the GM Toolkit p.9 table (open / normal / rough / hard).
+
+When the party **enters a hex**, travel time uses that hex's stored terrain if set, otherwise the scene default. The status bar **Current MPH** reflects the party's speed on the **current hex** (`lastHexKey`).
+
+## Per-hex map editor (Map tab)
+
+Overseers can open the **Map** tab, click a hex on the canvas, and:
+
+| Action | Effect |
+| --- | --- |
+| Set hex terrain | Persists per hex; small terrain badge in the hex corner; auto-applies on entry |
+| Hex cover | Solid fill over the hex map (default gray); per-hex color; hidden from players after they enter |
+| Hide travel trail | Removes trail outline for that hex only (journey log unchanged) |
+| POI icon | Large preset icon centered on the hex (ruins, camp, settlement, etc.) |
+| Clear hex data | Removes terrain, icon, and trail hide for that hex |
+
+**POI fog of war:** Players do not see POI icons until the party travel token **enters** that hex. Once discovered, the icon stays visible even after the token leaves. Overseers always see all POI icons (including undiscovered) for map editing. Terrain badges are always visible to everyone.
+
+**Hex cover:** A solid fill blocks the hex map background for players until they enter that hex; the cover stays off after that (terrain badges and POI icons still follow their own rules). Overseers always see covers and can set each hex's color (default gray `#808080`).
+
+Per-hex data is stored in scene flags as `hexAnnotations` and `hiddenTrailHexKeys`. Discovered POI hex keys are stored in `discoveredPoiHexKeys`. Entering a hex with the travel token deletes that hex's cover from `hexAnnotations` (not merely hidden). Cross-scene travel keeps each scene's own hex map data.
+
+Regenerate map icons after clone: `node scripts/generate-hexcrawl-icons.mjs`
+
 ## Cross-scene border travel
 
 Optional **Scene connections** (North / South / East / West) link this map to adjacent overworld scenes. Links are **one-way** — configure both scenes for round-trip travel.
@@ -53,7 +79,7 @@ When the **navigator token** is dragged past the **background image** edge towar
 1. The last in-bounds hex counts as normal travel (hours, encounters, journal).
 2. Party, navigation settings, travel day, hours today, trail color, and journal continue on the **target** scene.
 3. The navigator is placed on the **opposite border** of the target map (pixel-proximity matching along the shared edge).
-4. The target scene’s trail starts fresh at the entry hex; the target keeps its own scene links and starting hex (if set).
+4. The target scene keeps its own scene links, starting hex, and per-hex map data (if set).
 5. Foundry activates the linked scene.
 
 If a direction has no link configured, dragging off the image behaves as before (move blocked). Maps with different grid offsets may need aligned borders for best entry-hex matching.
@@ -66,4 +92,4 @@ If a direction has no link configured, dragging off the image behaves as before 
 
 ## Deferred
 
-Terrain speed modifiers, camping watches, and player Survival assist UI are not in MVP.
+Camping watches and player Survival assist UI are not in MVP.

@@ -5,6 +5,7 @@ import {
   detectBorderDirection,
   enumerateBorderHexKeys,
   mapEntryHexKey,
+  mergeTargetSceneTrail,
   pointInBounds,
   readSceneBackgroundBounds,
   resolveExitHexKey,
@@ -301,5 +302,40 @@ describe("buildCrossedSceneState", () => {
     expect(next.lastHexKey).toBe("4,0");
     expect(next.travelTokenId).toBe("tok-b");
     expect(next.journeyLog[0]?.kind).toBe("sceneCrossed");
+  });
+
+  it("restores the target scene trail when re-entering", () => {
+    const source = {
+      ...defaultHexcrawlState("scene-b"),
+      enabled: true,
+      traveledHexKeys: ["9,0"],
+    };
+    const targetExisting = {
+      ...defaultHexcrawlState("scene-a"),
+      traveledHexKeys: ["0,0", "1,1", "2,1"],
+      startingHexKey: "0,0",
+    };
+
+    const next = buildCrossedSceneState({
+      source,
+      targetSceneId: "scene-a",
+      entryHexKey: "3,0",
+      targetTokenId: "tok-a",
+      targetExisting,
+      fromSceneId: "scene-b",
+      direction: "north",
+    });
+
+    expect(next.traveledHexKeys).toEqual(["0,0", "1,1", "2,1", "3,0"]);
+    expect(next.startingHexKey).toBe("0,0");
+  });
+
+  it("starts fresh trail on first visit when target trail was cleared", () => {
+    expect(
+      mergeTargetSceneTrail(
+        { ...defaultHexcrawlState("scene-b"), trailCleared: true, traveledHexKeys: [] },
+        "4,0",
+      ),
+    ).toEqual(["4,0"]);
   });
 });

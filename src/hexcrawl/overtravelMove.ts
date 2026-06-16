@@ -6,6 +6,7 @@ import {
   loadHexcrawlSceneState,
   type HexcrawlSceneState,
 } from "./hexcrawlScenePersist.js";
+import { resolveTerrainForHex } from "./hexAnnotations.js";
 import { processTravelHexEntry } from "./hexcrawlTravel.js";
 import { requestPlayerHexcrawlAction } from "./playerHexcrawlActions.js";
 import { getSceneMilesPerHex } from "./sceneGrid.js";
@@ -43,9 +44,16 @@ export function needsOvertravelPrompt(state: HexcrawlSceneState): boolean {
   return state.hoursTraveledToday >= state.maxHoursPerDay;
 }
 
-function projectedHoursAfterHex(state: HexcrawlSceneState, sceneId: string): number {
+function projectedHoursAfterHex(
+  state: HexcrawlSceneState,
+  sceneId: string,
+  destHexKey?: string,
+): number {
+  const hexKey = destHexKey ?? state.lastHexKey ?? "";
+  const terrain = resolveTerrainForHex(state, hexKey);
   const mph = resolvePartyTravelMph(
     filterHexcrawlTravelRoleActorIds(state.partyActorIds),
+    terrain,
   );
   const minutes = hexTravelMinutes(getSceneMilesPerHex(sceneId), mph);
   return state.hoursTraveledToday + minutes / 60;
@@ -54,8 +62,9 @@ function projectedHoursAfterHex(state: HexcrawlSceneState, sceneId: string): num
 export function projectedOvertravelFatigue(
   state: HexcrawlSceneState,
   sceneId: string,
+  destHexKey?: string,
 ): number {
-  const hoursAfter = projectedHoursAfterHex(state, sceneId);
+  const hoursAfter = projectedHoursAfterHex(state, sceneId, destHexKey);
   return computeTravelFatigueDelta(
     state.hoursTraveledToday,
     hoursAfter,
@@ -144,7 +153,7 @@ export async function promptAndExecuteOvertravelMove(
     return;
   }
 
-  const fatigueHours = projectedOvertravelFatigue(state, sceneId);
+  const fatigueHours = projectedOvertravelFatigue(state, sceneId, destHex);
 
   overtravelPromptInFlight.add(inFlightKey);
   try {

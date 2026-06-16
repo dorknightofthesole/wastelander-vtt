@@ -1,0 +1,10 @@
+[
+  { "id": "ruins", "label": "Ruins", "path": "assets/hexcrawl/hex-icons/ruins.png" },
+  { "id": "camp", "label": "Camp", "path": "assets/hexcrawl/hex-icons/camp.png" },
+  { "id": "settlement", "label": "Settlement", "path": "assets/hexcrawl/hex-icons/settlement.png" },
+  { "id": "water", "label": "Water", "path": "assets/hexcrawl/hex-icons/water.png" },
+  { "id": "danger", "label": "Danger", "path": "assets/hexcrawl/hex-icons/danger.png" },
+  { "id": "quest", "label": "Quest", "path": "assets/hexcrawl/hex-icons/quest.png" },
+  { "id": "loot", "label": "Loot", "path": "assets/hexcrawl/hex-icons/loot.png" },
+  { "id": "landmark", "label": "Landmark", "path": "assets/hexcrawl/hex-icons/landmark.png" }
+]

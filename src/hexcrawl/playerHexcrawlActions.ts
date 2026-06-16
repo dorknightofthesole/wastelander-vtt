@@ -120,7 +120,7 @@ export async function executePlayerHexcrawlAction(
       data.sceneId,
     );
 
-    await saveHexcrawlSceneState(next);
+    await saveHexcrawlSceneState(next, { writeHexMap: false });
     HexcrawlTravelApp.rebindForScene(data.sceneId);
     return { ok: true, state: next };
   }

@@ -6,10 +6,12 @@ import {
 } from "../export/actorDerivedStats.js";
 import { findSceneTokenIdForActor } from "./hexCoords.js";
 import type { HexcrawlSceneState } from "./hexcrawlScenePersist.js";
+import { resolveCurrentTravelTerrain } from "./hexAnnotations.js";
 import {
   pickDefaultNavigatorActorId,
   resolvePartyTravelMph,
   resolveMaxHoursPerDay,
+  type TravelTerrainType,
 } from "./travelRules.js";
 
 export type PartyMemberRow = {
@@ -103,7 +105,10 @@ export function pickMaxHoursActorId(actorIds: string[]): string | null {
   return best?.id ?? actorIds[0] ?? null;
 }
 
-export function resolvePartyTravelRoles(actorIds: string[]): PartyTravelRoles {
+export function resolvePartyTravelRoles(
+  actorIds: string[],
+  terrain: TravelTerrainType = "normal",
+): PartyTravelRoles {
   const ids = [...new Set(actorIds)].filter((id) => Boolean(game.actors.get(id)));
   const roleIds = filterHexcrawlTravelRoleActorIds(ids);
   const navigatorActorId = pickDefaultNavigatorActorId(roleIds);
@@ -116,9 +121,18 @@ export function resolvePartyTravelRoles(actorIds: string[]): PartyTravelRoles {
     paceName: paceActorId ? actorName(paceActorId) : null,
     hoursActorId,
     hoursActorName: hoursActorId ? actorName(hoursActorId) : null,
-    partyMph: resolvePartyTravelMph(roleIds),
+    partyMph: resolvePartyTravelMph(roleIds, terrain),
     maxHoursPerDay: resolveMaxHoursPerDay(roleIds),
   };
+}
+
+export function resolvePartyTravelRolesForState(
+  state: HexcrawlSceneState,
+): PartyTravelRoles {
+  return resolvePartyTravelRoles(
+    state.partyActorIds,
+    resolveCurrentTravelTerrain(state),
+  );
 }
 
 export function mergePartyActorIdsWithScene(
@@ -139,7 +153,7 @@ export function syncPartyTravelState(
   const partyActorIds = [...new Set(state.partyActorIds)].filter((id) =>
     Boolean(game.actors.get(id)),
   );
-  const roles = resolvePartyTravelRoles(partyActorIds);
+  const roles = resolvePartyTravelRolesForState({ ...state, partyActorIds });
   const travelTokenId =
     roles.navigatorActorId && sceneId
       ? (findSceneTokenIdForActor(sceneId, roles.navigatorActorId) ??
@@ -159,7 +173,7 @@ export function buildPartyMemberRows(
   state: HexcrawlSceneState,
   options: { sceneId: string | null; userId: string; isOverseer: boolean },
 ): PartyMemberRow[] {
-  const roles = resolvePartyTravelRoles(state.partyActorIds);
+  const roles = resolvePartyTravelRolesForState(state);
   return state.partyActorIds.map((actorId) => ({
     actorId,
     actorName: actorName(actorId),

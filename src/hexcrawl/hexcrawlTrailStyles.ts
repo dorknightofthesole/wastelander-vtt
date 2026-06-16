@@ -1,8 +1,8 @@
 import {
   DEFAULT_TRAIL_OVERLAY_COLOR,
-  resolveTrailHexKeys,
   type HexcrawlSceneState,
 } from "./hexcrawlScenePersist.js";
+import { visibleTrailHexKeys } from "./hexAnnotations.js";
 
 export type TrailStrokeStyle = {
   color: number;
@@ -30,5 +30,5 @@ export function trailStyleForHex(hexKey: string, state: HexcrawlSceneState): Tra
 }
 
 export function trailHexKeysForState(state: HexcrawlSceneState): string[] {
-  return resolveTrailHexKeys(state);
+  return visibleTrailHexKeys(state);
 }

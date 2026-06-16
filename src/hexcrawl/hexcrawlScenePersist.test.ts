@@ -1,8 +1,13 @@
 import { describe, expect, it } from "vitest";
+import { MODULE_ID } from "../constants.js";
 import {
   defaultHexcrawlState,
+  HEXCRAWL_HEX_MAP_FLAG,
+  HEXCRAWL_SCENE_STATE_FLAG,
+  loadHexcrawlSceneState,
   normalizeHexcrawlState,
   prepareHexcrawlStateForSave,
+  saveHexcrawlSceneState,
 } from "./hexcrawlScenePersist.js";
 
 describe("normalizeHexcrawlState v2 repair", () => {
@@ -131,5 +136,359 @@ describe("prepareHexcrawlStateForSave", () => {
     const merged = prepareHexcrawlStateForSave(pending, sceneId);
     expect(merged.enabled).toBe(true);
     expect(merged.journeyLog).toHaveLength(1);
+  });
+
+  it("keeps camp day-end progress when stale UI still has prior hours", () => {
+    const sceneId = "scene-1";
+    const fresh = {
+      ...defaultHexcrawlState(sceneId),
+      travelDay: 2,
+      hoursTraveledToday: 0,
+      journeyLog: [
+        { at: 1, kind: "hexEntered" as const, travelDay: 1, hexKey: "1,1" },
+        { at: 2, kind: "campEncounter" as const, travelDay: 1 },
+        { at: 3, kind: "dayEnded" as const, travelDay: 1 },
+        { at: 4, kind: "campSet" as const, travelDay: 2 },
+      ],
+    };
+    const staleApp = {
+      ...defaultHexcrawlState(sceneId),
+      travelDay: 1,
+      hoursTraveledToday: 6.5,
+      journeyLog: [{ at: 1, kind: "hexEntered" as const, travelDay: 1, hexKey: "1,1" }],
+    };
+
+    const game = globalThis.game as {
+      scenes?: { get: (id: string) => { getFlag?: (scope: string, key: string) => unknown } | undefined };
+      world?: { getFlag?: (scope: string, key: string) => unknown };
+    };
+    game.scenes = {
+      get: (id: string) =>
+        id === sceneId ? { getFlag: () => ({ ...fresh, version: 1 }) } : undefined,
+    };
+    game.world = { getFlag: () => null };
+
+    const merged = prepareHexcrawlStateForSave(staleApp, sceneId);
+    expect(merged.travelDay).toBe(2);
+    expect(merged.hoursTraveledToday).toBe(0);
+    expect(merged.journeyLog).toHaveLength(4);
+  });
+
+  it("keeps an explicit journal clear over a longer on-disk log", () => {
+    const sceneId = "scene-1";
+    const fresh = {
+      ...defaultHexcrawlState(sceneId),
+      journeyLog: [
+        { at: 1, kind: "hexEntered" as const, travelDay: 1, hexKey: "1,1" },
+        { at: 2, kind: "encounter" as const, travelDay: 1 },
+      ],
+      traveledHexKeys: ["1,1"],
+      trailCleared: false,
+    };
+    const clearedApp = {
+      ...defaultHexcrawlState(sceneId),
+      travelDay: 2,
+      hoursTraveledToday: 1.5,
+      journeyLog: [] as typeof fresh.journeyLog,
+      traveledHexKeys: [] as string[],
+      trailCleared: true,
+    };
+
+    const game = globalThis.game as {
+      scenes?: { get: (id: string) => { getFlag?: (scope: string, key: string) => unknown } | undefined };
+      world?: { getFlag?: (scope: string, key: string) => unknown };
+    };
+    game.scenes = {
+      get: (id: string) =>
+        id === sceneId ? { getFlag: () => ({ ...fresh, version: 1 }) } : undefined,
+    };
+    game.world = { getFlag: () => null };
+
+    const merged = prepareHexcrawlStateForSave(clearedApp, sceneId);
+    expect(merged.journeyLog).toEqual([]);
+    expect(merged.traveledHexKeys).toEqual([]);
+    expect(merged.trailCleared).toBe(true);
+    expect(merged.travelDay).toBe(2);
+    expect(merged.hoursTraveledToday).toBe(1.5);
+  });
+
+  it("preserves hex annotations from pending UI edits", () => {
+    const sceneId = "scene-1";
+    const fresh = {
+      ...defaultHexcrawlState(sceneId),
+      hexAnnotations: {},
+      hiddenTrailHexKeys: [],
+    };
+    const pending = {
+      ...fresh,
+      hexAnnotations: { "2,2": { terrain: "rough" as const, iconId: "camp" } },
+      hiddenTrailHexKeys: ["1,1"],
+    };
+
+    const game = globalThis.game as {
+      scenes?: { get: (id: string) => { getFlag?: (scope: string, key: string) => unknown } | undefined };
+      world?: { getFlag?: (scope: string, key: string) => unknown };
+    };
+    game.scenes = {
+      get: (id: string) =>
+        id === sceneId ? { getFlag: () => ({ ...fresh, version: 1 }) } : undefined,
+    };
+    game.world = { getFlag: () => null };
+
+    const merged = prepareHexcrawlStateForSave(pending, sceneId);
+    expect(merged.hexAnnotations).toEqual({ "2,2": { terrain: "rough", iconId: "camp" } });
+    expect(merged.hiddenTrailHexKeys).toEqual(["1,1"]);
+  });
+
+  it("preserves cleared hex annotations from pending UI edits", () => {
+    const sceneId = "scene-1";
+    const fresh = {
+      ...defaultHexcrawlState(sceneId),
+      hexAnnotations: { "2,2": { iconId: "camp" as const } },
+      journeyLog: [{ kind: "travel" as const, travelDay: 1, at: 1 }],
+    };
+    const pending = {
+      ...defaultHexcrawlState(sceneId),
+      hexAnnotations: {},
+      journeyLog: [],
+    };
+
+    const game = globalThis.game as {
+      scenes?: { get: (id: string) => { getFlag?: (scope: string, key: string) => unknown } | undefined };
+      world?: { getFlag?: (scope: string, key: string) => unknown };
+    };
+    game.scenes = {
+      get: (id: string) =>
+        id === sceneId ? { getFlag: () => ({ ...fresh, version: 1 }) } : undefined,
+    };
+    game.world = { getFlag: () => null };
+
+    const merged = prepareHexcrawlStateForSave(pending, sceneId);
+    expect(merged.hexAnnotations).toEqual({});
+  });
+});
+
+describe("hexcrawlHexMap flag", () => {
+  it("persists cleared icons through save and reload", async () => {
+    const sceneId = "scene-map";
+    const flags: Record<string, Record<string, unknown>> = {
+      [MODULE_ID]: {},
+    };
+    const scene = {
+      unsetFlag: async (scope: string, key: string) => {
+        if (flags[scope]) delete flags[scope][key];
+      },
+      setFlag: async (
+        scope: string,
+        key: string,
+        value: unknown,
+        options?: { merge?: boolean },
+      ) => {
+        if (!flags[scope]) flags[scope] = {};
+        flags[scope][key] =
+          options?.merge === false
+            ? structuredClone(value)
+            : { ...(flags[scope][key] as object), ...(value as object) };
+      },
+      getFlag: (scope: string, key: string) => flags[scope]?.[key],
+    };
+
+    const game = globalThis.game as {
+      scenes?: { get: (id: string) => typeof scene | undefined };
+      world?: { getFlag?: (scope: string, key: string) => unknown };
+    };
+    game.scenes = { get: (id) => (id === sceneId ? scene : undefined) };
+    game.world = { getFlag: () => null, unsetFlag: async () => undefined };
+
+    const withIcon = {
+      ...defaultHexcrawlState(sceneId),
+      enabled: true,
+      hexAnnotations: { "4,4": { iconId: "ruins" as const } },
+    };
+    await saveHexcrawlSceneState(withIcon);
+
+    const cleared = {
+      ...withIcon,
+      hexAnnotations: {},
+      updatedAt: withIcon.updatedAt + 1000,
+    };
+    await saveHexcrawlSceneState(cleared);
+
+    const loaded = loadHexcrawlSceneState(sceneId);
+    expect(loaded?.hexAnnotations).toEqual({});
+
+    const mainRaw = flags[MODULE_ID][HEXCRAWL_SCENE_STATE_FLAG] as {
+      hexAnnotations?: Record<string, unknown>;
+    };
+    const mapRaw = flags[MODULE_ID][HEXCRAWL_HEX_MAP_FLAG] as {
+      hexAnnotations?: Record<string, unknown>;
+    };
+    expect(mapRaw.hexAnnotations).toEqual({});
+    expect(mainRaw.hexAnnotations).toEqual({});
+  });
+
+  it("persists hex cover removal after travel entry", async () => {
+    const sceneId = "scene-cover-travel";
+    const flags: Record<string, Record<string, unknown>> = { [MODULE_ID]: {} };
+
+    const scene = {
+      unsetFlag: async (scope: string, key: string) => {
+        if (flags[scope]) delete flags[scope][key];
+      },
+      setFlag: async (
+        scope: string,
+        key: string,
+        value: unknown,
+        options?: { merge?: boolean },
+      ) => {
+        if (!flags[scope]) flags[scope] = {};
+        flags[scope][key] =
+          options?.merge === false
+            ? structuredClone(value)
+            : { ...(flags[scope][key] as object), ...(value as object) };
+      },
+      getFlag: (scope: string, key: string) => flags[scope]?.[key],
+    };
+
+    const game = globalThis.game as {
+      scenes?: { get: (id: string) => typeof scene | undefined };
+      world?: { getFlag?: (scope: string, key: string) => unknown };
+    };
+    game.scenes = { get: (id) => (id === sceneId ? scene : undefined) };
+    game.world = { getFlag: () => null, unsetFlag: async () => undefined };
+
+    const withCover = {
+      ...defaultHexcrawlState(sceneId),
+      enabled: true,
+      hexAnnotations: { "5,5": { hexCoverColor: "#808080" } },
+    };
+    await saveHexcrawlSceneState(withCover);
+
+    const afterEntry = {
+      ...withCover,
+      hexAnnotations: {},
+      lastHexKey: "5,5",
+    };
+    await saveHexcrawlSceneState(afterEntry);
+
+    const loaded = loadHexcrawlSceneState(sceneId);
+    expect(loaded?.hexAnnotations["5,5"]).toBeUndefined();
+    expect(
+      (flags[MODULE_ID][HEXCRAWL_HEX_MAP_FLAG] as { hexAnnotations?: Record<string, unknown> })
+        .hexAnnotations,
+    ).toEqual({});
+  });
+
+  it("prefers dedicated hex map flag when it is at least as new as scene state", () => {
+    const sceneId = "scene-map";
+    const scene = {
+      getFlag: (scope: string, key: string) => {
+        if (scope !== MODULE_ID) return undefined;
+        if (key === HEXCRAWL_SCENE_STATE_FLAG) {
+          return {
+            ...defaultHexcrawlState(sceneId),
+            enabled: true,
+            hexAnnotations: { "1,1": { iconId: "camp" } },
+            updatedAt: 2,
+            version: 1,
+          };
+        }
+        if (key === HEXCRAWL_HEX_MAP_FLAG) {
+          return {
+            hexAnnotations: {},
+            hiddenTrailHexKeys: [],
+            showTerrainIcons: true,
+            updatedAt: 2,
+          };
+        }
+        return undefined;
+      },
+    };
+
+    const game = globalThis.game as {
+      scenes?: { get: (id: string) => typeof scene | undefined };
+      world?: { getFlag?: (scope: string, key: string) => unknown };
+    };
+    game.scenes = { get: (id) => (id === sceneId ? scene : undefined) };
+    game.world = { getFlag: () => null };
+
+    const loaded = loadHexcrawlSceneState(sceneId);
+    expect(loaded?.hexAnnotations).toEqual({});
+  });
+
+  it("always applies the dedicated hex map flag when present", () => {
+    const sceneId = "scene-stale-map";
+    const scene = {
+      getFlag: (scope: string, key: string) => {
+        if (scope !== MODULE_ID) return undefined;
+        if (key === HEXCRAWL_SCENE_STATE_FLAG) {
+          return {
+            ...defaultHexcrawlState(sceneId),
+            enabled: true,
+            updatedAt: 200,
+            version: 1,
+          };
+        }
+        if (key === HEXCRAWL_HEX_MAP_FLAG) {
+          return {
+            hexAnnotations: { "9,9": { hexCoverColor: "#808080" } },
+            hiddenTrailHexKeys: [],
+            showTerrainIcons: true,
+            updatedAt: 100,
+          };
+        }
+        return undefined;
+      },
+    };
+
+    const game = globalThis.game as {
+      scenes?: { get: (id: string) => typeof scene | undefined };
+      world?: { getFlag?: (scope: string, key: string) => unknown };
+    };
+    game.scenes = { get: (id) => (id === sceneId ? scene : undefined) };
+    game.world = { getFlag: () => null };
+
+    const loaded = loadHexcrawlSceneState(sceneId);
+    expect(loaded?.hexAnnotations["9,9"]).toEqual({ hexCoverColor: "#808080" });
+  });
+
+  it("migrates legacy revealedHexCoverKeys by deleting covers from hex map data", () => {
+    const sceneId = "scene-legacy-cover";
+    const scene = {
+      getFlag: (scope: string, key: string) => {
+        if (scope !== MODULE_ID) return undefined;
+        if (key === HEXCRAWL_SCENE_STATE_FLAG) {
+          return {
+            ...defaultHexcrawlState(sceneId),
+            enabled: true,
+            revealedHexCoverKeys: ["2,2", "3,3"],
+            version: 1,
+          };
+        }
+        if (key === HEXCRAWL_HEX_MAP_FLAG) {
+          return {
+            hexAnnotations: {
+              "2,2": { hexCoverColor: "#808080" },
+              "3,3": { hexCoverColor: "#aabbcc", iconId: "camp" },
+            },
+            hiddenTrailHexKeys: [],
+            showTerrainIcons: true,
+            updatedAt: 1,
+          };
+        }
+        return undefined;
+      },
+    };
+
+    const game = globalThis.game as {
+      scenes?: { get: (id: string) => typeof scene | undefined };
+      world?: { getFlag?: (scope: string, key: string) => unknown };
+    };
+    game.scenes = { get: (id) => (id === sceneId ? scene : undefined) };
+    game.world = { getFlag: () => null };
+
+    const loaded = loadHexcrawlSceneState(sceneId);
+    expect(loaded?.hexAnnotations["2,2"]).toBeUndefined();
+    expect(loaded?.hexAnnotations["3,3"]).toEqual({ iconId: "camp" });
   });
 });

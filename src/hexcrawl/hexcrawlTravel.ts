@@ -16,11 +16,18 @@ import {
   appendJourneyLog,
   appendTraveledHexKey,
   loadHexcrawlSceneState,
+  resetMilesTraveledCumulative,
   saveHexcrawlSceneState,
   type HexcrawlSceneState,
 } from "./hexcrawlScenePersist.js";
 import { getSceneMilesPerHex } from "./sceneGrid.js";
 import { filterHexcrawlTravelRoleActorIds } from "./partyTravel.js";
+import { refreshHexcrawlMapOverlay } from "./hexcrawlMapOverlay.js";
+import {
+  applyHexEntryFogEffects,
+  discoverPoiOnHexEntry,
+  resolveTerrainForHex,
+} from "./hexAnnotations.js";
 import {
   clampDifficulty,
   computeTravelFatigueDelta,
@@ -35,6 +42,20 @@ import { applyHexTravelToWorldClock } from "./travelWorldClock.js";
 /** In-memory guard so reset suppresses travel before persisted state is read by async hooks. */
 const resetTravelActiveScenes = new Set<string>();
 
+/** One hex entry (including encounter rolls) at a time per scene. */
+const travelHexEntryTailByScene = new Map<string, Promise<void>>();
+
+function enqueueTravelHexEntry(sceneId: string, run: () => Promise<void>): Promise<void> {
+  const previous = travelHexEntryTailByScene.get(sceneId) ?? Promise.resolve();
+  const next = previous.catch(() => undefined).then(run);
+  travelHexEntryTailByScene.set(sceneId, next);
+  return next.finally(() => {
+    if (travelHexEntryTailByScene.get(sceneId) === next) {
+      travelHexEntryTailByScene.delete(sceneId);
+    }
+  });
+}
+
 export function markResetTravelActive(sceneId: string): void {
   resetTravelActiveScenes.add(sceneId);
 }
@@ -47,7 +68,7 @@ export async function clearResetTravelPending(sceneId: string): Promise<void> {
   unmarkResetTravelActive(sceneId);
   const state = loadHexcrawlSceneState(sceneId);
   if (!state?.resetTravelPending) return;
-  await saveHexcrawlSceneState({ ...state, resetTravelPending: null });
+  await saveHexcrawlSceneState({ ...state, resetTravelPending: null }, { writeHexMap: false });
 }
 
 /** True while a reset token reposition is in progress (skip one-hex constraint). */
@@ -70,6 +91,18 @@ export function resolveTravelTokenId(
     return findSceneTokenIdForActor(sceneId, state.navigatorActorId);
   }
   return state.travelTokenId;
+}
+
+/** True when this token is the party travel token or the navigator's scene token. */
+export function tokenQualifiesForHexEntry(
+  sceneId: string,
+  state: Pick<HexcrawlSceneState, "travelTokenId" | "navigatorActorId">,
+  tokenId: string,
+): boolean {
+  const travelTokenId = resolveTravelTokenId(sceneId, state);
+  if (travelTokenId && travelTokenId === tokenId) return true;
+  if (!state.navigatorActorId) return false;
+  return findSceneTokenIdForActor(sceneId, state.navigatorActorId) === tokenId;
 }
 
 export function shouldConstrainTravelTokenMove(
@@ -125,7 +158,7 @@ export async function handleResetTravelMovement(
     hexKeys.includes(pending!.untilHexKey);
 
   if (arrived && state) {
-    await saveHexcrawlSceneState({ ...state, resetTravelPending: null });
+    await saveHexcrawlSceneState({ ...state, resetTravelPending: null }, { writeHexMap: false });
     unmarkResetTravelActive(sceneId);
   }
 
@@ -264,6 +297,14 @@ export async function processTravelHexEntry(params: {
   tokenId: string;
   hexKey: string;
 }): Promise<void> {
+  return enqueueTravelHexEntry(params.sceneId, () => processTravelHexEntryInner(params));
+}
+
+async function processTravelHexEntryInner(params: {
+  sceneId: string;
+  tokenId: string;
+  hexKey: string;
+}): Promise<void> {
   if (!currentUserIsOverseer()) return;
 
   let state = loadHexcrawlSceneState(params.sceneId);
@@ -271,14 +312,17 @@ export async function processTravelHexEntry(params: {
   if (resetTravelActiveScenes.has(params.sceneId) || state.resetTravelPending) return;
 
   const travelTokenId = resolveTravelTokenId(params.sceneId, state);
-  if (!travelTokenId || travelTokenId !== params.tokenId) return;
-  if (travelTokenId !== state.travelTokenId) {
+  if (!tokenQualifiesForHexEntry(params.sceneId, state, params.tokenId)) return;
+
+  if (travelTokenId && travelTokenId !== state.travelTokenId) {
     state = { ...state, travelTokenId };
   }
   if (state.lastHexKey === params.hexKey) return;
 
+  const hexTerrain = resolveTerrainForHex(state, params.hexKey);
   const mph = resolvePartyTravelMph(
     filterHexcrawlTravelRoleActorIds(state.partyActorIds),
+    hexTerrain,
   );
   const milesPerHex = getSceneMilesPerHex(params.sceneId);
   const minutes = hexTravelMinutes(milesPerHex, mph);
@@ -289,13 +333,16 @@ export async function processTravelHexEntry(params: {
     travelDay: state.travelDay,
     hexKey: params.hexKey,
     clockAt: clockBefore,
+    note: hexTerrain,
   });
   state = {
     ...state,
     lastHexKey: params.hexKey,
     trailCleared: false,
     traveledHexKeys: appendTraveledHexKey(state.traveledHexKeys, params.hexKey),
+    milesTraveledCumulative: state.milesTraveledCumulative + milesPerHex,
   };
+  state = discoverPoiOnHexEntry(state, params.hexKey);
 
   state = await applyTravelMinutes({
     state,
@@ -306,7 +353,13 @@ export async function processTravelHexEntry(params: {
     onHexEntry: true,
   });
 
-  await saveHexcrawlSceneState(state);
+  const saved = await saveHexcrawlSceneState(state, { writeHexMap: false });
+  const overlayState = saved ?? loadHexcrawlSceneState(params.sceneId);
+  if (overlayState) {
+    await refreshHexcrawlMapOverlay(params.sceneId, overlayState);
+  }
+  const { default: HexcrawlTravelApp } = await import("./HexcrawlTravelApp.js");
+  HexcrawlTravelApp.rebindForScene(params.sceneId, { force: true });
 }
 
 export async function ensureHexGridForScene(sceneId: string): Promise<void> {
@@ -382,12 +435,17 @@ export function applyCourseCheckFail(state: HexcrawlSceneState): HexcrawlSceneSt
   };
 }
 
-/** Pass/Fail enabled when day end is pending and the party has not yet passed for this cycle. */
+/** Pass enabled when day end is pending and the party has not yet passed for this cycle. */
 export function courseChecksEnabled(state: HexcrawlSceneState): boolean {
   return (
     state.pendingDayEnd &&
     !(state.courseCheckResolved && state.courseStatus === "onCourse")
   );
+}
+
+/** Course check fail is always available while hexcrawl is enabled. */
+export function courseFailEnabled(state: HexcrawlSceneState): boolean {
+  return state.enabled;
 }
 
 /** Confirm day end only after a successful pass while still on course for this cycle. */
@@ -404,17 +462,19 @@ export async function applyOneHexTravelTime(
   state: HexcrawlSceneState,
   sceneId: string,
 ): Promise<HexcrawlSceneState> {
+  const hexKey = state.lastHexKey ?? "";
+  const hexTerrain = resolveTerrainForHex(state, hexKey);
   const mph = resolvePartyTravelMph(
     filterHexcrawlTravelRoleActorIds(state.partyActorIds),
+    hexTerrain,
   );
   const milesPerHex = getSceneMilesPerHex(sceneId);
   const minutes = hexTravelMinutes(milesPerHex, mph);
-  const hexKey = state.lastHexKey ?? undefined;
 
   return applyTravelMinutes({
     state,
     sceneId,
-    hexKey,
+    hexKey: hexKey || undefined,
     minutes,
     mph,
     clockNote: "courseCheck",
@@ -468,13 +528,13 @@ export function applySetCampDayEnd(state: HexcrawlSceneState): HexcrawlSceneStat
     travelDay: state.travelDay + 1,
     hexKey: state.lastHexKey ?? undefined,
   });
-  return {
+  return resetMilesTraveledCumulative({
     ...next,
     pendingDayEnd: false,
     courseCheckResolved: false,
     hoursTraveledToday: 0,
     travelDay: state.travelDay + 1,
-  };
+  });
 }
 
 export async function processSetCamp(
@@ -497,7 +557,7 @@ export async function processSetCamp(
     note: encounter.error,
   });
   next = applySetCampDayEnd(next);
-  await saveHexcrawlSceneState(next);
+  await saveHexcrawlSceneState(next, { writeHexMap: false });
   ui.notifications.info(
     t("WASTELANDER.Hexcrawl.Notify.CampSet", { day: next.travelDay }),
   );
@@ -552,14 +612,21 @@ export function applySetStartingHex(
   state: HexcrawlSceneState,
   hexKey: string,
 ): HexcrawlSceneState {
-  return appendJourneyLog(
-    { ...state, startingHexKey: hexKey, lastHexKey: hexKey, trailCleared: false, traveledHexKeys: [hexKey] },
+  const placed = applyHexEntryFogEffects(
     {
-      kind: "startingLocationSet",
-      travelDay: state.travelDay,
-      hexKey,
+      ...state,
+      startingHexKey: hexKey,
+      lastHexKey: hexKey,
+      trailCleared: false,
+      traveledHexKeys: [hexKey],
     },
+    hexKey,
   );
+  return appendJourneyLog(placed, {
+    kind: "startingLocationSet",
+    travelDay: state.travelDay,
+    hexKey,
+  });
 }
 
 export function applyResetTravel(
@@ -648,7 +715,7 @@ export async function confirmAndResetTravel(
   markResetTravelActive(sceneId);
   try {
     const resetState = applyResetTravel(state, tokenId);
-    await saveHexcrawlSceneState(resetState);
+    await saveHexcrawlSceneState(resetState, { writeHexMap: false });
 
     const moved = await moveTokenToHexKey(sceneId, tokenId, state.startingHexKey);
     if (!moved) {

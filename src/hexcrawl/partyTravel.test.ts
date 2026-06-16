@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { mergePartyActorIdsWithScene } from "./partyTravel.js";
 import {
+  formatMphWithUnit,
   hexTravelMinutes,
   mphForAgi,
+  mphForAgiAndTerrain,
   travelEncounterRollCount,
 } from "./travelRules.js";
 
@@ -43,8 +45,22 @@ describe("travel timing and encounters", () => {
     ).toBe(0);
   });
 
-  it("maps low AGI to 2 mph", () => {
+  it("formats speed with MPH initials", () => {
+    expect(formatMphWithUnit(2)).toBe("2 MPH");
+    expect(formatMphWithUnit(1.5)).toBe("1.5 MPH");
+  });
+
+  it("maps low AGI to 2 mph on normal terrain", () => {
     expect(mphForAgi(5)).toBe(2);
     expect(mphForAgi(6)).toBe(3);
+  });
+
+  it("uses GM Toolkit terrain table by AGI band", () => {
+    expect(mphForAgiAndTerrain(5, "open")).toBe(3);
+    expect(mphForAgiAndTerrain(5, "rough")).toBe(1.5);
+    expect(mphForAgiAndTerrain(5, "hard")).toBe(1);
+    expect(mphForAgiAndTerrain(7, "open")).toBe(4.5);
+    expect(mphForAgiAndTerrain(7, "rough")).toBe(2.25);
+    expect(mphForAgiAndTerrain(10, "hard")).toBe(2);
   });
 });

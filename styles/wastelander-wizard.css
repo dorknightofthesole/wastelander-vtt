@@ -4149,26 +4149,51 @@
 
 .wastelander-hexcrawl-app .wastelander-hexcrawl-status-bar {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem 1rem;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: 0.5rem;
   margin: 10px 0;
   font-size: inherit;
+  text-align: left;
 }
 
-.wastelander-hexcrawl-app .wastelander-hexcrawl-status-left,
-.wastelander-hexcrawl-app .wastelander-hexcrawl-status-right {
+.wastelander-hexcrawl-app .wastelander-hexcrawl-status-left {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: flex-start;
   gap: 0.5rem 0.75rem;
+  width: 100%;
 }
 
 .wastelander-hexcrawl-app .wastelander-hexcrawl-status-right {
-  margin-left: auto;
-  text-align: right;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: 0.2rem;
+  width: 100%;
+  text-align: left;
   color: lightyellow;
+}
+
+.wastelander-hexcrawl-app .wastelander-hexcrawl-status-break {
+  display: block;
+  width: 100%;
+  height: 0;
+}
+
+.wastelander-hexcrawl-app .wastelander-hexcrawl-travel-speed,
+.wastelander-hexcrawl-app .wastelander-hexcrawl-max-hours,
+.wastelander-hexcrawl-app .wastelander-hexcrawl-current-terrain,
+.wastelander-hexcrawl-app .wastelander-hexcrawl-miles-traveled {
+  text-transform: none;
+}
+
+.wastelander-hexcrawl-app .wastelander-hexcrawl-current-terrain,
+.wastelander-hexcrawl-app .wastelander-hexcrawl-miles-traveled {
+  font-size: 0.9rem;
 }
 
 .wastelander-hexcrawl-app .wastelander-hexcrawl-course-status-top {
@@ -4348,3 +4373,126 @@
 .wastelander-hexcrawl-party-remove:hover {
   color: #f88;
 }
+
+.wastelander-hexcrawl-poi-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem 0.5rem;
+  margin: 0.75rem 0;
+}
+
+.wastelander-hexcrawl-poi-icon-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.35rem;
+  min-width: 0;
+  min-height: 5.5rem;
+  padding: 0.45rem 0.2rem 0.35rem;
+  border: 1px solid var(--color-border-light-2, #555);
+  border-radius: 4px;
+  background: var(--color-bg-option, #1a1a1a);
+  cursor: pointer;
+  font-size: 0.72rem;
+  line-height: 1.2;
+  overflow: hidden;
+}
+
+.wastelander-hexcrawl-poi-icon-btn.is-selected {
+  border-color: var(--color-border-highlight, #4fc3f7);
+  box-shadow: 0 0 0 1px var(--color-border-highlight, #4fc3f7);
+}
+
+.wastelander-hexcrawl-poi-icon-btn img {
+  display: block;
+  width: 56px;
+  height: 56px;
+  max-width: 56px;
+  max-height: 56px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.wastelander-hexcrawl-poi-icon-btn span {
+  display: block;
+  width: 100%;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wastelander-hexcrawl-map-editor-fields:disabled {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.wastelander-hexcrawl-map-editor-fields {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.wastelander-hexcrawl-map-selected-key {
+  font-family: var(--font-monospace, monospace);
+  margin: 0 0 0.75rem;
+}
+
+.wastelander-hexcrawl-map-trail-actions {
+  margin: 0.5rem 0 0.75rem;
+}
+
+.wastelander-hexcrawl-hex-cover-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+  margin: 0 0 0.75rem;
+}
+
+.wastelander-hexcrawl-hex-cover-btn {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  width: 5.5rem;
+  padding: 0.35rem;
+  border: 1px solid var(--color-border-light-2, #888);
+  border-radius: 4px;
+  background: var(--color-bg-option, rgba(0, 0, 0, 0.15));
+  color: inherit;
+  cursor: pointer;
+}
+
+.wastelander-hexcrawl-hex-cover-btn.is-selected {
+  border-color: var(--color-border-highlight, #4fc3f7);
+  box-shadow: 0 0 0 1px var(--color-border-highlight, #4fc3f7);
+}
+
+.wastelander-hexcrawl-hex-cover-preview {
+  display: block;
+  width: 56px;
+  height: 56px;
+  background: var(--hex-cover-color, #808080);
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+}
+
+.wastelander-hexcrawl-hex-cover-btn span:last-child {
+  font-size: 0.75rem;
+  line-height: 1.1;
+  text-align: center;
+}
+
+.wastelander-hexcrawl-hex-cover-color {
+  margin: 0;
+}
+
+.wastelander-hexcrawl-hex-cover-color input[type="color"] {
+  width: 3rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+

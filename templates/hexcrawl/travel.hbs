@@ -15,12 +15,15 @@
         <span class="wastelander-hexcrawl-difficulty-value">{{strings.difficulty}}: {{state.currentDifficulty}}</span>
       </div>
       <div class="wastelander-hexcrawl-status-right">
-        <span class="wastelander-hexcrawl-travel-speed">{{strings.currentMph}}: {{partyMph}} mph</span>
+        <span class="wastelander-hexcrawl-travel-speed">{{strings.currentMph}}: {{partyMph}}</span>
+        <span class="wastelander-hexcrawl-status-break" aria-hidden="true"></span>
         {{#if maxHoursActorName}}
         <span class="wastelander-hexcrawl-max-hours">{{strings.maxHours}}: {{state.maxHoursPerDay}} ({{maxHoursActorName}})</span>
         {{else}}
         <span class="wastelander-hexcrawl-max-hours">{{strings.maxHours}}: {{state.maxHoursPerDay}}</span>
         {{/if}}
+        <span class="wastelander-hexcrawl-current-terrain">{{strings.terrain}}: {{currentTerrainLabel}}</span>
+        <span class="wastelander-hexcrawl-miles-traveled">{{strings.milesTraveled}}: {{milesTraveledLabel}}</span>
       </div>
     </div>
     {{/if}}
@@ -32,6 +35,9 @@
       </button>
       <button type="button" role="tab" class="wastelander-scavenger-tab{{#if tabParty}} is-active{{/if}}" data-action="switchTab" data-tab="party" aria-selected="{{tabParty}}">
         {{strings.tabParty}}
+      </button>
+      <button type="button" role="tab" class="wastelander-scavenger-tab{{#if tabMap}} is-active{{/if}}" data-action="switchTab" data-tab="map" aria-selected="{{tabMap}}">
+        {{strings.tabMap}}
       </button>
     </nav>
     {{/if}}
@@ -63,7 +69,7 @@
         {{/if}}
         <div class="wastelander-hexcrawl-actions">
           <button type="button" class="wastelander-btn-primary" data-action="coursePass" {{#unless courseChecksEnabled}}disabled{{/unless}}>{{strings.coursePass}}</button>
-          <button type="button" class="wastelander-btn-secondary" data-action="courseFail" {{#unless courseChecksEnabled}}disabled{{/unless}}>{{strings.courseFail}}</button>
+          <button type="button" class="wastelander-btn-secondary" data-action="courseFail" {{#unless courseFailEnabled}}disabled{{/unless}}>{{strings.courseFail}}</button>
           <button type="button" class="wastelander-btn-secondary" data-action="confirmDayEnd" {{#unless confirmDayEndEnabled}}disabled{{/unless}}>{{strings.confirmDayEnd}}</button>
         </div>
       </section>
@@ -79,6 +85,15 @@
             {{/each}}
           </select>
         </div>
+        <div class="wastelander-field-row">
+          <label>{{strings.terrainType}}</label>
+          <select name="terrainType" data-field="terrainType">
+            {{#each terrainTypeOptions}}
+              <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+            {{/each}}
+          </select>
+        </div>
+        <p class="wastelander-scavenger-hint">{{strings.terrainTypeHint}}</p>
         <div class="wastelander-field-row wastelander-hexcrawl-trail-color">
           <label for="hexcrawl-trail-overlay-color">{{strings.trailOverlayColor}}</label>
           <input
@@ -103,6 +118,9 @@
             {{/each}}
           </select>
         </div>
+        <div class="wastelander-hexcrawl-actions">
+          <button type="button" class="wastelander-btn-secondary" data-action="markLost" {{#unless markLostEnabled}}disabled{{/unless}}>{{strings.markLost}}</button>
+        </div>
       </section>
 
       <section class="wastelander-hexcrawl-section">
@@ -123,6 +141,91 @@
       {{/if}}
     </div>
     {{/if}}
+    {{/if}}
+
+    {{#if showMapPanel}}
+    <div class="wastelander-scavenger-tab-panel wastelander-hexcrawl-tab-panel" role="tabpanel">
+      {{#if state.enabled}}
+      <section class="wastelander-hexcrawl-section wastelander-hexcrawl-map-editor">
+        <label class="wastelander-field-checkbox">
+          <input type="checkbox" name="showTerrainIcons" {{#if state.showTerrainIcons}}checked{{/if}} data-field="showTerrainIcons" />
+          <span>{{strings.mapShowTerrainIcons}}</span>
+        </label>
+        <p class="wastelander-scavenger-hint">{{strings.mapTabHint}}</p>
+
+        <h3>{{strings.mapSelectedHex}}</h3>
+        <p class="wastelander-hexcrawl-map-selected-key">{{#if selectedHexKey}}{{selectedHexKey}}{{else}}—{{/if}}</p>
+
+        <div class="wastelander-hexcrawl-map-editor-fields">
+        {{#if selectedHexKey}}
+        <p>{{strings.mapEffectiveMph}}: {{selectedHexMph}} ({{selectedHexTerrainLabel}})</p>
+        {{/if}}
+        <div class="wastelander-field-row">
+          <label>{{strings.mapTerrain}}</label>
+          <select name="mapHexTerrain" data-field="mapHexTerrain">
+            {{#each mapHexTerrainOptions}}
+              <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+            {{/each}}
+          </select>
+        </div>
+        <div class="wastelander-hexcrawl-map-trail-actions">
+          {{#if mapTrailHidden}}
+          <button type="button" class="wastelander-btn-secondary" data-action="showMapTrail">{{strings.mapShowTrail}}</button>
+          {{else}}
+          <button type="button" class="wastelander-btn-secondary" data-action="hideMapTrail">{{strings.mapHideTrail}}</button>
+          {{/if}}
+        </div>
+        <h4>{{strings.mapHexCover}}</h4>
+        <p class="wastelander-scavenger-hint">{{strings.mapHexCoverHint}}</p>
+        <div class="wastelander-hexcrawl-hex-cover-controls">
+          <button
+            type="button"
+            class="wastelander-hexcrawl-hex-cover-btn{{#if mapHexCoverActive}} is-selected{{/if}}"
+            data-action="toggleMapHexCover"
+            title="{{strings.mapHexCover}}"
+            aria-pressed="{{#if mapHexCoverActive}}true{{else}}false{{/if}}"
+          >
+            <span class="wastelander-hexcrawl-hex-cover-preview" style="--hex-cover-color: {{mapHexCoverPreviewColor}}"></span>
+            <span>{{strings.mapHexCover}}</span>
+          </button>
+          <div class="wastelander-field-row wastelander-hexcrawl-hex-cover-color">
+            <label for="hexcrawl-map-hex-cover-color">{{strings.mapHexCoverColor}}</label>
+            <input
+              id="hexcrawl-map-hex-cover-color"
+              type="color"
+              name="hexCoverBrushColor"
+              value="{{mapHexCoverPickerColor}}"
+              data-field="hexCoverBrushColor"
+              title="{{strings.mapHexCoverColor}}"
+            />
+          </div>
+        </div>
+        <h4>{{strings.mapPoiIcon}}</h4>
+        <p class="wastelander-scavenger-hint">{{strings.mapPoiIconHint}}</p>
+        <div class="wastelander-hexcrawl-poi-icon-grid">
+          {{#each mapPoiIcons}}
+          <button
+            type="button"
+            class="wastelander-hexcrawl-poi-icon-btn{{#if selected}} is-selected{{/if}}"
+            data-action="setMapPoiIcon"
+            data-icon-id="{{id}}"
+            title="{{label}}"
+            aria-pressed="{{#if selected}}true{{else}}false{{/if}}"
+          >
+            <img src="{{imageUrl}}" alt="{{label}}" width="56" height="56" />
+            <span>{{label}}</span>
+          </button>
+          {{/each}}
+        </div>
+        <div class="wastelander-hexcrawl-actions">
+          <button type="button" class="wastelander-btn-secondary" data-action="clearMapHex">{{strings.mapClearHex}}</button>
+        </div>
+        </div>
+      </section>
+      {{else}}
+      <p class="wastelander-scavenger-hint">{{strings.enableLabel}}</p>
+      {{/if}}
+    </div>
     {{/if}}
 
     {{#if showPartyPanel}}

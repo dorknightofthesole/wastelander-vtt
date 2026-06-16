@@ -12,8 +12,10 @@ import {
   type HexSnapResult,
   type TokenMovementLike,
 } from "./hexCoords.js";
+import { applyHexEntryFogEffects } from "./hexAnnotations.js";
 import {
   appendJourneyLog,
+  appendTraveledHexKey,
   defaultHexcrawlState,
   loadHexcrawlSceneState,
   saveHexcrawlSceneState,
@@ -646,6 +648,18 @@ export function detectBorderCrossIntent(
   return { direction, targetSceneId, exitHexKey };
 }
 
+/** Restore a scene's prior trail when re-entering via border travel, then append the entry hex. */
+export function mergeTargetSceneTrail(
+  targetExisting: HexcrawlSceneState,
+  entryHexKey: string,
+): string[] {
+  const priorTrail =
+    targetExisting.trailCleared && targetExisting.traveledHexKeys.length === 0
+      ? []
+      : [...targetExisting.traveledHexKeys];
+  return appendTraveledHexKey(priorTrail, entryHexKey);
+}
+
 export function buildCrossedSceneState(params: {
   source: HexcrawlSceneState;
   targetSceneId: string;
@@ -664,12 +678,17 @@ export function buildCrossedSceneState(params: {
     sceneId: params.targetSceneId,
     travelTokenId: params.targetTokenId,
     lastHexKey: params.entryHexKey,
-    traveledHexKeys: [params.entryHexKey],
+    traveledHexKeys: mergeTargetSceneTrail(targetBase, params.entryHexKey),
     trailCleared: false,
     resetTravelPending: null,
     sceneLinks: targetBase.sceneLinks,
     startingHexKey: targetBase.startingHexKey ?? params.entryHexKey,
+    terrainType: targetBase.terrainType,
+    hexAnnotations: targetBase.hexAnnotations,
+    hiddenTrailHexKeys: targetBase.hiddenTrailHexKeys,
+    discoveredPoiHexKeys: targetBase.discoveredPoiHexKeys,
   };
+  next = applyHexEntryFogEffects(next, params.entryHexKey);
 
   next = appendJourneyLog(next, {
     kind: "sceneCrossed",
@@ -983,7 +1002,7 @@ export async function executeSceneCrossing(params: {
     direction: params.direction,
   });
 
-  await saveHexcrawlSceneState(crossedState);
+  await saveHexcrawlSceneState(crossedState, { writeHexMap: false });
   await moveTokenToHexKey(
     params.targetSceneId,
     targetTokenId,
