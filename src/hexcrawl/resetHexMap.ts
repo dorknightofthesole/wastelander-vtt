@@ -22,6 +22,7 @@ export function applyResetMap(state: HexcrawlSceneState): HexcrawlSceneState {
       hiddenTrailHexKeys: [],
       trailCleared: true,
       discoveredPoiHexKeys: [],
+      mapDestinationReached: false,
       resetTravelPending: null,
     },
     { kind: "mapReset", travelDay: state.travelDay },

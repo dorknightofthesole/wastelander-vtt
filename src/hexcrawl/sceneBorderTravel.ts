@@ -694,6 +694,11 @@ export function buildCrossedSceneState(params: {
       notifyPoiDiscovered(fog.discovered!),
     );
   }
+  if (fog.destinationArrival) {
+    void import("./destinationArrivalChat.js").then(({ notifyDestinationArrived }) =>
+      notifyDestinationArrived(fog.destinationArrival!),
+    );
+  }
   next = fog.state;
 
   next = appendJourneyLog(next, {

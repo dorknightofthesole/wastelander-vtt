@@ -348,6 +348,14 @@ async function processTravelHexEntryInner(params: {
     const { notifyPoiDiscovered } = await import("./poiDiscoveryChat.js");
     notifyPoiDiscovered(poiDiscovery.discovered);
   }
+  const destinationDiscovery = (
+    await import("./hexMapDestination.js")
+  ).discoverMapDestinationOnHexEntry(state, params.hexKey);
+  state = destinationDiscovery.state;
+  if (destinationDiscovery.arrival) {
+    const { notifyDestinationArrived } = await import("./destinationArrivalChat.js");
+    notifyDestinationArrived(destinationDiscovery.arrival);
+  }
 
   state = await applyTravelMinutes({
     state,
@@ -631,6 +639,11 @@ export function applySetStartingHex(
   if (fog.discovered) {
     void import("./poiDiscoveryChat.js").then(({ notifyPoiDiscovered }) =>
       notifyPoiDiscovered(fog.discovered!),
+    );
+  }
+  if (fog.destinationArrival) {
+    void import("./destinationArrivalChat.js").then(({ notifyDestinationArrived }) =>
+      notifyDestinationArrived(fog.destinationArrival!),
     );
   }
   return appendJourneyLog(fog.state, {

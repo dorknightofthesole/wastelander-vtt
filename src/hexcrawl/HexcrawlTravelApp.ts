@@ -25,6 +25,14 @@ import {
   resolvePoiIconImageUrl,
 } from "./hexPoiCatalog.js";
 import {
+  clearMapDestination,
+  ensureInheritedProgressDestinationCached,
+  invalidateInheritedProgressDestination,
+  promptForDestinationName,
+  progressDestinationDisplayLabel,
+  setMapDestination,
+} from "./hexMapDestination.js";
+import {
   captureHexCoverBrushFromPicker,
   getEffectiveLastHexCoverColor,
   primeHexCoverBrushCache,
@@ -138,6 +146,8 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
       setMapPoiIcon: HexcrawlTravelApp.onSetMapPoiIcon,
       addMapPoiIcon: HexcrawlTravelApp.onAddMapPoiIcon,
       removeMapPoiIcon: HexcrawlTravelApp.onRemoveMapPoiIcon,
+      setMapDestination: HexcrawlTravelApp.onSetMapDestination,
+      clearMapDestination: HexcrawlTravelApp.onClearMapDestination,
       toggleMapHexCover: HexcrawlTravelApp.onToggleMapHexCover,
       hideMapTrail: HexcrawlTravelApp.onHideMapTrail,
       showMapTrail: HexcrawlTravelApp.onShowMapTrail,
@@ -356,13 +366,18 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
     };
     next = syncPartyTravelState(next, sceneId);
     next = this.#withTravelTokenSync(next);
+    const cached = currentUserIsOverseer()
+      ? ensureInheritedProgressDestinationCached(next)
+      : { state: next, changed: false };
+    next = cached.state;
     this.#state = next;
-    // Only auto-persist party/token sync when a flag already exists. Creating a flag
-    // here races with the enable checkbox and can overwrite enabled: true.
+    // Only auto-persist when a flag already exists. Creating a flag here races with
+    // the enable checkbox and can overwrite enabled: true.
     if (
       loaded &&
       currentUserIsOverseer() &&
-      (next.travelTokenId !== loaded.travelTokenId ||
+      (cached.changed ||
+        next.travelTokenId !== loaded.travelTokenId ||
         next.lastHexKey !== loaded.lastHexKey ||
         next.maxHoursPerDay !== loaded.maxHoursPerDay ||
         next.navigatorActorId !== loaded.navigatorActorId ||
@@ -552,6 +567,12 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
         ? t("WASTELANDER.Hexcrawl.CourseStatus.Lost")
         : t("WASTELANDER.Hexcrawl.CourseStatus.OnCourse");
 
+    const progressDestinationLabel = progressDestinationDisplayLabel(
+      this.#sceneId,
+      state,
+      t("WASTELANDER.Hexcrawl.DestinationNotSet"),
+    );
+
     return {
       state,
       isOverseer,
@@ -597,6 +618,11 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
       mapHexCoverActive: Boolean(selectedHexAnnotation?.hexCoverColor),
       mapHexCoverPickerColor: resolveHexCoverPickerColor(selectedHexAnnotation?.hexCoverColor),
       mapHexCoverPreviewColor: resolveHexCoverPickerColor(selectedHexAnnotation?.hexCoverColor),
+      progressDestinationLabel,
+      mapDestinationName: state.mapDestination?.name ?? null,
+      mapDestinationHex: state.mapDestination?.hexKey ?? null,
+      mapDestinationOnSelectedHex:
+        Boolean(selectedHexKey && state.mapDestination?.hexKey === selectedHexKey),
       strings: {
         enableLabel: t("WASTELANDER.Hexcrawl.EnableLabel"),
         showHexCoords: t("WASTELANDER.Hexcrawl.ShowHexCoords"),
@@ -614,6 +640,10 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
         mapAddPoiIcon: t("WASTELANDER.Hexcrawl.MapAddPoiIcon"),
         mapNoPoiIcons: t("WASTELANDER.Hexcrawl.MapNoPoiIcons"),
         mapRemovePoiIcon: t("WASTELANDER.Hexcrawl.MapRemovePoiIcon"),
+        mapDestination: t("WASTELANDER.Hexcrawl.MapDestination"),
+        mapDestinationHint: t("WASTELANDER.Hexcrawl.MapDestinationHint"),
+        setMapDestination: t("WASTELANDER.Hexcrawl.SetMapDestination"),
+        clearMapDestination: t("WASTELANDER.Hexcrawl.ClearMapDestination"),
         mapHexCover: t("WASTELANDER.Hexcrawl.MapHexCover"),
         mapHexCoverHint: t("WASTELANDER.Hexcrawl.MapHexCoverHint"),
         mapHexCoverColor: t("WASTELANDER.Hexcrawl.MapHexCoverColor"),
@@ -644,6 +674,8 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
         navigationCondition: t("WASTELANDER.Hexcrawl.NavigationCondition"),
         difficulty: t("WASTELANDER.Hexcrawl.Difficulty"),
         progress: t("WASTELANDER.Hexcrawl.Progress"),
+        destination: t("WASTELANDER.Hexcrawl.Destination"),
+        destinationFromLinked: t("WASTELANDER.Hexcrawl.DestinationFromLinked"),
         travelDay: t("WASTELANDER.Hexcrawl.TravelDay"),
         hoursToday: t("WASTELANDER.Hexcrawl.HoursToday"),
         lastHex: t("WASTELANDER.Hexcrawl.LastHex"),
@@ -755,15 +787,18 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
       }
       default: {
         if (!field.startsWith("sceneLinks.") || !this.#sceneId) break;
-        void this.#mutate((state) => ({
-          ...state,
-          sceneLinks: applySceneLinkUpdate(
-            state.sceneLinks,
-            field,
-            el.value,
-            this.#sceneId ?? "",
-          ),
-        }));
+        void this.#mutate((state) => {
+          const withLinks = {
+            ...invalidateInheritedProgressDestination(state),
+            sceneLinks: applySceneLinkUpdate(
+              state.sceneLinks,
+              field,
+              el.value,
+              this.#sceneId ?? "",
+            ),
+          };
+          return ensureInheritedProgressDestinationCached(withLinks).state;
+        });
         break;
       }
     }
@@ -982,6 +1017,28 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
     const removed = await removeWorldPoiIcon(iconId);
     if (!removed) return;
     void this.render(true);
+  }
+
+  static async onSetMapDestination(this: HexcrawlTravelApp): Promise<void> {
+    if (this.#playerView) return;
+    const hexKey = this.#resolveMapEditHexKey();
+    if (!hexKey) {
+      ui.notifications.warn(t("WASTELANDER.Hexcrawl.MapSelectHexFirst"));
+      return;
+    }
+
+    const currentName = this.#state?.mapDestination?.hexKey === hexKey
+      ? this.#state.mapDestination.name
+      : "";
+    const name = await promptForDestinationName(currentName);
+    if (!name) return;
+
+    void this.#mutateMap((state) => setMapDestination(state, hexKey, name));
+  }
+
+  static async onClearMapDestination(this: HexcrawlTravelApp): Promise<void> {
+    if (this.#playerView) return;
+    void this.#mutateMap((state) => clearMapDestination(state));
   }
 
   static onSetMapPoiIcon(

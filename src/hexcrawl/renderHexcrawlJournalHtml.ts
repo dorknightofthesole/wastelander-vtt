@@ -204,6 +204,16 @@ function formatEntry(entry: JourneyLogEntry): string {
           }),
         ),
       );
+    case "destinationReached":
+      return formatListItem(
+        entry,
+        escapeHtml(
+          t("WASTELANDER.Hexcrawl.Journal.DestinationReached", {
+            destination: entry.poiLabel ?? entry.note ?? "?",
+            hex: entry.hexKey ?? "?",
+          }),
+        ),
+      );
     default:
       return "";
   }

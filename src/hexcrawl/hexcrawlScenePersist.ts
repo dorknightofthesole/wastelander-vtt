@@ -21,6 +21,13 @@ import {
   setHexCover,
   type HexAnnotation,
 } from "./hexAnnotations.js";
+import {
+  backfillMapDestinationReached,
+  normalizeMapDestination,
+  normalizeInheritedProgressDestination,
+  type MapDestination,
+  type InheritedProgressDestination,
+} from "./hexMapDestination.js";
 import { scheduleHexcrawlJournalSync } from "./hexcrawlJournalSync.js";
 import { clearStagedHexcrawlMapOverlayState, stageHexcrawlMapOverlayState } from "./hexMapOverlayState.js";
 import { debugHexCover } from "./hexCoverDebug.js";
@@ -40,13 +47,21 @@ export type HexcrawlHexMapFlag = {
   hiddenTrailHexKeys: string[];
   showTerrainIcons: boolean;
   showHexCoords: boolean;
+  /** Single travel destination marker for this scene (one per scene). */
+  mapDestination: MapDestination | null;
   updatedAt: number;
 };
 
 function hexMapFlagFromState(
   state: Pick<
     HexcrawlSceneState,
-    "hexAnnotations" | "hexCoverBaseline" | "hiddenTrailHexKeys" | "showTerrainIcons" | "showHexCoords" | "updatedAt"
+    | "hexAnnotations"
+    | "hexCoverBaseline"
+    | "hiddenTrailHexKeys"
+    | "showTerrainIcons"
+    | "showHexCoords"
+    | "mapDestination"
+    | "updatedAt"
   >,
 ): HexcrawlHexMapFlag {
   return {
@@ -55,6 +70,7 @@ function hexMapFlagFromState(
     hiddenTrailHexKeys: [...state.hiddenTrailHexKeys],
     showTerrainIcons: state.showTerrainIcons !== false,
     showHexCoords: state.showHexCoords === true,
+    mapDestination: state.mapDestination ? { ...state.mapDestination } : null,
     updatedAt: state.updatedAt,
   };
 }
@@ -73,6 +89,7 @@ function applyHexMapFlag(
     hiddenTrailHexKeys: normalizeHiddenTrailHexKeys(row.hiddenTrailHexKeys),
     showTerrainIcons: row.showTerrainIcons !== false,
     showHexCoords: row.showHexCoords === true,
+    mapDestination: normalizeMapDestination(row.mapDestination),
   };
 }
 /** Orphan from an abandoned cross-scene experiment — cleared when saving v1 scene state. */
@@ -94,7 +111,8 @@ export type JourneyLogKind =
   | "travelReset"
   | "mapReset"
   | "sceneCrossed"
-  | "poiDiscovered";
+  | "poiDiscovered"
+  | "destinationReached";
 
 export type SceneCardinal = "north" | "south" | "east" | "west";
 
@@ -172,6 +190,12 @@ export type HexcrawlSceneState = {
   showHexCoords: boolean;
   /** Hex keys whose POI icons are visible to players (overseers always see all). */
   discoveredPoiHexKeys: string[];
+  /** Single map destination for this scene (stored in hex map flag). */
+  mapDestination: MapDestination | null;
+  /** True after the travel token enters the destination hex. */
+  mapDestinationReached: boolean;
+  /** Cached linked-scene destination for Progress when mapDestination is unset. */
+  inheritedProgressDestination: InheritedProgressDestination | null;
   /** Miles traveled since last camp or arrival. */
   milesTraveledCumulative: number;
   updatedAt: number;
@@ -214,6 +238,9 @@ export function defaultHexcrawlState(sceneId: string): HexcrawlSceneState {
     showTerrainIcons: true,
     showHexCoords: false,
     discoveredPoiHexKeys: [],
+    mapDestination: null,
+    mapDestinationReached: false,
+    inheritedProgressDestination: null,
     milesTraveledCumulative: 0,
     updatedAt: Date.now(),
   };
@@ -364,6 +391,10 @@ export function prepareHexcrawlStateForSave(
       pending.discoveredPoiHexKeys,
       fresh.discoveredPoiHexKeys,
     ),
+    mapDestination: preferFreshHexMap ? fresh.mapDestination : pending.mapDestination,
+    mapDestinationReached: fresh.mapDestinationReached || pending.mapDestinationReached,
+    inheritedProgressDestination: pending.inheritedProgressDestination ??
+      fresh.inheritedProgressDestination,
   };
 
   if (pending.trailCleared && pending.journeyLog.length === 0) {
@@ -385,6 +416,7 @@ export function prepareHexcrawlStateForSave(
       traveledHexKeys: pending.traveledHexKeys,
       trailCleared: pending.trailCleared,
       discoveredPoiHexKeys: pending.discoveredPoiHexKeys,
+      mapDestinationReached: pending.mapDestinationReached,
       hexAnnotations: pending.hexAnnotations,
       hexCoverBaseline: pending.hexCoverBaseline,
       hiddenTrailHexKeys: pending.hiddenTrailHexKeys,
@@ -489,6 +521,11 @@ export function normalizeHexcrawlState(
     showTerrainIcons: row.showTerrainIcons !== false,
     showHexCoords: row.showHexCoords === true,
     discoveredPoiHexKeys: normalizeDiscoveredPoiHexKeys(row.discoveredPoiHexKeys),
+    mapDestination: normalizeMapDestination(row.mapDestination),
+    mapDestinationReached: row.mapDestinationReached === true,
+    inheritedProgressDestination: normalizeInheritedProgressDestination(
+      row.inheritedProgressDestination,
+    ),
     milesTraveledCumulative:
       typeof row.milesTraveledCumulative === "number"
         ? Math.max(0, row.milesTraveledCumulative)
@@ -628,6 +665,9 @@ export function loadHexcrawlSceneState(sceneId: string): HexcrawlSceneState | nu
   if (!("discoveredPoiHexKeys" in rawRow)) {
     state = backfillDiscoveredPoisFromTravel(state);
   }
+  if (!("mapDestinationReached" in rawRow)) {
+    state = backfillMapDestinationReached(state);
+  }
   return state;
 }
 
@@ -640,7 +680,12 @@ export async function persistHexMapFlag(
   sceneId: string,
   map: Pick<
     HexcrawlHexMapFlag,
-    "hexAnnotations" | "hexCoverBaseline" | "hiddenTrailHexKeys" | "showTerrainIcons" | "showHexCoords"
+    | "hexAnnotations"
+    | "hexCoverBaseline"
+    | "hiddenTrailHexKeys"
+    | "showTerrainIcons"
+    | "showHexCoords"
+    | "mapDestination"
   >,
 ): Promise<boolean> {
   const payload: HexcrawlHexMapFlag = {
@@ -649,6 +694,7 @@ export async function persistHexMapFlag(
     hiddenTrailHexKeys: [...map.hiddenTrailHexKeys],
     showTerrainIcons: map.showTerrainIcons !== false,
     showHexCoords: map.showHexCoords === true,
+    mapDestination: map.mapDestination ? { ...map.mapDestination } : null,
     updatedAt: Date.now(),
   };
   const persisted = await replaceSceneModuleFlag(sceneId, HEXCRAWL_HEX_MAP_FLAG, payload);
@@ -698,6 +744,7 @@ export async function removeHexCoversOnEntry(
     hiddenTrailHexKeys: next.hiddenTrailHexKeys,
     showTerrainIcons: next.showTerrainIcons,
     showHexCoords: next.showHexCoords,
+    mapDestination: next.mapDestination,
   });
   if (!persisted) return false;
 
@@ -746,6 +793,7 @@ export async function saveHexcrawlSceneState(
       payload.hiddenTrailHexKeys = mapFresh.hiddenTrailHexKeys;
       payload.showTerrainIcons = mapFresh.showTerrainIcons;
       payload.showHexCoords = mapFresh.showHexCoords;
+      payload.mapDestination = mapFresh.mapDestination;
     }
   }
 

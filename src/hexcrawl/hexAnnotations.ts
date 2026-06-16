@@ -1,9 +1,13 @@
-import { getUndiscoveredPoiAlpha } from "./hexcrawlSettings.js";
+import {
+  discoverMapDestinationOnHexEntry,
+  type MapDestinationArrival,
+} from "./hexMapDestination.js";
 import {
   isStoredPoiIconId,
   poiIconById,
   type HexPoiIcon,
 } from "./hexPoiCatalog.js";
+import { getUndiscoveredPoiAlpha } from "./hexcrawlSettings.js";
 import {
   appendJourneyLog,
   appendTraveledHexKey,
@@ -206,15 +210,25 @@ export function shouldShowHexCover(
   return hexHasCover(state, hexKey);
 }
 
-/** POI reveal and hex-cover removal on travel token entry. */
+export type { MapDestinationArrival } from "./hexMapDestination.js";
+
+export type HexEntryFogResult = {
+  state: HexcrawlSceneState;
+  discovered: PoiDiscovery | null;
+  destinationArrival: MapDestinationArrival | null;
+};
+
+/** POI reveal, destination arrival, and hex-cover removal on travel token entry. */
 export function applyHexEntryFogEffects(
   state: HexcrawlSceneState,
   hexKey: string,
-): { state: HexcrawlSceneState; discovered: PoiDiscovery | null } {
+): HexEntryFogResult {
   const poi = discoverPoiOnHexEntry(state, hexKey);
+  const destination = discoverMapDestinationOnHexEntry(poi.state, hexKey);
   return {
-    state: revealHexCoverOnHexEntry(poi.state, hexKey),
+    state: revealHexCoverOnHexEntry(destination.state, hexKey),
     discovered: poi.discovered,
+    destinationArrival: destination.arrival,
   };
 }
 

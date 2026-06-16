@@ -64,6 +64,9 @@
         <div class="wastelander-hexcrawl-progress-header">
           <h3>{{strings.progress}}</h3>
         </div>
+        <p class="wastelander-hexcrawl-destination-label">
+          {{strings.destination}}: {{progressDestinationLabel}}
+        </p>
         <p>{{strings.travelDay}}: {{state.travelDay}}</p>
         <p>{{strings.hoursToday}}: {{hoursTodayLabel}} / {{state.maxHoursPerDay}}</p>
         <p>{{strings.startingHex}}: {{startingHexLabel}}</p>
@@ -207,6 +210,28 @@
             />
           </div>
         </div>
+        <h4>{{strings.mapDestination}}</h4>
+        <p class="wastelander-scavenger-hint">{{strings.mapDestinationHint}}</p>
+        <div class="wastelander-hexcrawl-destination-toolbar">
+          <button
+            type="button"
+            class="wastelander-hexcrawl-destination-btn{{#if mapDestinationOnSelectedHex}} is-selected{{/if}}"
+            data-action="setMapDestination"
+            title="{{strings.setMapDestination}}"
+            aria-pressed="{{#if mapDestinationOnSelectedHex}}true{{else}}false{{/if}}"
+          >
+            <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+            <span>{{strings.setMapDestination}}</span>
+          </button>
+          {{#if mapDestinationName}}
+          <button type="button" class="wastelander-btn-secondary" data-action="clearMapDestination">
+            {{strings.clearMapDestination}}
+          </button>
+          {{/if}}
+        </div>
+        {{#if mapDestinationName}}
+        <p class="wastelander-scavenger-hint">{{mapDestinationName}} ({{mapDestinationHex}})</p>
+        {{/if}}
         <h4>{{strings.mapPoiIcon}}</h4>
         <p class="wastelander-scavenger-hint">{{strings.mapPoiIconHint}}</p>
         <div class="wastelander-hexcrawl-poi-icon-toolbar">
