@@ -6,6 +6,7 @@ export const HEXCRAWL_SETTINGS = {
   wastelandTravelsJournalId: "wastelandTravelsJournalId",
   lastHexCoverColor: "lastHexCoverColor",
   debugHexCover: "debugHexCover",
+  debugStartingLocation: "debugStartingLocation",
 } as const;
 
 /** In-memory brush color for the map editor (survives hex selection and re-renders). */
@@ -46,6 +47,15 @@ export function registerHexcrawlSettings(): void {
   settings.register(MODULE_ID, HEXCRAWL_SETTINGS.debugHexCover, {
     name: "WASTELANDER.Hexcrawl.Settings.DebugHexCoverName",
     hint: "WASTELANDER.Hexcrawl.Settings.DebugHexCoverHint",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: false,
+  });
+
+  settings.register(MODULE_ID, HEXCRAWL_SETTINGS.debugStartingLocation, {
+    name: "WASTELANDER.Hexcrawl.Settings.DebugStartingLocationName",
+    hint: "WASTELANDER.Hexcrawl.Settings.DebugStartingLocationHint",
     scope: "world",
     config: true,
     type: Boolean,
@@ -125,5 +135,13 @@ export function isHexCoverDebugEnabled(): boolean {
     .settings;
   if (!settings?.get) return false;
   const raw = settings.get(MODULE_ID, HEXCRAWL_SETTINGS.debugHexCover);
+  return Boolean(raw);
+}
+
+export function isStartingLocationDebugEnabled(): boolean {
+  const settings = (game as { settings?: { get: (scope: string, k: string) => unknown } })
+    .settings;
+  if (!settings?.get) return false;
+  const raw = settings.get(MODULE_ID, HEXCRAWL_SETTINGS.debugStartingLocation);
   return Boolean(raw);
 }

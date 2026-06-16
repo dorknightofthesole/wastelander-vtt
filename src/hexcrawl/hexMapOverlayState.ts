@@ -29,6 +29,7 @@ export function resolveHexcrawlMapOverlayState(
   return {
     ...staged,
     hexAnnotations: loaded.hexAnnotations,
+    hexCoverBaseline: loaded.hexCoverBaseline,
     hiddenTrailHexKeys: loaded.hiddenTrailHexKeys,
     showTerrainIcons: loaded.showTerrainIcons,
   };

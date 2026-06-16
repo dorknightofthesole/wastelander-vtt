@@ -715,19 +715,21 @@ export async function confirmAndResetTravel(
   markResetTravelActive(sceneId);
   try {
     const resetState = applyResetTravel(state, tokenId);
-    await saveHexcrawlSceneState(resetState, { writeHexMap: false });
+    const saved = await saveHexcrawlSceneState(resetState, { writeHexMap: false });
+    const persisted = saved ?? resetState;
 
     const moved = await moveTokenToHexKey(sceneId, tokenId, state.startingHexKey);
     if (!moved) {
       await clearResetTravelPending(sceneId);
       ui.notifications.warn(t("WASTELANDER.Hexcrawl.Notify.ResetMoveFailed"));
-      return resetState;
+      return persisted;
     }
 
     await finishResetTravelIfArrived(sceneId, tokenId);
+    await refreshHexcrawlMapOverlay(sceneId, persisted);
 
     ui.notifications.info(t("WASTELANDER.Hexcrawl.Notify.ResetComplete"));
-    return resetState;
+    return persisted;
   } catch (error) {
     await clearResetTravelPending(sceneId);
     throw error;

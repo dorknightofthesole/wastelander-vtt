@@ -212,6 +212,52 @@ describe("prepareHexcrawlStateForSave", () => {
     expect(merged.hoursTraveledToday).toBe(1.5);
   });
 
+  it("keeps reset travel trail shrink over a longer on-disk trail", () => {
+    const sceneId = "scene-1";
+    const fresh = {
+      ...defaultHexcrawlState(sceneId),
+      enabled: true,
+      startingHexKey: "0,0",
+      traveledHexKeys: ["0,0", "1,1", "2,2", "3,3"],
+      journeyLog: [
+        { at: 3, kind: "hexEntered" as const, travelDay: 2, hexKey: "3,3" },
+        { at: 2, kind: "hexEntered" as const, travelDay: 1, hexKey: "2,2" },
+      ],
+      travelDay: 2,
+      hoursTraveledToday: 4,
+    };
+
+    const game = globalThis.game as {
+      scenes?: { get: (id: string) => { getFlag?: (scope: string, key: string) => unknown } | undefined };
+      world?: { getFlag?: (scope: string, key: string) => unknown };
+    };
+    game.scenes = {
+      get: (id: string) =>
+        id === sceneId ? { getFlag: () => ({ ...fresh, version: 1 }) } : undefined,
+    };
+    game.world = { getFlag: () => null };
+
+    const resetPending = {
+      ...fresh,
+      hoursTraveledToday: 0,
+      travelDay: 1,
+      lastHexKey: "0,0",
+      traveledHexKeys: ["0,0"],
+      trailCleared: false,
+      resetTravelPending: { tokenId: "tok-1", untilHexKey: "0,0" },
+      journeyLog: [
+        { at: 4, kind: "travelReset" as const, travelDay: 1, hexKey: "0,0", note: "0,0" },
+        ...fresh.journeyLog,
+      ],
+    };
+
+    const merged = prepareHexcrawlStateForSave(resetPending, sceneId);
+    expect(merged.traveledHexKeys).toEqual(["0,0"]);
+    expect(merged.journeyLog[0]?.kind).toBe("travelReset");
+    expect(merged.travelDay).toBe(1);
+    expect(merged.hoursTraveledToday).toBe(0);
+  });
+
   it("preserves hex annotations from pending UI edits", () => {
     const sceneId = "scene-1";
     const fresh = {

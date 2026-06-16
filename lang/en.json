@@ -320,6 +320,7 @@
       "RollEncounter": "Roll encounter (1CD)",
       "SetStartingLocation": "Set starting location",
       "ResetTravel": "Reset travel",
+      "ResetMap": "Reset map",
       "Tabs": {
         "Scene": "Scene Hexcrawl",
         "Party": "Party",
@@ -365,10 +366,18 @@
         "NoState": "No hexcrawl travel data on this scene."
       },
       "StartingHex": "Starting hex",
+      "StartingLocation": {
+        "FirstTokenConfirmTitle": "Set starting location?",
+        "FirstTokenConfirmBody": "This is the first token on the hexcrawl map. Set hex {hex} as the party starting location?"
+      },
       "OpenJournal": "Open Wasteland Travels",
       "Reset": {
         "ConfirmTitle": "Reset travel?",
         "ConfirmBody": "Move the navigator token back to starting hex {hex} and reset travel progress to day 1?"
+      },
+      "ResetMap": {
+        "ConfirmTitle": "Reset map?",
+        "ConfirmBody": "Remove party tokens from this scene, clear the starting location and visited trail, restore hex hide covers, and hide discovered POIs again? Travel journal and day progress are kept."
       },
       "Overtravel": {
         "ConfirmTitle": "Travel past daily limit?",
@@ -434,6 +443,7 @@
         "Arrival": "Party arrived at destination.",
         "StartingLocationSet": "Starting location set to hex {hex}.",
         "TravelReset": "Travel reset — returned to starting hex {hex}.",
+        "MapReset": "Map reset — tokens removed, trail cleared, covers and POI fog restored.",
         "SceneCrossed": "Crossed to adjacent map at hex {hex} ({note}).",
         "Clear": "Clear journal",
         "ClearConfirmTitle": "Clear travel journal?",
@@ -449,6 +459,7 @@
         "NoNavigatorToken": "No navigator token found on this scene.",
         "ResetMoveFailed": "Travel progress was reset, but the navigator token could not be moved.",
         "ResetComplete": "Travel reset to starting location.",
+        "ResetMapComplete": "Map reset complete ({count} token(s) removed from scene).",
         "StartingLocationSet": "Starting location saved at hex {hex}.",
         "OneHexOnly": "Move the travel token one hex at a time.",
         "OneHexNotAdjacent": "The travel token can only move to an adjacent hex.",
@@ -468,7 +479,9 @@
         "AdvanceWorldClockName": "Advance world clock on hexcrawl travel",
         "AdvanceWorldClockHint": "When enabled, moving the travel token to a new hex advances Simple Calendar by travel time.",
         "DebugHexCoverName": "Debug hex cover removal",
-        "DebugHexCoverHint": "Log hex cover removal steps to the browser console (F12). Disable after troubleshooting."
+        "DebugHexCoverHint": "Log hex cover removal steps to the browser console (F12). Disable after troubleshooting.",
+        "DebugStartingLocationName": "Debug starting location prompt",
+        "DebugStartingLocationHint": "Log first-token starting location prompt checks to the browser console (F12). Disable after troubleshooting."
       }
     },
     "Scavenging": {

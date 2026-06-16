@@ -179,6 +179,11 @@ function formatEntry(entry: JourneyLogEntry): string {
           }),
         ),
       );
+    case "mapReset":
+      return formatListItem(
+        entry,
+        escapeHtml(t("WASTELANDER.Hexcrawl.Journal.MapReset")),
+      );
     case "sceneCrossed":
       return formatListItem(
         entry,

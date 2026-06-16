@@ -13,6 +13,7 @@ describe("hexMapOverlayState", () => {
       ...defaultHexcrawlState(sceneId),
       updatedAt: 100,
       hexAnnotations: {},
+      hexCoverBaseline: {},
     };
     const staged = {
       ...loaded,
@@ -25,6 +26,7 @@ describe("hexMapOverlayState", () => {
     expect(resolveHexcrawlMapOverlayState(sceneId, loaded)).toEqual({
       ...staged,
       hexAnnotations: {},
+      hexCoverBaseline: {},
       hiddenTrailHexKeys: [],
       showTerrainIcons: true,
     });

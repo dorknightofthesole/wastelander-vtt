@@ -255,6 +255,76 @@ export function setHexPoiIcon(
   return setHexAnnotation(state, hexKey, iconId ? { iconId } : { iconId: undefined });
 }
 
+export function extractHexCoverBaseline(
+  annotations: Record<string, HexAnnotation>,
+): Record<string, string> {
+  const baseline: Record<string, string> = {};
+  for (const [hexKey, row] of Object.entries(annotations)) {
+    if (row.hexCoverColor) baseline[hexKey] = row.hexCoverColor;
+  }
+  return baseline;
+}
+
+export function normalizeHexCoverBaseline(
+  annotationsRaw: unknown,
+  baselineRaw: unknown,
+): Record<string, string> {
+  const baseline: Record<string, string> = {};
+  if (baselineRaw && typeof baselineRaw === "object") {
+    for (const [hexKey, value] of Object.entries(baselineRaw as Record<string, unknown>)) {
+      const color = normalizeHexCoverColor(value);
+      if (hexKey && color) baseline[hexKey] = color;
+    }
+  }
+  if (Object.keys(baseline).length > 0) return baseline;
+  return extractHexCoverBaseline(normalizeHexAnnotations(annotationsRaw));
+}
+
+export function syncHexCoverBaselineEntry(
+  baseline: Record<string, string>,
+  hexKey: string,
+  color: string | null,
+): Record<string, string> {
+  const next = { ...baseline };
+  if (color) next[hexKey] = color;
+  else delete next[hexKey];
+  return next;
+}
+
+/** Restore live hex covers from the persisted baseline (Reset Map). */
+export function restoreHexCoversFromBaseline(state: HexcrawlSceneState): HexcrawlSceneState {
+  let next = state;
+  for (const [hexKey, color] of Object.entries(state.hexCoverBaseline)) {
+    next = setHexCover(next, hexKey, color);
+  }
+  return next;
+}
+
+export function setHexCoverForEditor(
+  state: HexcrawlSceneState,
+  hexKey: string,
+  color: string | null,
+): HexcrawlSceneState {
+  const next = setHexCover(state, hexKey, color);
+  return {
+    ...next,
+    hexCoverBaseline: syncHexCoverBaselineEntry(
+      state.hexCoverBaseline,
+      hexKey,
+      color ? (normalizeHexCoverColor(color) ?? null) : null,
+    ),
+  };
+}
+
+export function toggleHexCoverForEditor(
+  state: HexcrawlSceneState,
+  hexKey: string,
+  defaultColor: string = DEFAULT_HEX_COVER_COLOR,
+): HexcrawlSceneState {
+  const current = state.hexAnnotations[hexKey]?.hexCoverColor;
+  return setHexCoverForEditor(state, hexKey, current ? null : defaultColor);
+}
+
 /** Assign or clear the solid hex cover (`null` clears). */
 export function setHexCover(
   state: HexcrawlSceneState,
@@ -303,6 +373,12 @@ export function clearHexMapEdits(state: HexcrawlSceneState, hexKey: string): Hex
     next = {
       ...next,
       discoveredPoiHexKeys: next.discoveredPoiHexKeys.filter((key) => key !== hexKey),
+    };
+  }
+  if (state.hexCoverBaseline[hexKey]) {
+    next = {
+      ...next,
+      hexCoverBaseline: syncHexCoverBaselineEntry(next.hexCoverBaseline, hexKey, null),
     };
   }
   return next;

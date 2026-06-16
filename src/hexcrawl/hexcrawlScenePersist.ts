@@ -13,8 +13,10 @@ import {
   hexHasCover,
   hexHasDiscoverablePoi,
   mergeDiscoveredPoiHexKeys,
+  extractHexCoverBaseline,
   normalizeDiscoveredPoiHexKeys,
   normalizeHexAnnotations,
+  normalizeHexCoverBaseline,
   normalizeHiddenTrailHexKeys,
   setHexCover,
   type HexAnnotation,
@@ -33,6 +35,8 @@ export const HEXCRAWL_JOURNAL_PAGE_FLAG = "hexcrawlJournalPageId";
 
 export type HexcrawlHexMapFlag = {
   hexAnnotations: Record<string, HexAnnotation>;
+  /** Original hex hide covers — restored by Reset Map after travel removes live covers. */
+  hexCoverBaseline: Record<string, string>;
   hiddenTrailHexKeys: string[];
   showTerrainIcons: boolean;
   updatedAt: number;
@@ -41,11 +45,12 @@ export type HexcrawlHexMapFlag = {
 function hexMapFlagFromState(
   state: Pick<
     HexcrawlSceneState,
-    "hexAnnotations" | "hiddenTrailHexKeys" | "showTerrainIcons" | "updatedAt"
+    "hexAnnotations" | "hexCoverBaseline" | "hiddenTrailHexKeys" | "showTerrainIcons" | "updatedAt"
   >,
 ): HexcrawlHexMapFlag {
   return {
     hexAnnotations: { ...state.hexAnnotations },
+    hexCoverBaseline: { ...state.hexCoverBaseline },
     hiddenTrailHexKeys: [...state.hiddenTrailHexKeys],
     showTerrainIcons: state.showTerrainIcons !== false,
     updatedAt: state.updatedAt,
@@ -62,6 +67,7 @@ function applyHexMapFlag(
   return {
     ...state,
     hexAnnotations: normalizeHexAnnotations(row.hexAnnotations),
+    hexCoverBaseline: normalizeHexCoverBaseline(row.hexAnnotations, row.hexCoverBaseline),
     hiddenTrailHexKeys: normalizeHiddenTrailHexKeys(row.hiddenTrailHexKeys),
     showTerrainIcons: row.showTerrainIcons !== false,
   };
@@ -83,6 +89,7 @@ export type JourneyLogKind =
   | "arrival"
   | "startingLocationSet"
   | "travelReset"
+  | "mapReset"
   | "sceneCrossed";
 
 export type SceneCardinal = "north" | "south" | "east" | "west";
@@ -149,6 +156,8 @@ export type HexcrawlSceneState = {
   sceneLinks: SceneLinks;
   /** Per-hex terrain overrides and POI icon ids. */
   hexAnnotations: Record<string, HexAnnotation>;
+  /** Original hex hide covers for Reset Map (editor updates; travel entry does not). */
+  hexCoverBaseline: Record<string, string>;
   /** Trail outline hidden for these hex keys (journey log unchanged). */
   hiddenTrailHexKeys: string[];
   /** Draw terrain badge icons on annotated hexes (Map overlay). */
@@ -192,6 +201,7 @@ export function defaultHexcrawlState(sceneId: string): HexcrawlSceneState {
     trailCleared: false,
     sceneLinks: {},
     hexAnnotations: {},
+    hexCoverBaseline: {},
     hiddenTrailHexKeys: [],
     showTerrainIcons: true,
     discoveredPoiHexKeys: [],
@@ -335,6 +345,7 @@ export function prepareHexcrawlStateForSave(
     startingHexKey: pending.startingHexKey ?? fresh.startingHexKey,
     sceneLinks: pending.sceneLinks,
     hexAnnotations: preferFreshHexMap ? fresh.hexAnnotations : pending.hexAnnotations,
+    hexCoverBaseline: preferFreshHexMap ? fresh.hexCoverBaseline : pending.hexCoverBaseline,
     hiddenTrailHexKeys: preferFreshHexMap
       ? fresh.hiddenTrailHexKeys
       : pending.hiddenTrailHexKeys,
@@ -354,6 +365,42 @@ export function prepareHexcrawlStateForSave(
       travelDay: pending.travelDay,
       hoursTraveledToday: pending.hoursTraveledToday,
       lastHexKey: pending.lastHexKey,
+    };
+  }
+
+  if (pending.journeyLog[0]?.kind === "mapReset") {
+    return {
+      ...merged,
+      journeyLog: pending.journeyLog,
+      traveledHexKeys: pending.traveledHexKeys,
+      trailCleared: pending.trailCleared,
+      discoveredPoiHexKeys: pending.discoveredPoiHexKeys,
+      hexAnnotations: pending.hexAnnotations,
+      hexCoverBaseline: pending.hexCoverBaseline,
+      hiddenTrailHexKeys: pending.hiddenTrailHexKeys,
+      startingHexKey: pending.startingHexKey,
+      lastHexKey: pending.lastHexKey,
+      travelTokenId: pending.travelTokenId,
+      resetTravelPending: pending.resetTravelPending,
+    };
+  }
+
+  if (pending.journeyLog[0]?.kind === "travelReset") {
+    return {
+      ...merged,
+      journeyLog: pending.journeyLog,
+      traveledHexKeys: pending.traveledHexKeys,
+      trailCleared: pending.trailCleared,
+      lastHexKey: pending.lastHexKey,
+      travelDay: pending.travelDay,
+      hoursTraveledToday: pending.hoursTraveledToday,
+      resetTravelPending: pending.resetTravelPending,
+      arrived: pending.arrived,
+      pendingDayEnd: pending.pendingDayEnd,
+      courseCheckResolved: pending.courseCheckResolved,
+      courseStatus: pending.courseStatus,
+      baseDifficulty: pending.baseDifficulty,
+      currentDifficulty: pending.currentDifficulty,
     };
   }
 
@@ -427,6 +474,7 @@ export function normalizeHexcrawlState(
     trailCleared: Boolean(row.trailCleared),
     sceneLinks: normalizeSceneLinks(row.sceneLinks),
     hexAnnotations: normalizeHexAnnotations(row.hexAnnotations),
+    hexCoverBaseline: {},
     hiddenTrailHexKeys: normalizeHiddenTrailHexKeys(row.hiddenTrailHexKeys),
     showTerrainIcons: row.showTerrainIcons !== false,
     discoveredPoiHexKeys: normalizeDiscoveredPoiHexKeys(row.discoveredPoiHexKeys),
@@ -562,7 +610,7 @@ export function loadHexcrawlSceneState(sceneId: string): HexcrawlSceneState | nu
   if (hexMapRaw) {
     // Map data lives only in hexcrawlHexMap — ignore stale copies embedded in the main flag.
     state = applyHexMapFlag(
-      { ...state, hexAnnotations: {}, hiddenTrailHexKeys: [] },
+      { ...state, hexAnnotations: {}, hexCoverBaseline: {}, hiddenTrailHexKeys: [] },
       hexMapRaw,
     );
   }
@@ -579,10 +627,14 @@ export type SaveHexcrawlSceneStateOptions = {
 
 export async function persistHexMapFlag(
   sceneId: string,
-  map: Pick<HexcrawlHexMapFlag, "hexAnnotations" | "hiddenTrailHexKeys" | "showTerrainIcons">,
+  map: Pick<
+    HexcrawlHexMapFlag,
+    "hexAnnotations" | "hexCoverBaseline" | "hiddenTrailHexKeys" | "showTerrainIcons"
+  >,
 ): Promise<boolean> {
   const payload: HexcrawlHexMapFlag = {
     hexAnnotations: structuredClone(map.hexAnnotations),
+    hexCoverBaseline: structuredClone(map.hexCoverBaseline),
     hiddenTrailHexKeys: [...map.hiddenTrailHexKeys],
     showTerrainIcons: map.showTerrainIcons !== false,
     updatedAt: Date.now(),
@@ -630,6 +682,7 @@ export async function removeHexCoversOnEntry(
 
   const persisted = await persistHexMapFlag(sceneId, {
     hexAnnotations: next.hexAnnotations,
+    hexCoverBaseline: next.hexCoverBaseline,
     hiddenTrailHexKeys: next.hiddenTrailHexKeys,
     showTerrainIcons: next.showTerrainIcons,
   });
@@ -676,9 +729,14 @@ export async function saveHexcrawlSceneState(
     const mapFresh = loadHexcrawlSceneState(state.sceneId);
     if (mapFresh) {
       payload.hexAnnotations = mapFresh.hexAnnotations;
+      payload.hexCoverBaseline = mapFresh.hexCoverBaseline;
       payload.hiddenTrailHexKeys = mapFresh.hiddenTrailHexKeys;
       payload.showTerrainIcons = mapFresh.showTerrainIcons;
     }
+  }
+
+  if (writeHexMap && Object.keys(payload.hexCoverBaseline).length === 0) {
+    payload.hexCoverBaseline = extractHexCoverBaseline(payload.hexAnnotations);
   }
 
   stageHexcrawlMapOverlayState(payload);

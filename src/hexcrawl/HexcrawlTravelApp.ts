@@ -13,9 +13,9 @@ import {
   resolveTerrainForHex,
   resolveCurrentTravelTerrain,
   setHexAnnotation,
-  setHexCover,
+  setHexCoverForEditor,
   setHexPoiIcon,
-  toggleHexCover,
+  toggleHexCoverForEditor,
   unhideTrailForHex,
   normalizeHexCoverColor,
 } from "./hexAnnotations.js";
@@ -33,6 +33,7 @@ import {
   setHexMapEditorSelection,
 } from "./hexMapEditor.js";
 import { clearHexMapEditorSelectionState } from "./hexMapEditorState.js";
+import { setStartingLocationForScene } from "./hexcrawlStartingLocation.js";
 import { seedLastHexKeyFromTravelToken } from "./hexCoords.js";
 import { refreshHexcrawlMapOverlay } from "./hexcrawlMapOverlay.js";
 import { openHexcrawlJournalPage } from "./hexcrawlJournalSync.js";
@@ -45,21 +46,18 @@ import {
   saveHexcrawlSceneState,
   type HexcrawlSceneState,
 } from "./hexcrawlScenePersist.js";
+import { confirmAndResetMap } from "./resetHexMap.js";
 import {
-  applyCourseCheckFail,
   applyCourseCheckFail,
   applyCourseCheckPass,
   applyOneHexTravelTime,
-  applySetStartingHex,
   buildInitialPartyActorIds,
   confirmAndResetTravel,
   confirmTravelDayEnd,
   courseChecksEnabled,
   courseFailEnabled,
   confirmDayEndEnabled,
-  processSetCamp,
   ensureHexGridForScene,
-  resolveCurrentTravelHexKey,
 } from "./hexcrawlTravel.js";
 import {
   addActorToPartyIds,
@@ -126,7 +124,7 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
       markArrival: HexcrawlTravelApp.onMarkArrival,
       resumeTravel: HexcrawlTravelApp.onResumeTravel,
       setStartingLocation: HexcrawlTravelApp.onSetStartingLocation,
-      setCamp: HexcrawlTravelApp.onSetCamp,
+      resetMap: HexcrawlTravelApp.onResetMap,
       resetTravel: HexcrawlTravelApp.onResetTravel,
       openJournal: HexcrawlTravelApp.onOpenJournal,
       clearJournal: HexcrawlTravelApp.onClearJournal,
@@ -648,7 +646,7 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
         resumeTravel: t("WASTELANDER.Hexcrawl.ResumeTravel"),
         setStartingLocation: t("WASTELANDER.Hexcrawl.SetStartingLocation"),
         resetTravel: t("WASTELANDER.Hexcrawl.ResetTravel"),
-        setCamp: t("WASTELANDER.Hexcrawl.CampEncounter"),
+        resetMap: t("WASTELANDER.Hexcrawl.ResetMap"),
         openJournal: t("WASTELANDER.Hexcrawl.OpenJournal"),
         clearJournal: t("WASTELANDER.Hexcrawl.Journal.Clear"),
       },
@@ -722,7 +720,7 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
         const hexKey = this.#resolveMapEditHexKey();
         if (!hexKey) return;
         if (this.#state?.hexAnnotations[hexKey]?.hexCoverColor) {
-          void this.#mutateMap((state) => setHexCover(state, hexKey, color));
+          void this.#mutateMap((state) => setHexCoverForEditor(state, hexKey, color));
         }
         break;
       }
@@ -977,7 +975,7 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
 
     captureHexCoverBrushFromPicker(this.#rootElement());
     const color = getEffectiveLastHexCoverColor();
-    void this.#mutateMap((state) => toggleHexCover(state, hexKey, color));
+    void this.#mutateMap((state) => toggleHexCoverForEditor(state, hexKey, color));
   }
 
   static onHideMapTrail(this: HexcrawlTravelApp): void {
@@ -1017,24 +1015,19 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
   static async onSetStartingLocation(this: HexcrawlTravelApp): Promise<void> {
     if (!currentUserIsOverseer()) return;
     if (!this.#sceneId || !this.#state) return;
-    const hexKey = resolveCurrentTravelHexKey(this.#sceneId, this.#state);
-    if (!hexKey) {
-      ui.notifications.warn(t("WASTELANDER.Hexcrawl.Notify.NoTravelHex"));
-      return;
-    }
-    await this.#mutate((state) => applySetStartingHex(state, hexKey));
-    ui.notifications.info(
-      t("WASTELANDER.Hexcrawl.Notify.StartingLocationSet", { hex: hexKey }),
-    );
+    const saved = await setStartingLocationForScene(this.#sceneId);
+    if (!saved) return;
+    this.#state = saved;
+    await this.render();
   }
 
-  static async onSetCamp(this: HexcrawlTravelApp): Promise<void> {
+  static async onResetMap(this: HexcrawlTravelApp): Promise<void> {
     if (!currentUserIsOverseer()) return;
     if (!this.#sceneId || !this.#state) return;
-    if (!this.#state.enabled) return;
     this.#cancelPersistDebounce();
-    const next = await processSetCamp(this.#sceneId, this.#state);
-    this.#state = next;
+    const resetState = await confirmAndResetMap(this.#sceneId, this.#state);
+    if (!resetState) return;
+    this.#state = resetState;
     await this.render();
   }
 

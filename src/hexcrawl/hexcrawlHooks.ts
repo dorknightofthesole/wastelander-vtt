@@ -39,6 +39,8 @@ import {
   tokenQualifiesForHexEntry,
   validateLostTravelMove,
 } from "./hexcrawlTravel.js";
+import { promptAndSetStartingLocationFromFirstToken } from "./hexcrawlStartingLocation.js";
+import { debugStartingLocation } from "./startingLocationDebug.js";
 
 async function maybeRemoveHexCoverOnTokenMove(
   sceneId: string,
@@ -314,4 +316,28 @@ export function registerHexcrawlHooks(): void {
 
   // Foundry v13: token drags use the movement workflow (moveToken), not reliable x/y on updateToken.
   Hooks.on("moveToken", handleTokenHexTravel);
+
+  Hooks.on("createToken", (doc: TokenDocument) => {
+    const sceneId = doc.parent?.id ?? "";
+    debugStartingLocation("createToken hook fired", {
+      tokenId: doc.id ?? null,
+      sceneId: sceneId || null,
+      sceneCrossingInProgress: sceneId ? isSceneCrossingInProgress(sceneId) : null,
+    });
+    if (isSceneCrossingInProgress(sceneId)) {
+      debugStartingLocation("skip — scene border crossing in progress", { sceneId });
+      return;
+    }
+    if (!sceneId || !doc.id) {
+      debugStartingLocation("skip — missing scene or token id", {
+        sceneId: sceneId || null,
+        tokenId: doc.id ?? null,
+      });
+      return;
+    }
+    void promptAndSetStartingLocationFromFirstToken(sceneId, doc).catch((error) => {
+      console.error(`${MODULE_ID} | first-token starting location prompt failed`, error);
+      debugStartingLocation("handler failed", { error: String(error) });
+    });
+  });
 }
