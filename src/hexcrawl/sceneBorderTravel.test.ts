@@ -8,6 +8,7 @@ import {
   pointInBounds,
   readSceneBackgroundBounds,
   resolveExitHexKey,
+  resolveSceneEntryPlacement,
 } from "./sceneBorderTravel.js";
 import { defaultHexcrawlState } from "./hexcrawlScenePersist.js";
 
@@ -97,6 +98,47 @@ describe("mapEntryHexKey", () => {
       tolerance: 60,
     });
     expect(entry).toBe("7,0");
+  });
+
+  it("snaps projected border pixel to a hex on the active canvas grid", () => {
+    const prevCanvas = (globalThis as { canvas?: unknown }).canvas;
+    const grid = {
+      isHexagonal: true,
+      getOffset: ({ x, y }: { x: number; y: number }) => ({
+        i: Math.round((x - 50) / 100),
+        j: Math.round((y - 50) / 100),
+      }),
+      getTopLeftPoint: (coords: { x?: number; y?: number; i?: number; j?: number }) => {
+        if (Number.isFinite(coords.i) && Number.isFinite(coords.j)) {
+          return { x: coords.i! * 100, y: coords.j! * 100 };
+        }
+        const i = Math.round(((coords.x ?? 0) - 50) / 100);
+        const j = Math.round(((coords.y ?? 0) - 50) / 100);
+        return { x: i * 100, y: j * 100 };
+      },
+      pointToCube: ({ x, y }: { x: number; y: number }) => ({
+        q: Math.round((x - 50) / 100),
+        r: Math.round((y - 50) / 100),
+        s: 0,
+      }),
+      cubeToOffset: ({ q, r }: { q: number; r: number }) => ({ i: q, j: r }),
+    };
+    (globalThis as { canvas?: unknown }).canvas = { grid };
+
+    const exitCenter = { x: 750, y: 850 };
+    const placement = resolveSceneEntryPlacement(
+      "scene-test",
+      exitCenter,
+      "south",
+      bounds,
+      hexCenterAt,
+      { scanMin: 0, scanMax: 10, tolerance: 60 },
+    );
+    expect(placement?.method).toBe("pixel");
+    expect(placement?.hexKey).toBe("7,0");
+    expect(placement?.x).toBe(700);
+
+    (globalThis as { canvas?: unknown }).canvas = prevCanvas;
   });
 });
 

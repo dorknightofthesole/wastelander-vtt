@@ -607,16 +607,18 @@ export async function moveTokenToHexKey(
   sceneId: string,
   tokenId: string,
   hexKey: string,
+  position?: { x: number; y: number },
 ): Promise<boolean> {
   const scene = (game as { scenes?: { get: (id: string) => SceneWithTokens | undefined } })
     .scenes?.get(sceneId);
   const tokenDoc = scene?.tokens?.get(tokenId);
   if (!tokenDoc?.update) return false;
 
-  const position = tokenPositionForHexKeyOnScene(sceneId, hexKey);
-  if (!position) return false;
+  const snap =
+    position ?? tokenPositionForHexKeyOnScene(sceneId, hexKey);
+  if (!snap) return false;
 
-  await tokenDoc.update(position);
+  await tokenDoc.update(snap);
   return true;
 }
 

@@ -6,6 +6,8 @@ type HexGrid = {
   isSquare?: boolean;
   pointToCube?: (point: { x: number; y: number }) => { q: number; r: number; s: number };
   cubeToOffset?: (cube: { q: number; r: number; s: number }) => GridOffset;
+  getOffset?: (coords: { x: number; y: number }) => GridOffset | null;
+  getTopLeftPoint?: (offset: GridOffset) => { x: number; y: number };
   testAdjacency?: (a: GridOffset, b: GridOffset) => boolean;
   getAdjacentOffsets?: (offset: GridOffset) => GridOffset[];
   size?: number;
@@ -95,6 +97,37 @@ function hexKeyFromGridAtPoint(
   ).foundry?.grid?.HexagonalGrid;
   const rounded = HexagonalGrid?.cubeRound ? HexagonalGrid.cubeRound(cube) : cube;
   return formatHexKey(grid.cubeToOffset(rounded));
+}
+
+/** Hex key under a canvas pixel on the active scene grid. */
+export function getHexKeyFromCanvasPoint(point: { x: number; y: number }): string | null {
+  return snapCanvasPointToHex(point)?.hexKey ?? null;
+}
+
+export type HexSnapResult = { hexKey: string; x: number; y: number };
+
+/** Resolve a canvas pixel to a grid hex and snapped token top-left position. */
+export function snapCanvasPointToHex(point: { x: number; y: number }): HexSnapResult | null {
+  const grid = (globalThis as { canvas?: { grid?: HexGrid } }).canvas?.grid;
+  if (!grid || grid.isGridless) return null;
+  if (typeof grid.getTopLeftPoint !== "function") return null;
+
+  const topLeft = grid.getTopLeftPoint(point);
+  if (!Number.isFinite(topLeft.x) || !Number.isFinite(topLeft.y)) return null;
+
+  let hexKey: string | null = null;
+  if (typeof grid.getOffset === "function") {
+    const offset = grid.getOffset(point);
+    if (offset && Number.isFinite(offset.i) && Number.isFinite(offset.j)) {
+      hexKey = formatHexKey(offset);
+    }
+  }
+  if (!hexKey) {
+    hexKey = hexKeyFromGridAtPoint(grid, point);
+  }
+  if (!hexKey) return null;
+
+  return { hexKey, x: topLeft.x, y: topLeft.y };
 }
 
 function tokenCenterPixels(
@@ -384,18 +417,23 @@ export function tokenPositionForHexKeyOnScene(
   };
 }
 
+export function findSceneTokenIdsForActor(sceneId: string, actorId: string): string[] {
+  const scene = (game as { scenes?: { get: (id: string) => SceneLike | undefined } })
+    .scenes?.get(sceneId);
+  if (!scene?.tokens) return [];
+
+  const ids: string[] = [];
+  for (const token of scene.tokens) {
+    if (token.actorId === actorId) ids.push(token.id);
+  }
+  return ids;
+}
+
 export function findSceneTokenIdForActor(
   sceneId: string,
   actorId: string,
 ): string | null {
-  const scene = (game as { scenes?: { get: (id: string) => SceneLike | undefined } })
-    .scenes?.get(sceneId);
-  if (!scene?.tokens) return null;
-
-  for (const token of scene.tokens) {
-    if (token.actorId === actorId) return token.id;
-  }
-  return null;
+  return findSceneTokenIdsForActor(sceneId, actorId)[0] ?? null;
 }
 
 type SceneLike = {
