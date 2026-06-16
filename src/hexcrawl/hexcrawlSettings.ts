@@ -8,6 +8,7 @@ export const HEXCRAWL_SETTINGS = {
   debugHexCover: "debugHexCover",
   debugStartingLocation: "debugStartingLocation",
   undiscoveredPoiAlpha: "undiscoveredPoiAlpha",
+  hexPoiIcons: "hexPoiIcons",
 } as const;
 
 export const DEFAULT_UNDISCOVERED_POI_ALPHA = 0.55;
@@ -78,6 +79,13 @@ export function registerHexcrawlSettings(): void {
         module.refreshHexcrawlMapOverlay(),
       );
     },
+  });
+
+  settings.register(MODULE_ID, HEXCRAWL_SETTINGS.hexPoiIcons, {
+    scope: "world",
+    config: false,
+    type: Array,
+    default: [],
   });
 }
 

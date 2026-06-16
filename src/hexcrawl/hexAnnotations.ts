@@ -1,5 +1,9 @@
-import hexIconsManifest from "../data/hexcrawl/hex-icons.json";
 import { getUndiscoveredPoiAlpha } from "./hexcrawlSettings.js";
+import {
+  isStoredPoiIconId,
+  poiIconById,
+  type HexPoiIcon,
+} from "./hexPoiCatalog.js";
 import {
   appendJourneyLog,
   appendTraveledHexKey,
@@ -11,11 +15,8 @@ import {
   type TravelTerrainType,
 } from "./travelRules.js";
 
-export type HexPoiIcon = {
-  id: string;
-  label: string;
-  path: string;
-};
+export type { HexPoiIcon } from "./hexPoiCatalog.js";
+export { getWorldPoiIcons, poiIconById } from "./hexPoiCatalog.js";
 
 export type HexAnnotation = {
   terrain?: TravelTerrainType;
@@ -26,10 +27,6 @@ export type HexAnnotation = {
 
 export const DEFAULT_HEX_COVER_COLOR = "#808080";
 
-export const HEX_POI_ICONS = hexIconsManifest as HexPoiIcon[];
-
-const VALID_POI_ICON_IDS = new Set(HEX_POI_ICONS.map((row) => row.id));
-
 const TERRAIN_BADGE_PATHS: Record<TravelTerrainType, string> = {
   open: "assets/hexcrawl/terrain-open.png",
   normal: "assets/hexcrawl/terrain-normal.png",
@@ -39,11 +36,6 @@ const TERRAIN_BADGE_PATHS: Record<TravelTerrainType, string> = {
 
 export function terrainBadgePath(terrain: TravelTerrainType): string {
   return TERRAIN_BADGE_PATHS[terrain];
-}
-
-export function poiIconById(iconId: string | undefined): HexPoiIcon | undefined {
-  if (!iconId) return undefined;
-  return HEX_POI_ICONS.find((row) => row.id === iconId);
 }
 
 export function normalizeHexCoverColor(raw: unknown): string | undefined {
@@ -73,7 +65,7 @@ function normalizeHexAnnotation(raw: unknown): HexAnnotation | null {
   if (row.terrain !== undefined && row.terrain !== null && row.terrain !== "") {
     annotation.terrain = normalizeTravelTerrainType(row.terrain);
   }
-  if (typeof row.iconId === "string" && VALID_POI_ICON_IDS.has(row.iconId)) {
+  if (typeof row.iconId === "string" && isStoredPoiIconId(row.iconId)) {
     annotation.iconId = row.iconId;
   }
   const coverColor = normalizeHexCoverColor(row.hexCoverColor);
@@ -268,7 +260,7 @@ export function setHexAnnotation(
   }
 
   if ("iconId" in patch) {
-    if (!patch.iconId || !VALID_POI_ICON_IDS.has(patch.iconId)) {
+    if (!patch.iconId || !isStoredPoiIconId(patch.iconId)) {
       delete next.iconId;
     } else {
       next.iconId = patch.iconId;

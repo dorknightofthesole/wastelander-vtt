@@ -209,21 +209,40 @@
         </div>
         <h4>{{strings.mapPoiIcon}}</h4>
         <p class="wastelander-scavenger-hint">{{strings.mapPoiIconHint}}</p>
+        <div class="wastelander-hexcrawl-poi-icon-toolbar">
+          <button type="button" class="wastelander-btn-secondary" data-action="addMapPoiIcon">
+            {{strings.mapAddPoiIcon}}
+          </button>
+        </div>
+        {{#if mapPoiIcons.length}}
         <div class="wastelander-hexcrawl-poi-icon-grid">
           {{#each mapPoiIcons}}
-          <button
-            type="button"
-            class="wastelander-hexcrawl-poi-icon-btn{{#if selected}} is-selected{{/if}}"
-            data-action="setMapPoiIcon"
-            data-icon-id="{{id}}"
-            title="{{label}}"
-            aria-pressed="{{#if selected}}true{{else}}false{{/if}}"
-          >
-            <img src="{{imageUrl}}" alt="{{label}}" width="56" height="56" />
-            <span>{{label}}</span>
-          </button>
+          <div class="wastelander-hexcrawl-poi-icon-cell" data-poi-icon-id="{{id}}">
+            <button
+              type="button"
+              class="wastelander-hexcrawl-poi-icon-remove"
+              data-action="removeMapPoiIcon"
+              title="{{../strings.mapRemovePoiIcon}}"
+            >
+              <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+            <button
+              type="button"
+              class="wastelander-hexcrawl-poi-icon-btn{{#if selected}} is-selected{{/if}}"
+              data-action="setMapPoiIcon"
+              data-icon-id="{{id}}"
+              title="{{label}}"
+              aria-pressed="{{#if selected}}true{{else}}false{{/if}}"
+            >
+              <img src="{{imageUrl}}" alt="{{label}}" width="56" height="56" />
+              <span>{{label}}</span>
+            </button>
+          </div>
           {{/each}}
         </div>
+        {{else}}
+        <p class="wastelander-scavenger-hint">{{strings.mapNoPoiIcons}}</p>
+        {{/if}}
         <div class="wastelander-hexcrawl-actions">
           <button type="button" class="wastelander-btn-secondary" data-action="clearMapHex">{{strings.mapClearHex}}</button>
         </div>

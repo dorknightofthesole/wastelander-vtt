@@ -11,6 +11,7 @@ import {
   terrainBadgePath,
 } from "./hexAnnotations.js";
 import { hexBoundsForKey, hexVerticesForKey, sceneHexKeysForGridOverlay } from "./hexCoords.js";
+import { resolvePoiIconImageUrl } from "./hexPoiCatalog.js";
 import {
   clearStagedHexcrawlMapOverlayState,
   resolveHexcrawlMapOverlayState,
@@ -106,8 +107,7 @@ function moduleAssetUrl(relativePath: string): string {
   return `${MODULE_PATH}/${relativePath}`;
 }
 
-async function loadTexture(PIXI: PixiNamespace, relativePath: string): Promise<unknown | null> {
-  const url = moduleAssetUrl(relativePath);
+async function loadTextureFromUrl(PIXI: PixiNamespace, url: string): Promise<unknown | null> {
   if (textureCache.has(url)) return textureCache.get(url) ?? null;
 
   try {
@@ -127,6 +127,10 @@ async function loadTexture(PIXI: PixiNamespace, relativePath: string): Promise<u
   } catch {
     return null;
   }
+}
+
+async function loadTexture(PIXI: PixiNamespace, relativePath: string): Promise<unknown | null> {
+  return loadTextureFromUrl(PIXI, moduleAssetUrl(relativePath));
 }
 
 function strokeHexOutline(
@@ -421,7 +425,7 @@ async function drawMapForState(
     const poiAlpha = poiDisplayAlpha(state, hexKey, revealAllMapFog);
     const poi = poiIconById(iconId);
     if (!poi) continue;
-    const iconTexture = await loadTexture(PIXI, poi.path);
+    const iconTexture = await loadTextureFromUrl(PIXI, resolvePoiIconImageUrl(poi.path));
     if (generation !== refreshGeneration) return;
     if (!iconTexture) continue;
     const iconSize = bounds.width * 0.8;

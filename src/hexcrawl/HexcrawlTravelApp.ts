@@ -6,7 +6,7 @@ import { getActiveSceneId } from "../scavenging/scenePersist.js";
 import { scavengerConfirmDialog } from "../scavenging/scavengerConfirm.js";
 import {
   clearHexMapEdits,
-  HEX_POI_ICONS,
+  getWorldPoiIcons,
   hexHasMapEdits,
   hideTrailForHex,
   isTrailHiddenForHex,
@@ -19,6 +19,11 @@ import {
   unhideTrailForHex,
   normalizeHexCoverColor,
 } from "./hexAnnotations.js";
+import {
+  addWorldPoiIconFromPicker,
+  removeWorldPoiIcon,
+  resolvePoiIconImageUrl,
+} from "./hexPoiCatalog.js";
 import {
   captureHexCoverBrushFromPicker,
   getEffectiveLastHexCoverColor,
@@ -131,6 +136,8 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
       switchTab: HexcrawlTravelApp.onSwitchTab,
       removePartyMember: HexcrawlTravelApp.onRemovePartyMember,
       setMapPoiIcon: HexcrawlTravelApp.onSetMapPoiIcon,
+      addMapPoiIcon: HexcrawlTravelApp.onAddMapPoiIcon,
+      removeMapPoiIcon: HexcrawlTravelApp.onRemoveMapPoiIcon,
       toggleMapHexCover: HexcrawlTravelApp.onToggleMapHexCover,
       hideMapTrail: HexcrawlTravelApp.onHideMapTrail,
       showMapTrail: HexcrawlTravelApp.onShowMapTrail,
@@ -491,11 +498,11 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
         selected: selectedHexAnnotation?.terrain === terrain,
       })),
     ];
-    const mapPoiIcons = HEX_POI_ICONS.map((icon) => ({
-      ...icon,
-      imageUrl: `${MODULE_PATH}/${icon.path}`,
+    const mapPoiIcons = getWorldPoiIcons().map((icon) => ({
+      id: icon.id,
+      label: icon.label,
+      imageUrl: resolvePoiIconImageUrl(icon.path),
       selected: selectedHexAnnotation?.iconId === icon.id,
-      label: t(`WASTELANDER.Hexcrawl.MapPoiIcons.${icon.id}`),
     }));
     const partyRows = buildPartyMemberRows(state, {
       sceneId: this.#sceneId,
@@ -604,6 +611,9 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
         mapShowTrail: t("WASTELANDER.Hexcrawl.MapShowTrail"),
         mapPoiIcon: t("WASTELANDER.Hexcrawl.MapPoiIcon"),
         mapPoiIconHint: t("WASTELANDER.Hexcrawl.MapPoiIconHint"),
+        mapAddPoiIcon: t("WASTELANDER.Hexcrawl.MapAddPoiIcon"),
+        mapNoPoiIcons: t("WASTELANDER.Hexcrawl.MapNoPoiIcons"),
+        mapRemovePoiIcon: t("WASTELANDER.Hexcrawl.MapRemovePoiIcon"),
         mapHexCover: t("WASTELANDER.Hexcrawl.MapHexCover"),
         mapHexCoverHint: t("WASTELANDER.Hexcrawl.MapHexCoverHint"),
         mapHexCoverColor: t("WASTELANDER.Hexcrawl.MapHexCoverColor"),
@@ -948,6 +958,29 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
     if (this.#activeTab === tab) return;
     this.#activeTab = tab;
     this.#syncMapEditorMode();
+    void this.render(true);
+  }
+
+  static async onAddMapPoiIcon(this: HexcrawlTravelApp): Promise<void> {
+    if (this.#playerView) return;
+    const added = await addWorldPoiIconFromPicker();
+    if (!added) return;
+    void this.render(true);
+  }
+
+  static async onRemoveMapPoiIcon(
+    this: HexcrawlTravelApp,
+    event: Event,
+    target: HTMLElement,
+  ): Promise<void> {
+    if (this.#playerView) return;
+    event.stopPropagation();
+    const iconId =
+      target.closest<HTMLElement>("[data-poi-icon-id]")?.dataset.poiIconId ??
+      target.dataset.poiIconId;
+    if (!iconId) return;
+    const removed = await removeWorldPoiIcon(iconId);
+    if (!removed) return;
     void this.render(true);
   }
 
