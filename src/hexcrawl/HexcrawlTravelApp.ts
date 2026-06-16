@@ -53,8 +53,8 @@ import {
   TRAVEL_EVENT_MODES,
   type TravelEventMode,
 } from "./travelRules.js";
-
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+
 
 type HexcrawlTab = "scene" | "party";
 
@@ -78,18 +78,18 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
     },
     position: { width: 520, height: 890 },
     actions: {
-      coursePass: HexcrawlTravelApp.#onCoursePass,
-      courseFail: HexcrawlTravelApp.#onCourseFail,
-      confirmDayEnd: HexcrawlTravelApp.#onConfirmDayEnd,
-      markArrival: HexcrawlTravelApp.#onMarkArrival,
-      resumeTravel: HexcrawlTravelApp.#onResumeTravel,
-      setStartingLocation: HexcrawlTravelApp.#onSetStartingLocation,
-      setCamp: HexcrawlTravelApp.#onSetCamp,
-      resetTravel: HexcrawlTravelApp.#onResetTravel,
-      openJournal: HexcrawlTravelApp.#onOpenJournal,
-      clearJournal: HexcrawlTravelApp.#onClearJournal,
+      coursePass: HexcrawlTravelApp.onCoursePass,
+      courseFail: HexcrawlTravelApp.onCourseFail,
+      confirmDayEnd: HexcrawlTravelApp.onConfirmDayEnd,
+      markArrival: HexcrawlTravelApp.onMarkArrival,
+      resumeTravel: HexcrawlTravelApp.onResumeTravel,
+      setStartingLocation: HexcrawlTravelApp.onSetStartingLocation,
+      setCamp: HexcrawlTravelApp.onSetCamp,
+      resetTravel: HexcrawlTravelApp.onResetTravel,
+      openJournal: HexcrawlTravelApp.onOpenJournal,
+      clearJournal: HexcrawlTravelApp.onClearJournal,
       switchTab: HexcrawlTravelApp.onSwitchTab,
-      removePartyMember: HexcrawlTravelApp.#onRemovePartyMember,
+      removePartyMember: HexcrawlTravelApp.onRemovePartyMember,
     },
   };
 
@@ -164,7 +164,7 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
       const target = event.target;
       if (!(target instanceof HTMLElement)) return;
       if (target.dataset.field) {
-        HexcrawlTravelApp.#onUpdateField.call(this, event, target);
+        void this.#onUpdateField(event, target);
       }
     });
     root.addEventListener("dragover", (event) => {
@@ -203,16 +203,20 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
 
   async #bindScene(sceneId: string): Promise<void> {
     this.#sceneId = sceneId;
-    const loaded = loadHexcrawlSceneState(sceneId) ?? defaultHexcrawlState(sceneId);
+    const loaded = loadHexcrawlSceneState(sceneId);
+    const base = loaded ?? defaultHexcrawlState(sceneId);
     const sceneParty = buildInitialPartyActorIds(sceneId);
     let next = {
-      ...loaded,
-      partyActorIds: mergePartyActorIdsWithScene(loaded.partyActorIds, sceneParty),
+      ...base,
+      partyActorIds: mergePartyActorIdsWithScene(base.partyActorIds, sceneParty),
     };
     next = syncPartyTravelState(next, sceneId);
     next = this.#withTravelTokenSync(next);
     this.#state = next;
+    // Only auto-persist party/token sync when a flag already exists. Creating a flag
+    // here races with the enable checkbox and can overwrite enabled: true.
     if (
+      loaded &&
       currentUserIsOverseer() &&
       (next.travelTokenId !== loaded.travelTokenId ||
         next.lastHexKey !== loaded.lastHexKey ||
@@ -268,6 +272,10 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
     HexcrawlTravelApp.#skipExternalRefresh = true;
     try {
       await saveHexcrawlSceneState(toSave);
+    } catch (error) {
+      console.error(`${MODULE_ID} | hexcrawl travel save failed`, error);
+      ui.notifications.error(t("WASTELANDER.Hexcrawl.Notify.SaveFailed"));
+      throw error;
     } finally {
       HexcrawlTravelApp.#skipExternalRefresh = false;
     }
@@ -409,18 +417,18 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
     };
   }
 
-  static #onUpdateField(
-    this: HexcrawlTravelApp,
-    _event: Event,
-    target: HTMLElement,
-  ): void {
+  #onUpdateField(_event: Event, target: HTMLElement): void {
     const el = target as HTMLInputElement | HTMLSelectElement;
     const field = el.dataset.field;
     if (!field || !currentUserIsOverseer()) return;
 
     switch (field) {
       case "enabled":
-        void this.#onToggleEnabled(_event, el as HTMLInputElement);
+        void this.#onToggleEnabled(_event, el as HTMLInputElement).catch((error) => {
+          console.error(`${MODULE_ID} | hexcrawl enable toggle failed`, error);
+          ui.notifications.error(t("WASTELANDER.Hexcrawl.Notify.SaveFailed"));
+          void this.render();
+        });
         break;
       case "travelEventMode": {
         const travelEventMode = el.value as TravelEventMode;
@@ -464,11 +472,7 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
     }
   }
 
-  static async #onToggleEnabled(
-    this: HexcrawlTravelApp,
-    _event: Event,
-    target: HTMLInputElement,
-  ): Promise<void> {
+  async #onToggleEnabled(_event: Event, target: HTMLInputElement): Promise<void> {
     const enabled = target.checked;
     await this.#mutate((state) => {
       let next = appendJourneyLog(
@@ -518,7 +522,7 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
     );
   }
 
-  static #onRemovePartyMember(
+  static onRemovePartyMember(
     this: HexcrawlTravelApp,
     _event: Event,
     target: HTMLElement,
@@ -573,17 +577,17 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
     await this.render();
   }
 
-  static #onCoursePass(this: HexcrawlTravelApp): void {
+  static onCoursePass(this: HexcrawlTravelApp): void {
     if (!currentUserIsOverseer()) return;
     void this.#applyCourseCheck("pass");
   }
 
-  static #onCourseFail(this: HexcrawlTravelApp): void {
+  static onCourseFail(this: HexcrawlTravelApp): void {
     if (!currentUserIsOverseer()) return;
     void this.#applyCourseCheck("fail");
   }
 
-  static async #onConfirmDayEnd(this: HexcrawlTravelApp): Promise<void> {
+  static async onConfirmDayEnd(this: HexcrawlTravelApp): Promise<void> {
     if (!currentUserIsOverseer()) return;
     if (!this.#state || !confirmDayEndEnabled(this.#state)) return;
 
@@ -595,7 +599,7 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
     await this.#mutate((state) => confirmTravelDayEnd(state));
   }
 
-  static #onMarkArrival(this: HexcrawlTravelApp): void {
+  static onMarkArrival(this: HexcrawlTravelApp): void {
     if (!currentUserIsOverseer()) return;
     void this.#mutate((state) => {
       const next = appendJourneyLog(
@@ -606,17 +610,17 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
     });
   }
 
-  static #onResumeTravel(this: HexcrawlTravelApp): void {
+  static onResumeTravel(this: HexcrawlTravelApp): void {
     if (!currentUserIsOverseer()) return;
     void this.#mutate((state) => ({ ...state, arrived: false }));
   }
 
-  static async #onOpenJournal(this: HexcrawlTravelApp): Promise<void> {
+  static async onOpenJournal(this: HexcrawlTravelApp): Promise<void> {
     if (!this.#sceneId) return;
     await openHexcrawlJournalPage(this.#sceneId);
   }
 
-  static async #onClearJournal(this: HexcrawlTravelApp): Promise<void> {
+  static async onClearJournal(this: HexcrawlTravelApp): Promise<void> {
     if (!currentUserIsOverseer()) return;
     if (!this.#state?.journeyLog.length) return;
 
@@ -649,7 +653,7 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
     void this.render(true);
   }
 
-  static async #onSetStartingLocation(this: HexcrawlTravelApp): Promise<void> {
+  static async onSetStartingLocation(this: HexcrawlTravelApp): Promise<void> {
     if (!currentUserIsOverseer()) return;
     if (!this.#sceneId || !this.#state) return;
     const hexKey = resolveCurrentTravelHexKey(this.#sceneId, this.#state);
@@ -663,7 +667,7 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
     );
   }
 
-  static async #onSetCamp(this: HexcrawlTravelApp): Promise<void> {
+  static async onSetCamp(this: HexcrawlTravelApp): Promise<void> {
     if (!currentUserIsOverseer()) return;
     if (!this.#sceneId || !this.#state) return;
     if (!this.#state.enabled) return;
@@ -672,7 +676,7 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
     await this.render();
   }
 
-  static async #onResetTravel(this: HexcrawlTravelApp): Promise<void> {
+  static async onResetTravel(this: HexcrawlTravelApp): Promise<void> {
     if (!currentUserIsOverseer()) return;
     if (!this.#sceneId || !this.#state) return;
     const resetState = await confirmAndResetTravel(this.#sceneId, this.#state);
@@ -684,8 +688,17 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
   override async _onClose(): Promise<void> {
     if (this.#persistDebounce) {
       clearTimeout(this.#persistDebounce);
-      await this.#persistNow();
+      this.#persistDebounce = null;
     }
+    if (this.#state && this.#sceneId && currentUserIsOverseer()) {
+      try {
+        await this.#persistNow();
+      } catch {
+        // Notified in #persistNow.
+      }
+    }
+    const root = this.#rootElement();
+    if (root) delete root.dataset.wastelanderHexcrawlBound;
     if (HexcrawlTravelApp.#open === this) {
       HexcrawlTravelApp.#open = null;
     }

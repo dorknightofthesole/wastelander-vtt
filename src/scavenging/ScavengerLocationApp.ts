@@ -73,8 +73,8 @@ import { scavengerConfirmDialog } from "./scavengerConfirm.js";
 import { scheduleScavengerJournalSync } from "./scavengerJournalSync.js";
 import ScavengerSearchApp from "./ScavengerSearchApp.js";
 import { getScavengingSettingBoolean, SCAVENGING_SETTINGS } from "./scavengingSettings.js";
-
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+
 
 type FormState = ScavengerFormState;
 
@@ -266,11 +266,11 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
         return;
       }
       if (action === "updateField") {
-        ScavengerLocationApp.#onUpdateField.call(this, event, target);
+        ScavengerLocationApp.onUpdateField.call(this, event, target);
       } else if (action === "toggleParty") {
-        ScavengerLocationApp.#onToggleParty.call(this, event, target);
+        ScavengerLocationApp.onToggleParty.call(this, event, target);
       } else if (action === "toggleProblem") {
-        ScavengerLocationApp.#onToggleProblem.call(this, event, target);
+        ScavengerLocationApp.onToggleProblem.call(this, event, target);
       }
     });
     root.addEventListener(
@@ -579,7 +579,7 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
     void this.render();
   }
 
-  static #onToggleParty(
+  static onToggleParty(
     this: ScavengerLocationApp,
     event: Event,
     target: HTMLElement,
@@ -591,7 +591,7 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
     void this.#persistSceneState();
   }
 
-  static #onUpdateField(
+  static onUpdateField(
     this: ScavengerLocationApp,
     _event: Event,
     target: HTMLElement,
@@ -635,7 +635,7 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
     void this.#persistSceneState();
   }
 
-  static #onToggleProblem(
+  static onToggleProblem(
     this: ScavengerLocationApp,
     _event: Event,
     target: HTMLElement,

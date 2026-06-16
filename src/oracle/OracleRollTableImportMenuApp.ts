@@ -4,8 +4,8 @@ import {
   importBundledOracleRollTables,
   notifyOracleRollTableImportResult,
 } from "./oracleRollTableImport.js";
-
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+
 
 export default class OracleRollTableImportMenuApp extends HandlebarsApplicationMixin(
   ApplicationV2,
@@ -22,7 +22,7 @@ export default class OracleRollTableImportMenuApp extends HandlebarsApplicationM
     },
     position: { width: 520, height: "auto" },
     actions: {
-      runImport: OracleRollTableImportMenuApp.#onRunImport,
+      runImport: OracleRollTableImportMenuApp.onRunImport,
     },
   };
 
@@ -50,7 +50,7 @@ export default class OracleRollTableImportMenuApp extends HandlebarsApplicationM
     };
   }
 
-  static async #onRunImport(this: OracleRollTableImportMenuApp): Promise<void> {
+  static async onRunImport(this: OracleRollTableImportMenuApp): Promise<void> {
     if (this.#importing) return;
 
     this.#importing = true;

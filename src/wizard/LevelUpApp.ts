@@ -9,10 +9,12 @@ import {
   listPerksForLevelUp,
   type LevelUpPerkEntry,
 } from "./levelUpPerks.js";
-
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
-export default class LevelUpApp extends HandlebarsApplicationMixin(ApplicationV2) {
+
+export default class LevelUpApp extends HandlebarsApplicationMixin(
+  ApplicationV2,
+) {
   static #openByActorId = new Map<string, LevelUpApp>();
 
   declare actor: Actor;
@@ -41,10 +43,10 @@ export default class LevelUpApp extends HandlebarsApplicationMixin(ApplicationV2
       height: 640,
     },
     actions: {
-      focusPerk: LevelUpApp.#onFocusPerk,
-      togglePerkSelection: LevelUpApp.#onTogglePerkSelection,
-      cancel: LevelUpApp.#onCancel,
-      confirm: LevelUpApp.#onConfirm,
+      focusPerk: LevelUpApp.onFocusPerk,
+      togglePerkSelection: LevelUpApp.onTogglePerkSelection,
+      cancel: LevelUpApp.onCancel,
+      confirm: LevelUpApp.onConfirm,
     },
   };
 
@@ -169,7 +171,7 @@ export default class LevelUpApp extends HandlebarsApplicationMixin(ApplicationV2
     };
   }
 
-  static #onFocusPerk(
+  static onFocusPerk(
     this: LevelUpApp,
     _event: PointerEvent,
     target: HTMLElement,
@@ -180,7 +182,7 @@ export default class LevelUpApp extends HandlebarsApplicationMixin(ApplicationV2
     void this.render({ force: true });
   }
 
-  static #onTogglePerkSelection(
+  static onTogglePerkSelection(
     this: LevelUpApp,
     _event: PointerEvent,
     target: HTMLElement,
@@ -205,11 +207,11 @@ export default class LevelUpApp extends HandlebarsApplicationMixin(ApplicationV2
     void this.render({ force: true });
   }
 
-  static #onCancel(this: LevelUpApp): void {
+  static onCancel(this: LevelUpApp): void {
     void this.close();
   }
 
-  static async #onConfirm(this: LevelUpApp): Promise<void> {
+  static async onConfirm(this: LevelUpApp): Promise<void> {
     if (this.#applying || !this.selectedPerkUuid) return;
 
     const perk = this.#perksCache.find((p) => p.uuid === this.selectedPerkUuid);

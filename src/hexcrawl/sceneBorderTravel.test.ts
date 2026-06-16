@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   buildCrossedSceneState,
+  detectBorderCrossIntent,
   detectBorderDirection,
   enumerateBorderHexKeys,
   mapEntryHexKey,
   pointInBounds,
+  readSceneBackgroundBounds,
   resolveExitHexKey,
 } from "./sceneBorderTravel.js";
 import { defaultHexcrawlState } from "./hexcrawlScenePersist.js";
@@ -95,6 +97,18 @@ describe("enumerateBorderHexKeys", () => {
 
 describe("resolveExitHexKey", () => {
   it("uses the last in-bounds hex along the movement path", () => {
+    const prevCanvas = (globalThis as { canvas?: unknown }).canvas;
+    (globalThis as { canvas?: unknown }).canvas = {
+      scene: { id: "scene-test" },
+      grid: {
+        size: 100,
+        getCenterPoint: ({ i, j }: { i: number; j: number }) => ({
+          x: 50 + i * 100,
+          y: 50 + j * 100,
+        }),
+      },
+    };
+
     const doc = {
       x: 450,
       y: 650,
@@ -113,8 +127,77 @@ describe("resolveExitHexKey", () => {
       destination: { x: 450, y: 950, width: 1, height: 1 },
     };
 
-    const exitHex = resolveExitHexKey(doc, movement, bounds);
+    const exitHex = resolveExitHexKey(doc, movement, bounds, "scene-test");
     expect(exitHex).toBe("4,6");
+    (globalThis as { canvas?: unknown }).canvas = prevCanvas;
+  });
+});
+
+describe("readSceneBackgroundBounds", () => {
+  it("uses sceneRect from getDimensions when canvas is unavailable", () => {
+    const bounds = readSceneBackgroundBounds({
+      id: "scene-1",
+      getDimensions: () => ({
+        sceneX: 200,
+        sceneY: 150,
+        sceneWidth: 1000,
+        sceneHeight: 800,
+        sceneRect: { x: 200, y: 150, width: 1000, height: 800 },
+      }),
+    });
+    expect(bounds).toEqual({ left: 200, top: 150, right: 1200, bottom: 950 });
+  });
+});
+
+describe("detectBorderCrossIntent", () => {
+  it("detects crossing from passed waypoints when destination is absent", () => {
+    const prevCanvas = (globalThis as { canvas?: unknown }).canvas;
+    (globalThis as { canvas?: unknown }).canvas = {
+      scene: { id: "scene-test" },
+      grid: {
+        size: 100,
+        sizeY: 100,
+        getCenterPoint: ({ i, j }: { i: number; j: number }) => ({
+          x: 50 + i * 100,
+          y: 50 + j * 100,
+        }),
+      },
+    };
+
+    const doc = {
+      x: 450,
+      y: 650,
+      width: 1,
+      height: 1,
+      getSize: () => ({ width: 100, height: 100 }),
+      getOccupiedGridSpaceOffsets: ({ x, y }: { x: number; y: number }) => {
+        const i = Math.round((x - 50) / 100);
+        const j = Math.round((y - 50) / 100);
+        return [{ i, j }];
+      },
+    };
+
+    const movement = {
+      origin: { x: 450, y: 650, width: 1, height: 1 },
+      passed: {
+        waypoints: [{ x: 450, y: 950, width: 1, height: 1 }],
+      },
+    };
+
+    const intent = detectBorderCrossIntent(
+      { sceneLinks: { south: "scene-b" } },
+      doc,
+      movement,
+      bounds,
+      "scene-test",
+    );
+
+    expect(intent).toEqual({
+      direction: "south",
+      targetSceneId: "scene-b",
+      exitHexKey: "4,6",
+    });
+    (globalThis as { canvas?: unknown }).canvas = prevCanvas;
   });
 });
 

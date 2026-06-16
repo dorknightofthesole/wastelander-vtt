@@ -86,7 +86,7 @@ function blockTravelTokenMove(
   const state = loadHexcrawlSceneState(sceneId);
   const bounds = state?.enabled ? readSceneBackgroundBoundsForScene(sceneId) : null;
   const borderCross =
-    state && bounds ? detectBorderCrossIntent(state, doc, movement, bounds) : null;
+    state && bounds ? detectBorderCrossIntent(state, doc, movement, bounds, sceneId) : null;
 
   if (!borderCross) {
     const validation = validateSingleHexTravelMove(doc, movement);
@@ -126,7 +126,7 @@ async function handleTokenHexTravel(
     const state = loadHexcrawlSceneState(sceneId);
     const bounds = state?.enabled ? readSceneBackgroundBoundsForScene(sceneId) : null;
     const borderCross =
-      state && bounds ? detectBorderCrossIntent(state, doc, movement, bounds) : null;
+      state && bounds ? detectBorderCrossIntent(state, doc, movement, bounds, sceneId) : null;
 
     if (borderCross) {
       markSceneCrossingInProgress(sceneId);

@@ -11,8 +11,8 @@ import {
   type LootValueCapFormula,
 } from "./lootValueCap.js";
 import { SCAVENGING_SETTINGS } from "./scavengingSettings.js";
-
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+
 
 const PREVIEW_LEVELS = [0, 5, 10, 11, 15];
 
@@ -84,11 +84,11 @@ export default class LootValueCapSettingsApp extends HandlebarsApplicationMixin(
     },
     position: { width: 620, height: "auto" },
     actions: {
-      addBand: LootValueCapSettingsApp.#onAddBand,
-      removeBand: LootValueCapSettingsApp.#onRemoveBand,
-      recalculateBands: LootValueCapSettingsApp.#onRecalculateBands,
-      saveConfig: LootValueCapSettingsApp.#onSaveConfig,
-      resetDefaults: LootValueCapSettingsApp.#onResetDefaults,
+      addBand: LootValueCapSettingsApp.onAddBand,
+      removeBand: LootValueCapSettingsApp.onRemoveBand,
+      recalculateBands: LootValueCapSettingsApp.onRecalculateBands,
+      saveConfig: LootValueCapSettingsApp.onSaveConfig,
+      resetDefaults: LootValueCapSettingsApp.onResetDefaults,
     },
   };
 
@@ -123,7 +123,7 @@ export default class LootValueCapSettingsApp extends HandlebarsApplicationMixin(
     };
   }
 
-  static #onAddBand(this: LootValueCapSettingsApp): void {
+  static onAddBand(this: LootValueCapSettingsApp): void {
     const bands = [...(this.#config.bands ?? [])];
     const last = bands.at(-1);
     const formula = this.#config.formula ?? getDefaultLootValueCapFormula();
@@ -137,7 +137,7 @@ export default class LootValueCapSettingsApp extends HandlebarsApplicationMixin(
     void this.render();
   }
 
-  static #onRemoveBand(
+  static onRemoveBand(
     this: LootValueCapSettingsApp,
     _event: Event,
     target: HTMLElement,
@@ -150,7 +150,7 @@ export default class LootValueCapSettingsApp extends HandlebarsApplicationMixin(
     void this.render();
   }
 
-  static #onRecalculateBands(
+  static onRecalculateBands(
     this: LootValueCapSettingsApp,
     _event: Event,
     target: HTMLElement,
@@ -175,7 +175,7 @@ export default class LootValueCapSettingsApp extends HandlebarsApplicationMixin(
     void this.render();
   }
 
-  static async #onSaveConfig(
+  static async onSaveConfig(
     this: LootValueCapSettingsApp,
     _event: Event,
     target: HTMLElement,
@@ -195,7 +195,7 @@ export default class LootValueCapSettingsApp extends HandlebarsApplicationMixin(
     await this.render();
   }
 
-  static async #onResetDefaults(this: LootValueCapSettingsApp): Promise<void> {
+  static async onResetDefaults(this: LootValueCapSettingsApp): Promise<void> {
     const defaults = getBundledLootValueCapConfig();
     await game.settings.set(MODULE_ID, SCAVENGING_SETTINGS.lootValueCapConfig, defaults);
     this.#config = defaults;

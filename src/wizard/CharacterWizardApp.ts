@@ -87,8 +87,8 @@ import {
   type WizardState,
   type WizardStepId,
 } from "./WizardState.js";
-
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+
 
 export interface OriginDefinition {
   id: string;
@@ -178,25 +178,25 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
       height: 840,
     },
     actions: {
-      back: CharacterWizardApp.#onBack,
-      next: CharacterWizardApp.#onNext,
-      goStep: CharacterWizardApp.#onGoStep,
-      selectOrigin: CharacterWizardApp.#onSelectOrigin,
-      toggleSurvivorTrait: CharacterWizardApp.#onToggleSurvivorTrait,
-      adjustSpecial: CharacterWizardApp.#onAdjustSpecial,
-      focusSpecial: CharacterWizardApp.#onFocusSpecial,
-      resetSpecial: CharacterWizardApp.#onResetSpecial,
-      toggleSkillTag: CharacterWizardApp.#onToggleSkillTag,
-      adjustSkillRank: CharacterWizardApp.#onAdjustSkillRank,
-      resetSkills: CharacterWizardApp.#onResetSkills,
-      focusPerk: CharacterWizardApp.#onFocusPerk,
-      togglePerkSelection: CharacterWizardApp.#onTogglePerkSelection,
-      setSurvivorMode: CharacterWizardApp.#onSetSurvivorMode,
-      selectEquipmentPack: CharacterWizardApp.#onSelectEquipmentPack,
-      setEquipmentChoice: CharacterWizardApp.#onSetEquipmentChoice,
-      rollTrinket: CharacterWizardApp.#onRollTrinket,
-      viewCompendiumItem: CharacterWizardApp.#onViewCompendiumItem,
-      finish: CharacterWizardApp.#onFinish,
+      back: CharacterWizardApp.onBack,
+      next: CharacterWizardApp.onNext,
+      goStep: CharacterWizardApp.onGoStep,
+      selectOrigin: CharacterWizardApp.onSelectOrigin,
+      toggleSurvivorTrait: CharacterWizardApp.onToggleSurvivorTrait,
+      adjustSpecial: CharacterWizardApp.onAdjustSpecial,
+      focusSpecial: CharacterWizardApp.onFocusSpecial,
+      resetSpecial: CharacterWizardApp.onResetSpecial,
+      toggleSkillTag: CharacterWizardApp.onToggleSkillTag,
+      adjustSkillRank: CharacterWizardApp.onAdjustSkillRank,
+      resetSkills: CharacterWizardApp.onResetSkills,
+      focusPerk: CharacterWizardApp.onFocusPerk,
+      togglePerkSelection: CharacterWizardApp.onTogglePerkSelection,
+      setSurvivorMode: CharacterWizardApp.onSetSurvivorMode,
+      selectEquipmentPack: CharacterWizardApp.onSelectEquipmentPack,
+      setEquipmentChoice: CharacterWizardApp.onSetEquipmentChoice,
+      rollTrinket: CharacterWizardApp.onRollTrinket,
+      viewCompendiumItem: CharacterWizardApp.onViewCompendiumItem,
+      finish: CharacterWizardApp.onFinish,
     },
   };
 
@@ -948,7 +948,7 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
     void this.render({ force: true });
   }
 
-  static #onBack(
+  static onBack(
     this: CharacterWizardApp,
     _event: PointerEvent,
     _target: HTMLElement,
@@ -959,7 +959,7 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
     void this.render({ force: true });
   }
 
-  static #onNext(
+  static onNext(
     this: CharacterWizardApp,
     _event: PointerEvent,
     _target: HTMLElement,
@@ -975,7 +975,7 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
     void this.render({ force: true });
   }
 
-  static #onGoStep(
+  static onGoStep(
     this: CharacterWizardApp,
     event: PointerEvent,
     target: HTMLElement,
@@ -987,7 +987,7 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
     this.#goToStep(step);
   }
 
-  static #onSelectOrigin(
+  static onSelectOrigin(
     this: CharacterWizardApp,
     event: PointerEvent,
     target: HTMLElement,
@@ -1014,7 +1014,7 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
     void this.render({ force: true });
   }
 
-  static #onSetSurvivorMode(
+  static onSetSurvivorMode(
     this: CharacterWizardApp,
     _event: PointerEvent,
     target: HTMLElement,
@@ -1031,7 +1031,7 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
     void this.render({ force: true });
   }
 
-  static #onToggleSurvivorTrait(
+  static onToggleSurvivorTrait(
     this: CharacterWizardApp,
     _event: PointerEvent,
     target: HTMLElement,
@@ -1052,7 +1052,7 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
     void this.render({ force: true });
   }
 
-  static #onAdjustSpecial(
+  static onAdjustSpecial(
     this: CharacterWizardApp,
     _event: PointerEvent,
     target: HTMLElement,
@@ -1066,7 +1066,7 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
     this.#setSpecialValue(attr, next);
   }
 
-  static #onFocusSpecial(
+  static onFocusSpecial(
     this: CharacterWizardApp,
     _event: PointerEvent,
     target: HTMLElement,
@@ -1078,7 +1078,7 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
     void this.render({ force: true });
   }
 
-  static #onResetSpecial(
+  static onResetSpecial(
     this: CharacterWizardApp,
     _event: PointerEvent,
     _target: HTMLElement,
@@ -1089,7 +1089,7 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
     void this.render({ force: true });
   }
 
-  static #onToggleSkillTag(
+  static onToggleSkillTag(
     this: CharacterWizardApp,
     _event: PointerEvent,
     target: HTMLElement,
@@ -1123,7 +1123,7 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
     void this.render({ force: true });
   }
 
-  static #onAdjustSkillRank(
+  static onAdjustSkillRank(
     this: CharacterWizardApp,
     _event: PointerEvent,
     target: HTMLElement,
@@ -1144,7 +1144,7 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
     this.#setSkillRank(skillName, current + delta);
   }
 
-  static #onResetSkills(
+  static onResetSkills(
     this: CharacterWizardApp,
     _event: PointerEvent,
     _target: HTMLElement,
@@ -1156,7 +1156,7 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
     void this.render({ force: true });
   }
 
-  static #onFocusPerk(
+  static onFocusPerk(
     this: CharacterWizardApp,
     _event: PointerEvent,
     target: HTMLElement,
@@ -1168,7 +1168,7 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
     void this.render({ force: true });
   }
 
-  static #onTogglePerkSelection(
+  static onTogglePerkSelection(
     this: CharacterWizardApp,
     _event: PointerEvent,
     target: HTMLElement,
@@ -1205,7 +1205,7 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
     void this.render({ force: true });
   }
 
-  static #onSelectEquipmentPack(
+  static onSelectEquipmentPack(
     this: CharacterWizardApp,
     _event: PointerEvent,
     target: HTMLElement,
@@ -1219,7 +1219,7 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
     void this.render({ force: true });
   }
 
-  static #onSetEquipmentChoice(
+  static onSetEquipmentChoice(
     this: CharacterWizardApp,
     _event: PointerEvent,
     target: HTMLElement,
@@ -1235,7 +1235,7 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
     void this.render({ force: true });
   }
 
-  static async #onRollTrinket(
+  static async onRollTrinket(
     this: CharacterWizardApp,
     _event: PointerEvent,
     _target: HTMLElement,
@@ -1247,7 +1247,7 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
     void this.render({ force: true });
   }
 
-  static #onViewCompendiumItem(
+  static onViewCompendiumItem(
     this: CharacterWizardApp,
     event: PointerEvent,
     target: HTMLElement,
@@ -1259,7 +1259,7 @@ export default class CharacterWizardApp extends HandlebarsApplicationMixin(
     void openCompendiumItemSheet(uuid);
   }
 
-  static #onFinish(
+  static onFinish(
     this: CharacterWizardApp,
     _event: PointerEvent,
     _target: HTMLElement,

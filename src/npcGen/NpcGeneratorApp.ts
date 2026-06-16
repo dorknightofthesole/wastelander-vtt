@@ -58,10 +58,10 @@ import {
   notifyNpcStepTableDiagnostics,
 } from "./wandererRollTables.js";
 import { GENERATE_NPC_REQUIRED_TABLES } from "./wandererTableTitles.js";
+const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 const LAUNCH_STEP_DELAY_MS = 400;
 
-const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 type StepUi = {
   id: string;
@@ -136,15 +136,15 @@ export default class NpcGeneratorApp extends HandlebarsApplicationMixin(
       height: 840,
     },
     actions: {
-      finish: NpcGeneratorApp.#onFinish,
-      reset: NpcGeneratorApp.#onReset,
-      generate: NpcGeneratorApp.#onGenerate,
-      focusStep: NpcGeneratorApp.#onFocusStep,
-      rerollStep: NpcGeneratorApp.#onRerollStep,
-      pickStepOption: NpcGeneratorApp.#onPickStepOption,
-      approveDenizenGear: NpcGeneratorApp.#onApproveDenizenGear,
-      copyAiPrompt: NpcGeneratorApp.#onCopyAiPrompt,
-      dismissAiPrompt: NpcGeneratorApp.#onDismissAiPrompt,
+      finish: NpcGeneratorApp.onFinish,
+      reset: NpcGeneratorApp.onReset,
+      generate: NpcGeneratorApp.onGenerate,
+      focusStep: NpcGeneratorApp.onFocusStep,
+      rerollStep: NpcGeneratorApp.onRerollStep,
+      pickStepOption: NpcGeneratorApp.onPickStepOption,
+      approveDenizenGear: NpcGeneratorApp.onApproveDenizenGear,
+      copyAiPrompt: NpcGeneratorApp.onCopyAiPrompt,
+      dismissAiPrompt: NpcGeneratorApp.onDismissAiPrompt,
     },
   };
 
@@ -541,7 +541,7 @@ export default class NpcGeneratorApp extends HandlebarsApplicationMixin(
     void app.render({ force: true });
   }
 
-  static async #onFinish(this: NpcGeneratorApp): Promise<void> {
+  static async onFinish(this: NpcGeneratorApp): Promise<void> {
     if (!allRollStepsComplete(this.state) || this.#rolling) return;
     await closeAllRenderedActorSheets();
     this.#rolling = true;
@@ -563,11 +563,11 @@ export default class NpcGeneratorApp extends HandlebarsApplicationMixin(
     }
   }
 
-  static async #onReset(this: NpcGeneratorApp): Promise<void> {
+  static async onReset(this: NpcGeneratorApp): Promise<void> {
     await this.#resetGenerator();
   }
 
-  static async #onCopyAiPrompt(this: NpcGeneratorApp): Promise<void> {
+  static async onCopyAiPrompt(this: NpcGeneratorApp): Promise<void> {
     if (!allRollStepsComplete(this.state) || this.#rolling) return;
     const prompt = buildNpcGenAiPrompt(
       this.state,
@@ -586,17 +586,17 @@ export default class NpcGeneratorApp extends HandlebarsApplicationMixin(
     void this.render({ force: true });
   }
 
-  static #onDismissAiPrompt(this: NpcGeneratorApp): void {
+  static onDismissAiPrompt(this: NpcGeneratorApp): void {
     this.#showAiPromptFallback = false;
     this.#aiPromptText = "";
     void this.render({ force: true });
   }
 
-  static async #onGenerate(this: NpcGeneratorApp): Promise<void> {
+  static async onGenerate(this: NpcGeneratorApp): Promise<void> {
     await this.#runGenerate();
   }
 
-  static #onFocusStep(
+  static onFocusStep(
     this: NpcGeneratorApp,
     _event: Event,
     target: HTMLElement,
@@ -637,7 +637,7 @@ export default class NpcGeneratorApp extends HandlebarsApplicationMixin(
     void app.render({ force: true });
   }
 
-  static #onApproveDenizenGear(this: NpcGeneratorApp): void {
+  static onApproveDenizenGear(this: NpcGeneratorApp): void {
     const select = this.#rootElement()?.querySelector<HTMLSelectElement>(
       'select[data-npc-gen-select="denizen"]',
     );
@@ -668,7 +668,7 @@ export default class NpcGeneratorApp extends HandlebarsApplicationMixin(
     void this.render({ force: true });
   }
 
-  static async #onRerollStep(
+  static async onRerollStep(
     this: NpcGeneratorApp,
     _event: Event,
     target: HTMLElement,
@@ -699,7 +699,7 @@ export default class NpcGeneratorApp extends HandlebarsApplicationMixin(
     }
   }
 
-  static #onPickStepOption(
+  static onPickStepOption(
     this: NpcGeneratorApp,
     _event: Event,
     target: HTMLElement,

@@ -4,8 +4,8 @@ import {
   importBundledEncounterRollTables,
   notifyEncounterRollTableImportResult,
 } from "./encounterRollTableImport.js";
-
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+
 
 export default class EncounterRollTableImportMenuApp extends HandlebarsApplicationMixin(
   ApplicationV2,
@@ -22,7 +22,7 @@ export default class EncounterRollTableImportMenuApp extends HandlebarsApplicati
     },
     position: { width: 520, height: "auto" },
     actions: {
-      runImport: EncounterRollTableImportMenuApp.#onRunImport,
+      runImport: EncounterRollTableImportMenuApp.onRunImport,
     },
   };
 
@@ -50,7 +50,7 @@ export default class EncounterRollTableImportMenuApp extends HandlebarsApplicati
     };
   }
 
-  static async #onRunImport(this: EncounterRollTableImportMenuApp): Promise<void> {
+  static async onRunImport(this: EncounterRollTableImportMenuApp): Promise<void> {
     if (this.#importing) return;
     this.#importing = true;
     await this.render();

@@ -13,6 +13,11 @@ const PREFERRED_PACKS: Record<string, string[]> = {
   beverages: [WASTELANDER_ITEMS_PACK, "fallout.consumables"],
   chems: [WASTELANDER_ITEMS_PACK, "fallout.consumables"],
   ammunition: [WASTELANDER_ITEMS_PACK, "fallout.ammunition"],
+  armor: [WASTELANDER_ITEMS_PACK, "fallout.apparel"],
+  clothing: [WASTELANDER_ITEMS_PACK, "fallout.apparel"],
+  weaponsRanged: [WASTELANDER_ITEMS_PACK, "fallout.weapons"],
+  weaponsMelee: [WASTELANDER_ITEMS_PACK, "fallout.weapons"],
+  weaponsThrown: [WASTELANDER_ITEMS_PACK, "fallout.weapons"],
 };
 
 export type ResolvedScavengingItem = {

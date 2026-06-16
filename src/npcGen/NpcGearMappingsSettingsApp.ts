@@ -10,8 +10,8 @@ import {
   type NpcGearMappingsConfig,
 } from "./npcGearMappings.js";
 import { NPC_GENERATOR_SETTINGS } from "./npcGeneratorSettings.js";
-
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+
 
 type GearSection = "professions" | "demeanor";
 
@@ -59,12 +59,12 @@ export default class NpcGearMappingsSettingsApp extends HandlebarsApplicationMix
     },
     position: { width: 720, height: "auto" },
     actions: {
-      addProfessionRow: NpcGearMappingsSettingsApp.#onAddProfessionRow,
-      addDemeanorRow: NpcGearMappingsSettingsApp.#onAddDemeanorRow,
-      removeProfessionRow: NpcGearMappingsSettingsApp.#onRemoveProfessionRow,
-      removeDemeanorRow: NpcGearMappingsSettingsApp.#onRemoveDemeanorRow,
-      saveConfig: NpcGearMappingsSettingsApp.#onSaveConfig,
-      resetDefaults: NpcGearMappingsSettingsApp.#onResetDefaults,
+      addProfessionRow: NpcGearMappingsSettingsApp.onAddProfessionRow,
+      addDemeanorRow: NpcGearMappingsSettingsApp.onAddDemeanorRow,
+      removeProfessionRow: NpcGearMappingsSettingsApp.onRemoveProfessionRow,
+      removeDemeanorRow: NpcGearMappingsSettingsApp.onRemoveDemeanorRow,
+      saveConfig: NpcGearMappingsSettingsApp.onSaveConfig,
+      resetDefaults: NpcGearMappingsSettingsApp.onResetDefaults,
     },
   };
 
@@ -86,7 +86,7 @@ export default class NpcGearMappingsSettingsApp extends HandlebarsApplicationMix
     };
   }
 
-  static #onAddProfessionRow(
+  static onAddProfessionRow(
     this: NpcGearMappingsSettingsApp,
     _event: Event,
     target: HTMLElement,
@@ -94,7 +94,7 @@ export default class NpcGearMappingsSettingsApp extends HandlebarsApplicationMix
     NpcGearMappingsSettingsApp.#addRow(this, "professions", target);
   }
 
-  static #onAddDemeanorRow(
+  static onAddDemeanorRow(
     this: NpcGearMappingsSettingsApp,
     _event: Event,
     target: HTMLElement,
@@ -102,7 +102,7 @@ export default class NpcGearMappingsSettingsApp extends HandlebarsApplicationMix
     NpcGearMappingsSettingsApp.#addRow(this, "demeanor", target);
   }
 
-  static #onRemoveProfessionRow(
+  static onRemoveProfessionRow(
     this: NpcGearMappingsSettingsApp,
     _event: Event,
     target: HTMLElement,
@@ -110,7 +110,7 @@ export default class NpcGearMappingsSettingsApp extends HandlebarsApplicationMix
     NpcGearMappingsSettingsApp.#removeRow(this, "professions", target);
   }
 
-  static #onRemoveDemeanorRow(
+  static onRemoveDemeanorRow(
     this: NpcGearMappingsSettingsApp,
     _event: Event,
     target: HTMLElement,
@@ -162,7 +162,7 @@ export default class NpcGearMappingsSettingsApp extends HandlebarsApplicationMix
     void app.render();
   }
 
-  static async #onSaveConfig(
+  static async onSaveConfig(
     this: NpcGearMappingsSettingsApp,
     _event: Event,
     target: HTMLElement,
@@ -184,7 +184,7 @@ export default class NpcGearMappingsSettingsApp extends HandlebarsApplicationMix
     await this.render();
   }
 
-  static async #onResetDefaults(this: NpcGearMappingsSettingsApp): Promise<void> {
+  static async onResetDefaults(this: NpcGearMappingsSettingsApp): Promise<void> {
     const defaults = getDefaultNpcGearMappingsConfig();
     await game.settings.set(MODULE_ID, NPC_GENERATOR_SETTINGS.npcGearMappings, defaults);
     this.#config = defaults;

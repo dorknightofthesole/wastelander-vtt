@@ -5,8 +5,8 @@ import {
   importBundledDenizens,
   notifyDenizenImportResult,
 } from "./denizenImport.js";
-
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+
 
 export default class DenizenImportMenuApp extends HandlebarsApplicationMixin(
   ApplicationV2,
@@ -23,7 +23,7 @@ export default class DenizenImportMenuApp extends HandlebarsApplicationMixin(
     },
     position: { width: 520, height: "auto" },
     actions: {
-      runImport: DenizenImportMenuApp.#onRunImport,
+      runImport: DenizenImportMenuApp.onRunImport,
     },
   };
 
@@ -51,7 +51,7 @@ export default class DenizenImportMenuApp extends HandlebarsApplicationMixin(
     };
   }
 
-  static async #onRunImport(this: DenizenImportMenuApp): Promise<void> {
+  static async onRunImport(this: DenizenImportMenuApp): Promise<void> {
     if (this.#importing) return;
 
     this.#importing = true;

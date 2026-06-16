@@ -8,6 +8,7 @@ import {
   normalizeCombatDiceCount,
   rollAndPostCombatDice,
 } from "./combatDiceRoll.js";
+const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 function resolveDialogRoot(
   root: HTMLElement | HTMLElement[] | undefined,
@@ -54,7 +55,6 @@ function readDialogFormState(root: HTMLElement | HTMLElement[] | undefined): {
   };
 }
 
-const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 export default class CombatDiceRollDialog extends HandlebarsApplicationMixin(
   ApplicationV2,
@@ -73,10 +73,10 @@ export default class CombatDiceRollDialog extends HandlebarsApplicationMixin(
     },
     position: { width: 360, height: "auto" },
     actions: {
-      roll: CombatDiceRollDialog.#onRoll,
-      cancel: CombatDiceRollDialog.#onCancel,
-      decrementCount: CombatDiceRollDialog.#onDecrementCount,
-      incrementCount: CombatDiceRollDialog.#onIncrementCount,
+      roll: CombatDiceRollDialog.onRoll,
+      cancel: CombatDiceRollDialog.onCancel,
+      decrementCount: CombatDiceRollDialog.onDecrementCount,
+      incrementCount: CombatDiceRollDialog.onIncrementCount,
     },
   };
 
@@ -120,7 +120,7 @@ export default class CombatDiceRollDialog extends HandlebarsApplicationMixin(
         if (!(target instanceof HTMLInputElement) || target.name !== "count") return;
         if (event.key !== "Enter") return;
         event.preventDefault();
-        void CombatDiceRollDialog.#onRoll.call(this);
+        void CombatDiceRollDialog.onRoll.call(this);
       });
     }
   }
@@ -133,21 +133,21 @@ export default class CombatDiceRollDialog extends HandlebarsApplicationMixin(
     this.#rollLabel = state.rollLabel;
   }
 
-  static #onDecrementCount(this: CombatDiceRollDialog): void {
+  static onDecrementCount(this: CombatDiceRollDialog): void {
     if (this.#rolling) return;
     this.#syncCountFromDom();
     this.#selectedCount = Math.max(MIN_COMBAT_DICE, this.#selectedCount - 1);
     void this.render();
   }
 
-  static #onIncrementCount(this: CombatDiceRollDialog): void {
+  static onIncrementCount(this: CombatDiceRollDialog): void {
     if (this.#rolling) return;
     this.#syncCountFromDom();
     this.#selectedCount = Math.min(MAX_COMBAT_DICE, this.#selectedCount + 1);
     void this.render();
   }
 
-  static async #onRoll(this: CombatDiceRollDialog): Promise<void> {
+  static async onRoll(this: CombatDiceRollDialog): Promise<void> {
     if (this.#rolling) return;
 
     const state = readDialogFormState(this.element);
@@ -179,7 +179,7 @@ export default class CombatDiceRollDialog extends HandlebarsApplicationMixin(
     }
   }
 
-  static #onCancel(this: CombatDiceRollDialog): void {
+  static onCancel(this: CombatDiceRollDialog): void {
     void this.close();
   }
 }

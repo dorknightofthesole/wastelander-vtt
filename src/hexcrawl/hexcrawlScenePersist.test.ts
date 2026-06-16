@@ -104,4 +104,32 @@ describe("prepareHexcrawlStateForSave", () => {
     expect(merged.travelEventMode).toBe("hourChange");
     expect(merged.journeyLog).toHaveLength(1);
   });
+
+  it("keeps enabled true when UI toggles on a scene with an existing flag", () => {
+    const sceneId = "scene-1";
+    const fresh = {
+      ...defaultHexcrawlState(sceneId),
+      enabled: false,
+      journeyLog: [],
+    };
+    const pending = {
+      ...fresh,
+      enabled: true,
+      journeyLog: [{ at: 1, kind: "enabled" as const, travelDay: 1 }],
+    };
+
+    const game = globalThis.game as {
+      scenes?: { get: (id: string) => { getFlag?: (scope: string, key: string) => unknown } | undefined };
+      world?: { getFlag?: (scope: string, key: string) => unknown };
+    };
+    game.scenes = {
+      get: (id: string) =>
+        id === sceneId ? { getFlag: () => ({ ...fresh, version: 1 }) } : undefined,
+    };
+    game.world = { getFlag: () => null };
+
+    const merged = prepareHexcrawlStateForSave(pending, sceneId);
+    expect(merged.enabled).toBe(true);
+    expect(merged.journeyLog).toHaveLength(1);
+  });
 });

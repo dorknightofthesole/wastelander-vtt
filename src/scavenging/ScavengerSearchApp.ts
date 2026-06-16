@@ -52,8 +52,8 @@ import {
   loadScavengerSceneState,
   type ScavengerScenePersistedState,
 } from "./scenePersist.js";
-
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+
 
 type LuckActorOption = {
   actorId: string;

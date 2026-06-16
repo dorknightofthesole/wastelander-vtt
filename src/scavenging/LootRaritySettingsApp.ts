@@ -11,8 +11,8 @@ import {
   type LootRarityFormula,
 } from "./lootRarity.js";
 import { SCAVENGING_SETTINGS } from "./scavengingSettings.js";
-
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+
 
 const PREVIEW_LEVELS = [0, 5, 10, 11, 15];
 
@@ -86,11 +86,11 @@ export default class LootRaritySettingsApp extends HandlebarsApplicationMixin(
     },
     position: { width: 620, height: "auto" },
     actions: {
-      addBand: LootRaritySettingsApp.#onAddBand,
-      removeBand: LootRaritySettingsApp.#onRemoveBand,
-      recalculateBands: LootRaritySettingsApp.#onRecalculateBands,
-      saveConfig: LootRaritySettingsApp.#onSaveConfig,
-      resetDefaults: LootRaritySettingsApp.#onResetDefaults,
+      addBand: LootRaritySettingsApp.onAddBand,
+      removeBand: LootRaritySettingsApp.onRemoveBand,
+      recalculateBands: LootRaritySettingsApp.onRecalculateBands,
+      saveConfig: LootRaritySettingsApp.onSaveConfig,
+      resetDefaults: LootRaritySettingsApp.onResetDefaults,
     },
   };
 
@@ -124,7 +124,7 @@ export default class LootRaritySettingsApp extends HandlebarsApplicationMixin(
     };
   }
 
-  static #onAddBand(this: LootRaritySettingsApp): void {
+  static onAddBand(this: LootRaritySettingsApp): void {
     const bands = [...(this.#config.bands ?? [])];
     const last = bands.at(-1);
     const formula = this.#config.formula ?? getDefaultLootRarityFormula();
@@ -140,7 +140,7 @@ export default class LootRaritySettingsApp extends HandlebarsApplicationMixin(
     void this.render();
   }
 
-  static #onRemoveBand(
+  static onRemoveBand(
     this: LootRaritySettingsApp,
     _event: Event,
     target: HTMLElement,
@@ -153,7 +153,7 @@ export default class LootRaritySettingsApp extends HandlebarsApplicationMixin(
     void this.render();
   }
 
-  static #onRecalculateBands(
+  static onRecalculateBands(
     this: LootRaritySettingsApp,
     _event: Event,
     target: HTMLElement,
@@ -178,7 +178,7 @@ export default class LootRaritySettingsApp extends HandlebarsApplicationMixin(
     void this.render();
   }
 
-  static async #onSaveConfig(
+  static async onSaveConfig(
     this: LootRaritySettingsApp,
     _event: Event,
     target: HTMLElement,
@@ -198,7 +198,7 @@ export default class LootRaritySettingsApp extends HandlebarsApplicationMixin(
     await this.render();
   }
 
-  static async #onResetDefaults(this: LootRaritySettingsApp): Promise<void> {
+  static async onResetDefaults(this: LootRaritySettingsApp): Promise<void> {
     const defaults = getBundledLootRarityConfig();
     await game.settings.set(MODULE_ID, SCAVENGING_SETTINGS.lootRarityConfig, defaults);
     this.#config = defaults;

@@ -167,6 +167,33 @@ export function getTokenHexKey(token: CanvasToken): string | null {
   return hexKeyFromGridAtPoint(grid, center);
 }
 
+/** Movement start waypoint (hook origin or current token position). */
+export function resolveMovementOriginWaypoint(
+  doc: TokenDimensions,
+  movement: TokenMovementLike,
+): MovementWaypoint | null {
+  if (movement.origin && isMovementWaypoint(movement.origin)) {
+    return movement.origin;
+  }
+  if (Number.isFinite(doc.x) && Number.isFinite(doc.y)) {
+    return { x: doc.x, y: doc.y, width: doc.width, height: doc.height };
+  }
+  return null;
+}
+
+/** Final movement waypoint (hook destination, else last passed waypoint). */
+export function resolveMovementDestinationWaypoint(
+  doc: TokenDimensions,
+  movement: TokenMovementLike,
+): MovementWaypoint | null {
+  if (movement.destination && isMovementWaypoint(movement.destination)) {
+    return movement.destination;
+  }
+  const passed = movementWaypointsFromSection(movement.passed);
+  if (passed.length > 0) return passed[passed.length - 1] ?? null;
+  return null;
+}
+
 /** Distinct hex keys crossed by a v13 token movement, in path order. */
 export function collectMovementHexKeys(
   doc: TokenDimensions,
@@ -318,18 +345,42 @@ export function tokenPositionForHexKeyOnScene(
       get: (id: string) => {
         padding?: number;
         grid?: { size?: number; sizeX?: number; sizeY?: number };
+        getDimensions?: () => {
+          sceneX: number;
+          sceneY: number;
+          sceneWidth: number;
+          sceneHeight: number;
+          sceneRect?: { x: number; y: number; width: number; height: number };
+        };
       } | undefined;
     };
   }).scenes?.get(sceneId);
   if (!scene) return null;
 
-  const padding = scene.padding ?? 0;
+  let originX = 0;
+  let originY = 0;
+  if (typeof scene.getDimensions === "function") {
+    try {
+      const dims = scene.getDimensions();
+      const sceneRect = dims.sceneRect ?? {
+        x: dims.sceneX,
+        y: dims.sceneY,
+        width: dims.sceneWidth,
+        height: dims.sceneHeight,
+      };
+      originX = sceneRect.x;
+      originY = sceneRect.y;
+    } catch {
+      // Use 0,0.
+    }
+  }
+
   const grid = scene.grid;
   const sizeX = grid?.sizeX ?? grid?.size ?? 100;
   const sizeY = grid?.sizeY ?? grid?.size ?? 100;
   return {
-    x: padding + offset.i * sizeX,
-    y: padding + offset.j * sizeY,
+    x: originX + offset.i * sizeX,
+    y: originY + offset.j * sizeY,
   };
 }
 

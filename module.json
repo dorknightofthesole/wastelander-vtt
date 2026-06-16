@@ -30,7 +30,7 @@
     {
       "name": "Wastelander",
       "sorting": "m",
-      "packs": ["items", "wastelander"],
+      "packs": ["wastelander-items", "wastelander-rollable-tables"],
       "ownership": {
         "PLAYER": "OBSERVER",
         "ASSISTANT": "OWNER"
@@ -39,9 +39,9 @@
   ],
   "packs": [
     {
-      "name": "items",
-      "label": "Items",
-      "path": "packs/items",
+      "name": "wastelander-items",
+      "label": "Wastelander Items",
+      "path": "packs/wastelander-items",
       "type": "Item",
       "system": "fallout",
       "ownership": {
@@ -50,9 +50,9 @@
       }
     },
     {
-      "name": "wastelander",
-      "label": "Wastelander",
-      "path": "packs/wastelander",
+      "name": "wastelander-rollable-tables",
+      "label": "Wastelander Rollable Tables",
+      "path": "packs/wastelander-rollable-tables",
       "type": "RollTable",
       "system": "fallout",
       "ownership": {

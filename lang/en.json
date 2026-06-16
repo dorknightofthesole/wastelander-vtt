@@ -419,7 +419,8 @@
         "SceneLinkBounds": "Could not read the linked scene's map bounds.",
         "SceneLinkEntryHex": "Could not find an entry hex on the linked scene border.",
         "SceneLinkToken": "Could not place the navigator token on the linked scene.",
-        "SceneCrossed": "Crossed to {scene} at hex {hex}."
+        "SceneCrossed": "Crossed to {scene} at hex {hex}.",
+        "SaveFailed": "Could not save hexcrawl travel settings for this scene."
       },
       "Settings": {
         "AdvanceWorldClockName": "Advance world clock on hexcrawl travel",

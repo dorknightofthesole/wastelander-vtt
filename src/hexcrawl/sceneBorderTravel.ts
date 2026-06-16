@@ -5,6 +5,8 @@ import {
   findSceneTokenIdForActor,
   getHexKeyFromTokenDocument,
   parseHexKey,
+  resolveMovementDestinationWaypoint,
+  resolveMovementOriginWaypoint,
   tokenPositionForHexKeyOnScene,
   type TokenMovementLike,
 } from "./hexCoords.js";
@@ -55,17 +57,20 @@ type TokenDimensions = {
   };
 };
 
-type MovementWaypoint = {
-  x?: number;
-  y?: number;
+type SceneBackgroundSource = {
+  id: string;
   width?: number;
   height?: number;
-};
-
-type SceneBoundsSource = {
-  id: string;
   padding?: number;
   dimensions?: { width?: number; height?: number };
+  background?: { x?: number; y?: number; width?: number; height?: number } | null;
+  getDimensions?: () => {
+    sceneX: number;
+    sceneY: number;
+    sceneWidth: number;
+    sceneHeight: number;
+    sceneRect?: { x: number; y: number; width: number; height: number };
+  };
 };
 
 type CanvasBackground = {
@@ -80,6 +85,7 @@ type CanvasGrid = {
 };
 
 const crossingInProgressScenes = new Set<string>();
+const warnedMissingBoundsScenes = new Set<string>();
 
 export function isSceneCrossingInProgress(sceneId: string): boolean {
   return crossingInProgressScenes.has(sceneId);
@@ -95,7 +101,7 @@ export function unmarkSceneCrossingInProgress(sceneId: string): void {
 
 function tokenCenterPixels(
   doc: TokenDimensions,
-  position?: MovementWaypoint,
+  position?: { x?: number; y?: number; width?: number; height?: number },
 ): Point | null {
   const x = position?.x ?? doc.x;
   const y = position?.y ?? doc.y;
@@ -114,6 +120,15 @@ function tokenCenterPixels(
   return { x: x + (width * cellW) / 2, y: y + (height * cellH) / 2 };
 }
 
+function rectToBounds(rect: { x: number; y: number; width: number; height: number }): ImageBounds {
+  return {
+    left: rect.x,
+    top: rect.y,
+    right: rect.x + rect.width,
+    bottom: rect.y + rect.height,
+  };
+}
+
 export function pointInBounds(point: Point, bounds: ImageBounds): boolean {
   return (
     point.x >= bounds.left &&
@@ -123,7 +138,10 @@ export function pointInBounds(point: Point, bounds: ImageBounds): boolean {
   );
 }
 
-export function readSceneBackgroundBounds(scene: SceneBoundsSource): ImageBounds | null {
+/**
+ * Pixel bounds of the scene background image (not the padded canvas / full grid).
+ */
+export function readSceneBackgroundBounds(scene: SceneBackgroundSource): ImageBounds | null {
   const canvas = (globalThis as {
     canvas?: {
       scene?: { id?: string };
@@ -133,34 +151,61 @@ export function readSceneBackgroundBounds(scene: SceneBoundsSource): ImageBounds
 
   if (canvas?.scene?.id === scene.id && canvas.background?.getBounds) {
     const rect = canvas.background.getBounds();
-    if (rect && Number.isFinite(rect.width) && Number.isFinite(rect.height)) {
-      return {
-        left: rect.x,
-        top: rect.y,
-        right: rect.x + rect.width,
-        bottom: rect.y + rect.height,
-      };
+    if (rect && Number.isFinite(rect.width) && Number.isFinite(rect.height) && rect.width > 0) {
+      return rectToBounds(rect);
     }
   }
 
-  const padding = scene.padding ?? 0;
-  const width = scene.dimensions?.width;
-  const height = scene.dimensions?.height;
-  if (!width || !height) return null;
+  if (typeof scene.getDimensions === "function") {
+    try {
+      const dims = scene.getDimensions();
+      const sceneRect = dims.sceneRect ?? {
+        x: dims.sceneX,
+        y: dims.sceneY,
+        width: dims.sceneWidth,
+        height: dims.sceneHeight,
+      };
+      if (sceneRect.width > 0 && sceneRect.height > 0) {
+        return rectToBounds(sceneRect);
+      }
+    } catch {
+      // Fall through to other sources.
+    }
+  }
 
-  return {
-    left: padding,
-    top: padding,
-    right: padding + width,
-    bottom: padding + height,
-  };
+  const bg = scene.background;
+  if (bg && typeof bg === "object") {
+    const width = bg.width;
+    const height = bg.height;
+    if (typeof width === "number" && typeof height === "number" && width > 0 && height > 0) {
+      const x = typeof bg.x === "number" ? bg.x : 0;
+      const y = typeof bg.y === "number" ? bg.y : 0;
+      return rectToBounds({ x, y, width, height });
+    }
+  }
+
+  const width = scene.width ?? scene.dimensions?.width;
+  const height = scene.height ?? scene.dimensions?.height;
+  if (typeof width === "number" && typeof height === "number" && width > 0 && height > 0) {
+    return { left: 0, top: 0, right: width, bottom: height };
+  }
+
+  return null;
 }
 
 export function readSceneBackgroundBoundsForScene(sceneId: string): ImageBounds | null {
-  const scene = (game as { scenes?: { get: (id: string) => SceneBoundsSource | undefined } })
+  const scene = (game as { scenes?: { get: (id: string) => SceneBackgroundSource | undefined } })
     .scenes?.get(sceneId);
   if (!scene) return null;
-  return readSceneBackgroundBounds(scene);
+
+  const bounds = readSceneBackgroundBounds(scene);
+  if (!bounds && !warnedMissingBoundsScenes.has(sceneId)) {
+    warnedMissingBoundsScenes.add(sceneId);
+    console.warn(
+      `${MODULE_ID} | could not resolve background bounds for scene ${sceneId}; border travel disabled until the scene is viewed or dimensions are available`,
+    );
+  }
+  return bounds;
 }
 
 /**
@@ -198,12 +243,71 @@ export function detectBorderDirection(
   return dy >= 0 ? "south" : "north";
 }
 
-function hexKeyInsideBounds(
-  doc: TokenDimensions,
-  hexKey: string,
+function detectMovementCardinal(from: Point, to: Point): SceneCardinal | null {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) return null;
+  if (Math.abs(dx) >= Math.abs(dy)) return dx >= 0 ? "east" : "west";
+  return dy >= 0 ? "south" : "north";
+}
+
+function isNearBorder(
+  point: Point,
   bounds: ImageBounds,
+  direction: SceneCardinal,
+  tolerance: number,
 ): boolean {
-  const center = hexCenterForKey(hexKey);
+  switch (direction) {
+    case "north":
+      return point.y <= bounds.top + tolerance;
+    case "south":
+      return point.y >= bounds.bottom - tolerance;
+    case "west":
+      return point.x <= bounds.left + tolerance;
+    case "east":
+      return point.x >= bounds.right - tolerance;
+  }
+}
+
+function isFurtherInDirection(
+  dest: Point,
+  origin: Point,
+  direction: SceneCardinal,
+): boolean {
+  switch (direction) {
+    case "north":
+      return dest.y < origin.y - 0.5;
+    case "south":
+      return dest.y > origin.y + 0.5;
+    case "west":
+      return dest.x < origin.x - 0.5;
+    case "east":
+      return dest.x > origin.x + 0.5;
+  }
+}
+
+function detectLinkedBorderStep(
+  links: SceneLinks,
+  origin: Point,
+  dest: Point,
+  bounds: ImageBounds,
+  tolerance: number,
+): SceneCardinal | null {
+  const travelDir = detectMovementCardinal(origin, dest);
+  if (!travelDir || !links[travelDir]) return null;
+
+  const originInside = pointInBounds(origin, bounds);
+  const destOutside = !pointInBounds(dest, bounds);
+  const originOnBorder = isNearBorder(origin, bounds, travelDir, tolerance);
+  const destFurther = isFurtherInDirection(dest, origin, travelDir);
+
+  if (originInside && destOutside) return travelDir;
+  if (originOnBorder && destFurther) return travelDir;
+  return null;
+}
+
+function hexKeyInsideBounds(hexKey: string, bounds: ImageBounds, sceneId: string): boolean {
+  const center = hexCenterForScene(sceneId, hexKey);
   if (!center) return false;
   return pointInBounds(center, bounds);
 }
@@ -212,15 +316,17 @@ export function resolveExitHexKey(
   doc: TokenDimensions,
   movement: TokenMovementLike,
   bounds: ImageBounds,
+  sceneId: string,
 ): string | null {
   const pathKeys = collectMovementHexKeys(doc, movement);
-  const inBounds = pathKeys.filter((key) => hexKeyInsideBounds(doc, key, bounds));
+  const inBounds = pathKeys.filter((key) => hexKeyInsideBounds(key, bounds, sceneId));
   if (inBounds.length > 0) return inBounds[inBounds.length - 1] ?? null;
 
-  const originKey = movement.origin
-    ? getHexKeyFromTokenDocument(doc, movement.origin)
+  const originWaypoint = resolveMovementOriginWaypoint(doc, movement);
+  const originKey = originWaypoint
+    ? getHexKeyFromTokenDocument(doc, originWaypoint)
     : getHexKeyFromTokenDocument(doc);
-  if (originKey && hexKeyInsideBounds(doc, originKey, bounds)) return originKey;
+  if (originKey && hexKeyInsideBounds(originKey, bounds, sceneId)) return originKey;
 
   return pathKeys[0] ?? originKey;
 }
@@ -305,21 +411,51 @@ export function detectBorderCrossIntent(
   doc: TokenDimensions,
   movement: TokenMovementLike,
   bounds: ImageBounds,
+  sceneId: string,
 ): BorderCrossIntent | null {
-  const origin = tokenCenterPixels(doc, movement.origin) ?? tokenCenterPixels(doc);
-  const destination = movement.destination
-    ? tokenCenterPixels(doc, movement.destination)
-    : null;
-  if (!origin || !destination) return null;
+  const hasLinks = Object.values(state.sceneLinks).some(
+    (id) => typeof id === "string" && id.length > 0,
+  );
+  if (!hasLinks) return null;
 
-  const direction = detectBorderDirection(origin, destination, bounds);
+  const originWaypoint = resolveMovementOriginWaypoint(doc, movement);
+  const destWaypoint = resolveMovementDestinationWaypoint(doc, movement);
+  if (!originWaypoint || !destWaypoint) return null;
+
+  const originHex = getHexKeyFromTokenDocument(doc, originWaypoint);
+  const destHex = getHexKeyFromTokenDocument(doc, destWaypoint);
+
+  const originCenter =
+    (originHex ? hexCenterForScene(sceneId, originHex) : null) ??
+    tokenCenterPixels(doc, originWaypoint) ??
+    tokenCenterPixels(doc);
+  const destCenter =
+    (destHex ? hexCenterForScene(sceneId, destHex) : null) ??
+    tokenCenterPixels(doc, destWaypoint);
+
+  if (!originCenter || !destCenter) return null;
+
+  const tolerance = gridTolerance(
+    (globalThis as { canvas?: { grid?: CanvasGrid } }).canvas?.grid,
+  );
+
+  let direction =
+    detectBorderDirection(originCenter, destCenter, bounds) ??
+    detectLinkedBorderStep(state.sceneLinks, originCenter, destCenter, bounds, tolerance);
+
   if (!direction) return null;
 
   const targetSceneId = state.sceneLinks[direction];
   if (!targetSceneId) return null;
 
-  const exitHexKey = resolveExitHexKey(doc, movement, bounds);
+  const exitHexKey =
+    resolveExitHexKey(doc, movement, bounds, sceneId) ??
+    (originHex && pointInBounds(originCenter, bounds) ? originHex : null);
   if (!exitHexKey) return null;
+
+  console.debug(
+    `${MODULE_ID} | border cross intent ${sceneId} ${direction} exit=${exitHexKey} origin=${originHex} dest=${destHex}`,
+  );
 
   return { direction, targetSceneId, exitHexKey };
 }
@@ -390,17 +526,34 @@ function hexCenterForScene(sceneId: string, hexKey: string): Point | null {
   const offset = parseHexKey(hexKey);
   if (!offset) return null;
 
-  const scene = (game as { scenes?: { get: (id: string) => SceneBoundsSource | undefined } })
+  const scene = (game as { scenes?: { get: (id: string) => SceneBackgroundSource | undefined } })
     .scenes?.get(sceneId);
   if (!scene) return null;
 
-  const padding = scene.padding ?? 0;
+  let originX = 0;
+  let originY = 0;
+  if (typeof scene.getDimensions === "function") {
+    try {
+      const dims = scene.getDimensions();
+      const sceneRect = dims.sceneRect ?? {
+        x: dims.sceneX,
+        y: dims.sceneY,
+        width: dims.sceneWidth,
+        height: dims.sceneHeight,
+      };
+      originX = sceneRect.x;
+      originY = sceneRect.y;
+    } catch {
+      // Use 0,0 below.
+    }
+  }
+
   const grid = (scene as { grid?: { size?: number; sizeX?: number; sizeY?: number } }).grid;
   const sizeX = grid?.sizeX ?? grid?.size ?? 100;
   const sizeY = grid?.sizeY ?? grid?.size ?? 100;
   return {
-    x: padding + offset.i * sizeX + sizeX / 2,
-    y: padding + offset.j * sizeY + sizeY / 2,
+    x: originX + offset.i * sizeX + sizeX / 2,
+    y: originY + offset.j * sizeY + sizeY / 2,
   };
 }
 
@@ -468,7 +621,7 @@ export async function executeSceneCrossing(params: {
 
   const targetScene = (game as {
     scenes?: {
-      get: (id: string) => (SceneBoundsSource & { activate?: () => Promise<unknown> }) | undefined;
+      get: (id: string) => (SceneBackgroundSource & { activate?: () => Promise<unknown> }) | undefined;
     };
   }).scenes?.get(params.targetSceneId);
   if (!targetScene) {

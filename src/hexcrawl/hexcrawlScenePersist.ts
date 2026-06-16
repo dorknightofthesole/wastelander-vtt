@@ -238,6 +238,12 @@ export function prepareHexcrawlStateForSave(
     trailOverlayColor: pending.trailOverlayColor,
     startingHexKey: pending.startingHexKey ?? fresh.startingHexKey,
     sceneLinks: pending.sceneLinks,
+    journeyLog:
+      pending.journeyLog.length > fresh.journeyLog.length
+        ? pending.journeyLog
+        : usePendingProgress
+          ? pending.journeyLog
+          : fresh.journeyLog,
   };
 }
 

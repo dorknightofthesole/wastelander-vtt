@@ -1,4 +1,4 @@
-import { WASTELANDER_ROLL_TABLES_PACK } from "../constants.js";
+import { WASTELANDER_ROLLABLE_TABLES_PACK } from "../constants.js";
 import rollTableNames from "../data/scavenging/roll-table-names.json";
 import type { ItemCategoryRange, LootCategoryKey } from "./ScavengerLocation.js";
 
@@ -166,7 +166,7 @@ async function findCompendiumRollTableByKey(
   key: ScavengingRollTableKey,
 ): Promise<RollTableRef | undefined> {
   const candidates = new Set(getRollTableNameCandidates(key).map(normalizeName));
-  const packIds: string[] = [WASTELANDER_ROLL_TABLES_PACK];
+  const packIds: string[] = [WASTELANDER_ROLLABLE_TABLES_PACK];
 
   if (game.system?.id === FALLOUT_SYSTEM_ID) {
     const scavPack = game.settings.get(FALLOUT_SYSTEM_ID, "scavengingCompendium") as string;
@@ -174,19 +174,11 @@ async function findCompendiumRollTableByKey(
     packIds.push(FALLOUT_ROLLABLE_TABLES_PACK);
   }
 
-  for (const pack of (game as { packs?: Iterable<{ metadata: { id: string; type: string } }> })
-    .packs ?? []) {
-    if (pack.metadata.type !== "RollTable") continue;
-    if (!packIds.includes(pack.metadata.id)) {
-      packIds.push(pack.metadata.id);
-    }
-  }
+  const uniquePackIds = [...new Set(packIds)];
 
-  for (const packId of packIds) {
-    const pack = (game as { packs?: { get?: (id: string) => CompendiumPackLike } }).packs?.get?.(
-      packId,
-    );
-    if (!pack) continue;
+  for (const packId of uniquePackIds) {
+    const pack = game.packs?.get?.(packId);
+    if (!pack || pack.metadata?.type !== "RollTable") continue;
 
     const index = await pack.getIndex({ fields: ["name", "uuid"] });
     for (const entry of index) {

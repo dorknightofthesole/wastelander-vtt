@@ -300,10 +300,10 @@ The module includes a **Wastelander** compendium folder with two packs:
 
 | Pack | Contents |
 |------|----------|
-| **Items** | Custom items (consumables, gear, etc.) used when scavenging resolves loot to compendium entries |
-| **Wastelander** | RollTable loot tables for scavenging (booklet-style names such as ammunition, food, armor) |
+| **Wastelander Items** | Apparel, consumables, weapons, and related items used when scavenging resolves loot to compendium entries |
+| **Wastelander Rollable Tables** | RollTable loot tables for scavenging (booklet-style names such as ammunition, food, armor) |
 
-They appear automatically when the module is enabled. When you **generate** a scavenger location, Wastelander copies the relevant booklet tables from `wastelander.wastelander` into that scene’s folder (see **Scene loot tables** above). Player rolls prefer those scene documents; compendium and Fallout system tables remain the source of truth for initial builds and fallbacks.
+They appear automatically when the module is enabled. When you **generate** a scavenger location, Wastelander copies the relevant booklet tables from `wastelander.wastelander-rollable-tables` into that scene’s folder (see **Scene loot tables** above). Player rolls prefer those scene documents; compendium and Fallout system tables remain the source of truth for initial builds and fallbacks.
 
 To refresh pack data from your Foundry world after editing compendiums, see [packs/README.md](packs/README.md).
 
@@ -316,7 +316,7 @@ To refresh pack data from your Foundry world after editing compendiums, see [pac
 | [foundryvtt-fallout](https://github.com/Muttley/foundryvtt-fallout) | **Required** — actors, compendiums, AP tracker, sheets |
 | Simple Calendar Reborn | Advance world time after scavenging |
 | Licensed Modiphius PDFs | Character sheet export; **Wasteland Wanderer** oracle extraction and NPC generator (local build) |
-| Bundled `wastelander.items` / `wastelander.wastelander` | Custom scavenging items and roll tables (included with module) |
+| Bundled `wastelander.wastelander-items` / `wastelander.wastelander-rollable-tables` | Custom scavenging items and roll tables (included with module) |
 
 ---
 

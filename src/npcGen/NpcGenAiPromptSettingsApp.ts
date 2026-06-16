@@ -5,8 +5,8 @@ import {
   getNpcGenAiPromptTemplate,
   setNpcGenAiPromptTemplate,
 } from "./npcGenAiPromptSettings.js";
-
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+
 
 export default class NpcGenAiPromptSettingsApp extends HandlebarsApplicationMixin(
   ApplicationV2,
@@ -24,8 +24,8 @@ export default class NpcGenAiPromptSettingsApp extends HandlebarsApplicationMixi
     },
     position: { width: 640, height: "auto" },
     actions: {
-      saveTemplate: NpcGenAiPromptSettingsApp.#onSaveTemplate,
-      resetDefaults: NpcGenAiPromptSettingsApp.#onResetDefaults,
+      saveTemplate: NpcGenAiPromptSettingsApp.onSaveTemplate,
+      resetDefaults: NpcGenAiPromptSettingsApp.onResetDefaults,
     },
   };
 
@@ -53,7 +53,7 @@ export default class NpcGenAiPromptSettingsApp extends HandlebarsApplicationMixi
     return null;
   }
 
-  static async #onSaveTemplate(this: NpcGenAiPromptSettingsApp): Promise<void> {
+  static async onSaveTemplate(this: NpcGenAiPromptSettingsApp): Promise<void> {
     const root = this.#rootElement();
     const value =
       root
@@ -65,7 +65,7 @@ export default class NpcGenAiPromptSettingsApp extends HandlebarsApplicationMixi
     await this.render({ force: true });
   }
 
-  static async #onResetDefaults(
+  static async onResetDefaults(
     this: NpcGenAiPromptSettingsApp,
   ): Promise<void> {
     await setNpcGenAiPromptTemplate(DEFAULT_NPC_GEN_AI_PROMPT_TEMPLATE);
