@@ -49,7 +49,7 @@ export function registerHexcrawlSettings(): void {
     scope: "world",
     config: true,
     type: Boolean,
-    default: true,
+    default: false,
   });
 }
 
@@ -125,5 +125,5 @@ export function isHexCoverDebugEnabled(): boolean {
     .settings;
   if (!settings?.get) return false;
   const raw = settings.get(MODULE_ID, HEXCRAWL_SETTINGS.debugHexCover);
-  return raw === undefined ? true : Boolean(raw);
+  return Boolean(raw);
 }

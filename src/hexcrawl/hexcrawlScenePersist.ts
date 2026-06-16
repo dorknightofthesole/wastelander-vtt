@@ -16,7 +16,6 @@ import {
   normalizeDiscoveredPoiHexKeys,
   normalizeHexAnnotations,
   normalizeHiddenTrailHexKeys,
-  normalizeRevealedHexCoverKeys,
   setHexCover,
   type HexAnnotation,
 } from "./hexAnnotations.js";
@@ -56,22 +55,13 @@ function hexMapFlagFromState(
 function applyHexMapFlag(
   state: HexcrawlSceneState,
   raw: unknown,
-  rawRow?: Record<string, unknown>,
 ): HexcrawlSceneState {
   if (!raw || typeof raw !== "object") return state;
   const row = raw as Partial<HexcrawlHexMapFlag>;
 
-  let annotations = normalizeHexAnnotations(row.hexAnnotations);
-  if (rawRow && "revealedHexCoverKeys" in rawRow) {
-    for (const hexKey of normalizeRevealedHexCoverKeys(rawRow.revealedHexCoverKeys)) {
-      if (!annotations[hexKey]?.hexCoverColor) continue;
-      annotations = setHexCover({ ...state, hexAnnotations: annotations }, hexKey, null).hexAnnotations;
-    }
-  }
-
   return {
     ...state,
-    hexAnnotations: annotations,
+    hexAnnotations: normalizeHexAnnotations(row.hexAnnotations),
     hiddenTrailHexKeys: normalizeHiddenTrailHexKeys(row.hiddenTrailHexKeys),
     showTerrainIcons: row.showTerrainIcons !== false,
   };
@@ -497,12 +487,6 @@ function backfillDiscoveredPoisFromTravel(state: HexcrawlSceneState): HexcrawlSc
   return { ...state, discoveredPoiHexKeys: discovered };
 }
 
-function coverHexKeys(annotations: Record<string, HexAnnotation>): string[] {
-  return Object.entries(annotations)
-    .filter(([, row]) => row?.hexCoverColor)
-    .map(([key]) => key);
-}
-
 type SceneFlagWriter = {
   getFlag?: (scope: string, key: string) => unknown;
   setFlag: (
@@ -567,14 +551,6 @@ async function stripMainFlagHexAnnotations(sceneId: string): Promise<void> {
   });
 }
 
-function readHexMapFlagRaw(sceneId: string): HexcrawlHexMapFlag | null {
-  const scene = getSceneDocument(sceneId);
-  if (!scene?.getFlag) return null;
-  const raw = scene.getFlag(MODULE_ID, HEXCRAWL_HEX_MAP_FLAG);
-  if (!raw || typeof raw !== "object") return null;
-  return raw as HexcrawlHexMapFlag;
-}
-
 export function loadHexcrawlSceneState(sceneId: string): HexcrawlSceneState | null {
   const scene = getSceneDocument(sceneId);
   if (!scene) return null;
@@ -588,7 +564,6 @@ export function loadHexcrawlSceneState(sceneId: string): HexcrawlSceneState | nu
     state = applyHexMapFlag(
       { ...state, hexAnnotations: {}, hiddenTrailHexKeys: [] },
       hexMapRaw,
-      rawRow,
     );
   }
   if (!("discoveredPoiHexKeys" in rawRow)) {
@@ -618,15 +593,9 @@ export async function persistHexMapFlag(
     return false;
   }
   await stripMainFlagHexAnnotations(sceneId);
-
-  const readback = readHexMapFlagRaw(sceneId);
   debugHexCover("persistHexMapFlag: saved", {
     sceneId,
     hexAnnotationKeys: Object.keys(payload.hexAnnotations),
-    coverHexKeysWritten: coverHexKeys(payload.hexAnnotations),
-    coverHexKeysReadback: readback
-      ? coverHexKeys(normalizeHexAnnotations(readback.hexAnnotations))
-      : null,
     updatedAt: payload.updatedAt,
   });
   return true;
@@ -649,7 +618,6 @@ export async function removeHexCoversOnEntry(
     debugHexCover("removeHexCoversOnEntry: skip — no covers on target hexes", {
       sceneId,
       hexKeys,
-      coverHexKeys: coverHexKeys(state.hexAnnotations),
     });
     return false;
   }
@@ -658,12 +626,7 @@ export async function removeHexCoversOnEntry(
     next = setHexCover(next, hexKey, null);
   }
 
-  debugHexCover("removeHexCoversOnEntry: persisting", {
-    sceneId,
-    targets,
-    coverHexKeysBefore: coverHexKeys(state.hexAnnotations),
-    coverHexKeysAfter: coverHexKeys(next.hexAnnotations),
-  });
+  debugHexCover("removeHexCoversOnEntry: persisting", { sceneId, targets });
 
   const persisted = await persistHexMapFlag(sceneId, {
     hexAnnotations: next.hexAnnotations,
@@ -680,11 +643,7 @@ export async function removeHexCoversOnEntry(
   const { default: HexcrawlTravelApp } = await import("./HexcrawlTravelApp.js");
   HexcrawlTravelApp.rebindForScene(sceneId, { force: true });
 
-  debugHexCover("removeHexCoversOnEntry: done", {
-    sceneId,
-    targets,
-    remainingCoverHexKeys: coverHexKeys(next.hexAnnotations),
-  });
+  debugHexCover("removeHexCoversOnEntry: done", { sceneId, targets });
   return true;
 }
 
@@ -693,7 +652,6 @@ export async function removeHexCoverOnEntry(
   sceneId: string,
   hexKey: string,
 ): Promise<boolean> {
-  debugHexCover("removeHexCoverOnEntry: start", { sceneId, hexKey });
   return removeHexCoversOnEntry(sceneId, [hexKey]);
 }
 

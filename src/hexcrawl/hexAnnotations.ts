@@ -144,10 +144,6 @@ export function shouldShowPoiIcon(
   return state.discoveredPoiHexKeys.includes(hexKey);
 }
 
-export function normalizeRevealedHexCoverKeys(raw: unknown): string[] {
-  return normalizeDiscoveredPoiHexKeys(raw);
-}
-
 export function hexHasCover(
   state: Pick<HexcrawlSceneState, "hexAnnotations">,
   hexKey: string,

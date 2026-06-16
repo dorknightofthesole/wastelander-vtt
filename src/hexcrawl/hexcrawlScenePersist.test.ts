@@ -451,44 +451,4 @@ describe("hexcrawlHexMap flag", () => {
     const loaded = loadHexcrawlSceneState(sceneId);
     expect(loaded?.hexAnnotations["9,9"]).toEqual({ hexCoverColor: "#808080" });
   });
-
-  it("migrates legacy revealedHexCoverKeys by deleting covers from hex map data", () => {
-    const sceneId = "scene-legacy-cover";
-    const scene = {
-      getFlag: (scope: string, key: string) => {
-        if (scope !== MODULE_ID) return undefined;
-        if (key === HEXCRAWL_SCENE_STATE_FLAG) {
-          return {
-            ...defaultHexcrawlState(sceneId),
-            enabled: true,
-            revealedHexCoverKeys: ["2,2", "3,3"],
-            version: 1,
-          };
-        }
-        if (key === HEXCRAWL_HEX_MAP_FLAG) {
-          return {
-            hexAnnotations: {
-              "2,2": { hexCoverColor: "#808080" },
-              "3,3": { hexCoverColor: "#aabbcc", iconId: "camp" },
-            },
-            hiddenTrailHexKeys: [],
-            showTerrainIcons: true,
-            updatedAt: 1,
-          };
-        }
-        return undefined;
-      },
-    };
-
-    const game = globalThis.game as {
-      scenes?: { get: (id: string) => typeof scene | undefined };
-      world?: { getFlag?: (scope: string, key: string) => unknown };
-    };
-    game.scenes = { get: (id) => (id === sceneId ? scene : undefined) };
-    game.world = { getFlag: () => null };
-
-    const loaded = loadHexcrawlSceneState(sceneId);
-    expect(loaded?.hexAnnotations["2,2"]).toBeUndefined();
-    expect(loaded?.hexAnnotations["3,3"]).toEqual({ iconId: "camp" });
-  });
 });
