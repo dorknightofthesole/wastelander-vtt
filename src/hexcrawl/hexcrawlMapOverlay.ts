@@ -85,6 +85,8 @@ type CanvasLike = {
 const MAP_CONTAINER_NAME = "wastelander-hexcrawl-map";
 const SELECTION_COLOR = 0x4fc3f7;
 const HEX_COORD_LABEL_ALPHA = 0.5;
+/** Overseer-only ghost alpha for hex hide cover fills. */
+const HEX_COVER_OVERSEER_ALPHA = 0.7;
 
 export { stageHexcrawlMapOverlayState, clearStagedHexcrawlMapOverlayState };
 
@@ -378,12 +380,13 @@ async function drawMapForState(
     }
     const vertices = hexVerticesForKey(hexKey);
     if (!vertices) continue;
+    const hexCoverAlpha = revealAllMapFog ? HEX_COVER_OVERSEER_ALPHA : 1;
     fillAndStrokeHexPolygon(
       PIXI,
       container,
       vertices,
       parseHexCoverColor(annotation.hexCoverColor),
-      1,
+      hexCoverAlpha,
       gridBorder,
     );
   }
