@@ -209,7 +209,92 @@ export function snapCanvasPointToHex(point: { x: number; y: number }): HexSnapRe
     }
   }
 
-  return { hexKey, x: point.x, y: point.y };
+  return { x: point.x, y: point.y };
+}
+
+type GridWithOffsetRange = HexGrid & {
+  isHexagonal?: boolean;
+  getOffset?: (coords: { x: number; y: number }) => GridOffset | null;
+  getOffsetRange?: (
+    bounds: { x: number; y: number; width: number; height: number },
+  ) => [number, number, number, number] | { minI: number; maxI: number; minJ: number; maxJ: number };
+};
+
+function hexKeyFromGridSample(
+  grid: GridWithOffsetRange,
+  point: { x: number; y: number },
+): string | null {
+  if (typeof grid.getOffset === "function") {
+    const offset = grid.getOffset(point);
+    if (offset) return formatHexKey(offset);
+  }
+  return hexKeyFromGridAtPoint(grid, point);
+}
+
+/** Every hex cell on the active scene grid (for coordinate overlays). */
+export function sceneHexKeysForGridOverlay(): string[] {
+  const canvas = (globalThis as {
+    canvas?: {
+      grid?: GridWithOffsetRange;
+      dimensions?: {
+        width: number;
+        height: number;
+        sceneRect?: { x: number; y: number; width: number; height: number };
+      };
+    };
+  }).canvas;
+  const grid = canvas?.grid;
+  if (!grid?.isHexagonal) return [];
+
+  const dims = canvas?.dimensions;
+  if (!dims) return [];
+
+  const bounds = {
+    x: dims.sceneRect?.x ?? 0,
+    y: dims.sceneRect?.y ?? 0,
+    width: dims.sceneRect?.width ?? dims.width,
+    height: dims.sceneRect?.height ?? dims.height,
+  };
+
+  if (typeof grid.getOffsetRange === "function" && bounds.width > 0 && bounds.height > 0) {
+    try {
+      const range = grid.getOffsetRange(bounds);
+      const keys: string[] = [];
+      if (Array.isArray(range) && range.length >= 4) {
+        const [i0, j0, i1, j1] = range;
+        for (let i = i0; i < i1; i++) {
+          for (let j = j0; j < j1; j++) {
+            const key = formatHexKey({ i, j });
+            if (key) keys.push(key);
+          }
+        }
+      } else if (range && typeof range === "object") {
+        const boxed = range as { minI: number; maxI: number; minJ: number; maxJ: number };
+        for (let i = boxed.minI; i <= boxed.maxI; i++) {
+          for (let j = boxed.minJ; j <= boxed.maxJ; j++) {
+            const key = formatHexKey({ i, j });
+            if (key) keys.push(key);
+          }
+        }
+      }
+      if (keys.length) return keys;
+    } catch {
+      // Fall through to pixel sampling.
+    }
+  }
+
+  const sizeX = grid.sizeX ?? grid.size ?? 100;
+  const sizeY = grid.sizeY ?? sizeX;
+  const seen = new Set<string>();
+  const stepX = Math.max(8, sizeX / 2);
+  const stepY = Math.max(8, sizeY / 2);
+  for (let y = bounds.y + stepY; y < bounds.y + bounds.height; y += stepY) {
+    for (let x = bounds.x + stepX; x < bounds.x + bounds.width; x += stepX) {
+      const key = hexKeyFromGridSample(grid, { x, y });
+      if (key) seen.add(key);
+    }
+  }
+  return [...seen];
 }
 
 function tokenCenterPixels(

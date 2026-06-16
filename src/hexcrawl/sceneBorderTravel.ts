@@ -688,7 +688,13 @@ export function buildCrossedSceneState(params: {
     hiddenTrailHexKeys: targetBase.hiddenTrailHexKeys,
     discoveredPoiHexKeys: targetBase.discoveredPoiHexKeys,
   };
-  next = applyHexEntryFogEffects(next, params.entryHexKey);
+  const fog = applyHexEntryFogEffects(next, params.entryHexKey);
+  if (fog.discovered) {
+    void import("./poiDiscoveryChat.js").then(({ notifyPoiDiscovered }) =>
+      notifyPoiDiscovered(fog.discovered!),
+    );
+  }
+  next = fog.state;
 
   next = appendJourneyLog(next, {
     kind: "sceneCrossed",

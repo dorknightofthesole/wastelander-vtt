@@ -29,6 +29,7 @@ describe("hexMapOverlayState", () => {
       hexCoverBaseline: {},
       hiddenTrailHexKeys: [],
       showTerrainIcons: true,
+      showHexCoords: false,
     });
 
     const sameTimestamp = {
@@ -41,6 +42,7 @@ describe("hexMapOverlayState", () => {
       hexAnnotations: { "3,3": { iconId: "camp" } },
       hiddenTrailHexKeys: [],
       showTerrainIcons: true,
+      showHexCoords: false,
     });
 
     const caughtUp = { ...staged, updatedAt: 250, hexAnnotations: {} };

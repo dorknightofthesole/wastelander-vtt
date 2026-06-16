@@ -53,6 +53,13 @@
       </section>
 
       {{#if state.enabled}}
+      <section class="wastelander-hexcrawl-section wastelander-hexcrawl-hex-coords-toggle">
+        <label class="wastelander-field-checkbox">
+          <input type="checkbox" name="showHexCoords" {{#if state.showHexCoords}}checked{{/if}} data-field="showHexCoords" />
+          <span>{{strings.showHexCoords}}</span>
+        </label>
+      </section>
+
       <section class="wastelander-hexcrawl-section wastelander-hexcrawl-progress">
         <div class="wastelander-hexcrawl-progress-header">
           <h3>{{strings.progress}}</h3>

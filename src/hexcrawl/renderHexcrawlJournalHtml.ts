@@ -194,6 +194,16 @@ function formatEntry(entry: JourneyLogEntry): string {
           }),
         ),
       );
+    case "poiDiscovered":
+      return formatListItem(
+        entry,
+        escapeHtml(
+          t("WASTELANDER.Hexcrawl.Journal.PoiDiscovered", {
+            poi: entry.poiLabel ?? entry.note ?? "?",
+            hex: entry.hexKey ?? "?",
+          }),
+        ),
+      );
     default:
       return "";
   }

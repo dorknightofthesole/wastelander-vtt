@@ -4115,6 +4115,11 @@
   padding-top: 0;
 }
 
+.wastelander-hexcrawl-app .wastelander-hexcrawl-hex-coords-toggle {
+  padding: 10px 0;
+  border-top: none;
+}
+
 .wastelander-hexcrawl-app .wastelander-hexcrawl-section {
   padding: 0.5rem 0;
   border-top: 1px solid var(--color-border-light-primary, #444);

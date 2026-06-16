@@ -256,6 +256,7 @@
       "SceneScope": "Hexcrawl is enabled per scene. Optionally link N/S/E/W borders to adjacent maps for cross-scene travel.",
       "Tooltip": "Hexcrawl travel",
       "EnableLabel": "Enable hexcrawl on this scene",
+      "ShowHexCoords": "Show hex coordinates on map",
       "TravelSettings": "Travel settings",
       "SceneGridDistance": "Grid distance (scene)",
       "TravelEvents": "Travel events",
@@ -416,6 +417,9 @@
         "Advanced": "Advanced world clock {duration} (hex {hex}).",
         "Failed": "Could not advance world clock: {error}"
       },
+      "PoiDiscovered": {
+        "ChatBody": "The party discovered {poi} at hex {hex}."
+      },
       "Journal": {
         "Title": "Wasteland Travels",
         "UnnamedScene": "Unnamed scene",
@@ -442,6 +446,7 @@
         "MarkedOnCourse": "Party marked on course.",
         "Arrival": "Party arrived at destination.",
         "StartingLocationSet": "Starting location set to hex {hex}.",
+        "PoiDiscovered": "Discovered {poi} at hex {hex}.",
         "TravelReset": "Travel reset — returned to starting hex {hex}.",
         "MapReset": "Map reset — tokens removed, trail cleared, covers and POI fog restored.",
         "SceneCrossed": "Crossed to adjacent map at hex {hex} ({note}).",
@@ -481,7 +486,9 @@
         "DebugHexCoverName": "Debug hex cover removal",
         "DebugHexCoverHint": "Log hex cover removal steps to the browser console (F12). Disable after troubleshooting.",
         "DebugStartingLocationName": "Debug starting location prompt",
-        "DebugStartingLocationHint": "Log first-token starting location prompt checks to the browser console (F12). Disable after troubleshooting."
+        "DebugStartingLocationHint": "Log first-token starting location prompt checks to the browser console (F12). Disable after troubleshooting.",
+        "UndiscoveredPoiAlphaName": "Undiscovered POI opacity",
+        "UndiscoveredPoiAlphaHint": "Opacity (0–1) for POI icons and hex outlines the Overseer sees before the party discovers that hex. Players see nothing until discovery."
       }
     },
     "Scavenging": {

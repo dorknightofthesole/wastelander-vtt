@@ -342,7 +342,12 @@ async function processTravelHexEntryInner(params: {
     traveledHexKeys: appendTraveledHexKey(state.traveledHexKeys, params.hexKey),
     milesTraveledCumulative: state.milesTraveledCumulative + milesPerHex,
   };
-  state = discoverPoiOnHexEntry(state, params.hexKey);
+  const poiDiscovery = discoverPoiOnHexEntry(state, params.hexKey);
+  state = poiDiscovery.state;
+  if (poiDiscovery.discovered) {
+    const { notifyPoiDiscovered } = await import("./poiDiscoveryChat.js");
+    notifyPoiDiscovered(poiDiscovery.discovered);
+  }
 
   state = await applyTravelMinutes({
     state,
@@ -435,8 +440,9 @@ export function applyCourseCheckFail(state: HexcrawlSceneState): HexcrawlSceneSt
   };
 }
 
-/** Pass enabled when day end is pending and the party has not yet passed for this cycle. */
+/** Pass enabled when lost, or when day end is pending and pass not yet resolved for this cycle. */
 export function courseChecksEnabled(state: HexcrawlSceneState): boolean {
+  if (state.courseStatus === "lost") return true;
   return (
     state.pendingDayEnd &&
     !(state.courseCheckResolved && state.courseStatus === "onCourse")
@@ -612,7 +618,7 @@ export function applySetStartingHex(
   state: HexcrawlSceneState,
   hexKey: string,
 ): HexcrawlSceneState {
-  const placed = applyHexEntryFogEffects(
+  const fog = applyHexEntryFogEffects(
     {
       ...state,
       startingHexKey: hexKey,
@@ -622,7 +628,12 @@ export function applySetStartingHex(
     },
     hexKey,
   );
-  return appendJourneyLog(placed, {
+  if (fog.discovered) {
+    void import("./poiDiscoveryChat.js").then(({ notifyPoiDiscovered }) =>
+      notifyPoiDiscovered(fog.discovered!),
+    );
+  }
+  return appendJourneyLog(fog.state, {
     kind: "startingLocationSet",
     travelDay: state.travelDay,
     hexKey,

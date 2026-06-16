@@ -31,6 +31,5 @@ export function resolveHexcrawlMapOverlayState(
     hexAnnotations: loaded.hexAnnotations,
     hexCoverBaseline: loaded.hexCoverBaseline,
     hiddenTrailHexKeys: loaded.hiddenTrailHexKeys,
-    showTerrainIcons: loaded.showTerrainIcons,
   };
 }

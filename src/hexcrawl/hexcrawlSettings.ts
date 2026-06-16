@@ -7,7 +7,10 @@ export const HEXCRAWL_SETTINGS = {
   lastHexCoverColor: "lastHexCoverColor",
   debugHexCover: "debugHexCover",
   debugStartingLocation: "debugStartingLocation",
+  undiscoveredPoiAlpha: "undiscoveredPoiAlpha",
 } as const;
+
+export const DEFAULT_UNDISCOVERED_POI_ALPHA = 0.55;
 
 /** In-memory brush color for the map editor (survives hex selection and re-renders). */
 let cachedHexCoverBrushColor: string | null = null;
@@ -60,6 +63,21 @@ export function registerHexcrawlSettings(): void {
     config: true,
     type: Boolean,
     default: false,
+  });
+
+  settings.register(MODULE_ID, HEXCRAWL_SETTINGS.undiscoveredPoiAlpha, {
+    name: "WASTELANDER.Hexcrawl.Settings.UndiscoveredPoiAlphaName",
+    hint: "WASTELANDER.Hexcrawl.Settings.UndiscoveredPoiAlphaHint",
+    scope: "world",
+    config: true,
+    type: Number,
+    range: { min: 0, max: 1, step: 0.05 },
+    default: DEFAULT_UNDISCOVERED_POI_ALPHA,
+    onChange: () => {
+      void import("./hexcrawlMapOverlay.js").then((module) =>
+        module.refreshHexcrawlMapOverlay(),
+      );
+    },
   });
 }
 
@@ -144,4 +162,21 @@ export function isStartingLocationDebugEnabled(): boolean {
   if (!settings?.get) return false;
   const raw = settings.get(MODULE_ID, HEXCRAWL_SETTINGS.debugStartingLocation);
   return Boolean(raw);
+}
+
+export function normalizeUndiscoveredPoiAlpha(raw: unknown): number {
+  if (typeof raw !== "number" || !Number.isFinite(raw)) {
+    return DEFAULT_UNDISCOVERED_POI_ALPHA;
+  }
+  return Math.max(0, Math.min(1, raw));
+}
+
+/** Overseer-only ghost alpha for POI icons and outlines not yet discovered by the party. */
+export function getUndiscoveredPoiAlpha(): number {
+  const settings = (game as { settings?: { get: (scope: string, k: string) => unknown } })
+    .settings;
+  if (!settings?.get) return DEFAULT_UNDISCOVERED_POI_ALPHA;
+  return normalizeUndiscoveredPoiAlpha(
+    settings.get(MODULE_ID, HEXCRAWL_SETTINGS.undiscoveredPoiAlpha),
+  );
 }

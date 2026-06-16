@@ -1,5 +1,7 @@
 import hexIconsManifest from "../data/hexcrawl/hex-icons.json";
+import { getUndiscoveredPoiAlpha } from "./hexcrawlSettings.js";
 import {
+  appendJourneyLog,
   appendTraveledHexKey,
   resolveTrailHexKeys,
   type HexcrawlSceneState,
@@ -120,17 +122,49 @@ export function hexHasDiscoverablePoi(
   return Boolean(state.hexAnnotations[hexKey]?.iconId);
 }
 
+export type PoiDiscovery = {
+  hexKey: string;
+  iconId: string;
+  label: string;
+};
+
 /** Reveal a hex POI icon for players after the travel token enters that hex. */
 export function discoverPoiOnHexEntry(
   state: HexcrawlSceneState,
   hexKey: string,
-): HexcrawlSceneState {
-  if (!hexHasDiscoverablePoi(state, hexKey)) return state;
-  if (state.discoveredPoiHexKeys.includes(hexKey)) return state;
-  return {
-    ...state,
-    discoveredPoiHexKeys: [...state.discoveredPoiHexKeys, hexKey],
+): { state: HexcrawlSceneState; discovered: PoiDiscovery | null } {
+  if (!hexHasDiscoverablePoi(state, hexKey)) {
+    return { state, discovered: null };
+  }
+  if (state.discoveredPoiHexKeys.includes(hexKey)) {
+    return { state, discovered: null };
+  }
+
+  const iconId = state.hexAnnotations[hexKey]?.iconId;
+  const poi = poiIconById(iconId);
+  if (!iconId || !poi) {
+    return { state, discovered: null };
+  }
+
+  const discovered: PoiDiscovery = {
+    hexKey,
+    iconId,
+    label: poi.label,
   };
+  const next = appendJourneyLog(
+    {
+      ...state,
+      discoveredPoiHexKeys: [...state.discoveredPoiHexKeys, hexKey],
+    },
+    {
+      kind: "poiDiscovered",
+      travelDay: state.travelDay,
+      hexKey,
+      poiLabel: poi.label,
+      note: iconId,
+    },
+  );
+  return { state: next, discovered };
 }
 
 /** Overseers always see POI icons; players only see discovered hexes. */
@@ -142,6 +176,17 @@ export function shouldShowPoiIcon(
   if (!state.hexAnnotations[hexKey]?.iconId) return false;
   if (revealAll) return true;
   return state.discoveredPoiHexKeys.includes(hexKey);
+}
+
+export function poiDisplayAlpha(
+  state: Pick<HexcrawlSceneState, "discoveredPoiHexKeys">,
+  hexKey: string,
+  revealAll: boolean,
+  undiscoveredAlpha?: number,
+): number {
+  if (!revealAll) return 1;
+  if (state.discoveredPoiHexKeys.includes(hexKey)) return 1;
+  return undiscoveredAlpha ?? getUndiscoveredPoiAlpha();
 }
 
 export function hexHasCover(
@@ -173,8 +218,12 @@ export function shouldShowHexCover(
 export function applyHexEntryFogEffects(
   state: HexcrawlSceneState,
   hexKey: string,
-): HexcrawlSceneState {
-  return revealHexCoverOnHexEntry(discoverPoiOnHexEntry(state, hexKey), hexKey);
+): { state: HexcrawlSceneState; discovered: PoiDiscovery | null } {
+  const poi = discoverPoiOnHexEntry(state, hexKey);
+  return {
+    state: revealHexCoverOnHexEntry(poi.state, hexKey),
+    discovered: poi.discovered,
+  };
 }
 
 export function resolveTerrainForHex(

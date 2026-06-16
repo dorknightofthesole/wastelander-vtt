@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { defaultHexcrawlState } from "./hexcrawlScenePersist.js";
+import { DEFAULT_UNDISCOVERED_POI_ALPHA } from "./hexcrawlSettings.js";
 import {
   applyHexEntryFogEffects,
   clearHexMapEdits,
@@ -17,6 +18,7 @@ import {
   setHexPoiIcon,
   shouldShowHexCover,
   shouldShowPoiIcon,
+  poiDisplayAlpha,
   toggleHexCover,
   visibleTrailHexKeys,
 } from "./hexAnnotations.js";
@@ -123,9 +125,24 @@ describe("hexAnnotations", () => {
       discoveredPoiHexKeys: [],
     };
     const discovered = discoverPoiOnHexEntry(base, "3,3");
-    expect(discovered.discoveredPoiHexKeys).toEqual(["3,3"]);
-    expect(discoverPoiOnHexEntry(discovered, "3,3")).toBe(discovered);
-    expect(discoverPoiOnHexEntry(base, "9,9")).toBe(base);
+    expect(discovered.state.discoveredPoiHexKeys).toEqual(["3,3"]);
+    expect(discovered.discovered).toEqual({
+      hexKey: "3,3",
+      iconId: "ruins",
+      label: "Ruins",
+    });
+    expect(discovered.state.journeyLog[0]).toMatchObject({
+      kind: "poiDiscovered",
+      hexKey: "3,3",
+      poiLabel: "Ruins",
+      note: "ruins",
+    });
+    const again = discoverPoiOnHexEntry(discovered.state, "3,3");
+    expect(again.state).toBe(discovered.state);
+    expect(again.discovered).toBeNull();
+    const none = discoverPoiOnHexEntry(base, "9,9");
+    expect(none.state).toBe(base);
+    expect(none.discovered).toBeNull();
   });
 
   it("hides undiscovered poi icons from players", () => {
@@ -143,6 +160,21 @@ describe("hexAnnotations", () => {
         false,
       ),
     ).toBe(true);
+  });
+
+  it("ghosts undiscovered poi display for overseer preview only", () => {
+    const state = {
+      ...defaultHexcrawlState("scene-a"),
+      hexAnnotations: { "1,1": { iconId: "camp" as const } },
+      discoveredPoiHexKeys: [] as string[],
+    };
+    expect(poiDisplayAlpha(state, "1,1", false)).toBe(1);
+    expect(poiDisplayAlpha(state, "1,1", true, DEFAULT_UNDISCOVERED_POI_ALPHA)).toBe(
+      DEFAULT_UNDISCOVERED_POI_ALPHA,
+    );
+    expect(
+      poiDisplayAlpha({ ...state, discoveredPoiHexKeys: ["1,1"] }, "1,1", true),
+    ).toBe(1);
   });
 
   it("normalizes discovered poi hex keys", () => {
@@ -196,11 +228,13 @@ describe("hexAnnotations", () => {
       },
       discoveredPoiHexKeys: [],
     };
-    const next = applyHexEntryFogEffects(base, "2,2");
-    expect(next.discoveredPoiHexKeys).toEqual(["2,2"]);
-    expect(next.hexAnnotations["2,2"]).toEqual({ iconId: "camp" });
-    expect(shouldShowPoiIcon(next, "2,2", false)).toBe(true);
-    expect(shouldShowHexCover(next, "2,2", false)).toBe(false);
+    const fog = applyHexEntryFogEffects(base, "2,2");
+    expect(fog.state.discoveredPoiHexKeys).toEqual(["2,2"]);
+    expect(fog.state.hexAnnotations["2,2"]).toEqual({ iconId: "camp" });
+    expect(fog.discovered?.label).toBe("Camp");
+    expect(fog.state.journeyLog[0]?.kind).toBe("poiDiscovered");
+    expect(shouldShowPoiIcon(fog.state, "2,2", false)).toBe(true);
+    expect(shouldShowHexCover(fog.state, "2,2", false)).toBe(false);
   });
 
   it("clears hex cover when hex map data is cleared", () => {

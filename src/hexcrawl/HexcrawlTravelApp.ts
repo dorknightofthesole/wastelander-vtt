@@ -592,6 +592,7 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
       mapHexCoverPreviewColor: resolveHexCoverPickerColor(selectedHexAnnotation?.hexCoverColor),
       strings: {
         enableLabel: t("WASTELANDER.Hexcrawl.EnableLabel"),
+        showHexCoords: t("WASTELANDER.Hexcrawl.ShowHexCoords"),
         tabScene: t("WASTELANDER.Hexcrawl.Tabs.Scene"),
         tabParty: t("WASTELANDER.Hexcrawl.Tabs.Party"),
         tabMap: t("WASTELANDER.Hexcrawl.Tabs.Map"),
@@ -726,13 +727,19 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
       }
       case "showTerrainIcons": {
         const showTerrainIcons = (el as HTMLInputElement).checked;
-        void this.#mutate(
+        void this.#mutateMap(
           (state) => ({ ...state, showTerrainIcons }),
           { render: false },
         );
-        if (this.#sceneId && this.#state) {
-          void refreshHexcrawlMapOverlay(this.#sceneId, this.#state);
-        }
+        void this.render();
+        break;
+      }
+      case "showHexCoords": {
+        const showHexCoords = (el as HTMLInputElement).checked;
+        void this.#mutateMap(
+          (state) => ({ ...state, showHexCoords }),
+          { render: false },
+        );
         void this.render();
         break;
       }

@@ -4,7 +4,10 @@ import {
   captureHexCoverBrushFromPicker,
   getEffectiveLastHexCoverColor,
   getLastHexCoverColor,
+  DEFAULT_UNDISCOVERED_POI_ALPHA,
+  getUndiscoveredPoiAlpha,
   HEXCRAWL_SETTINGS,
+  normalizeUndiscoveredPoiAlpha,
   rememberLastHexCoverColor,
   resetHexCoverBrushCacheForTests,
   resolveHexCoverPickerColor,
@@ -91,5 +94,23 @@ describe("hexcrawlSettings lastHexCoverColor", () => {
     };
     await setLastHexCoverColor("not-a-color");
     expect(setCalled).toBe(false);
+  });
+
+  it("normalizes undiscovered poi alpha to 0–1", () => {
+    expect(normalizeUndiscoveredPoiAlpha(undefined)).toBe(DEFAULT_UNDISCOVERED_POI_ALPHA);
+    expect(normalizeUndiscoveredPoiAlpha(0.5)).toBe(0.5);
+    expect(normalizeUndiscoveredPoiAlpha(-1)).toBe(0);
+    expect(normalizeUndiscoveredPoiAlpha(2)).toBe(1);
+  });
+
+  it("reads undiscovered poi alpha from module settings", () => {
+    (globalThis as { game?: unknown }).game = {
+      settings: {
+        get: (_scope: string, key: string) =>
+          key === HEXCRAWL_SETTINGS.undiscoveredPoiAlpha ? 0.2 : undefined,
+        set: async () => undefined,
+      },
+    };
+    expect(getUndiscoveredPoiAlpha()).toBe(0.2);
   });
 });

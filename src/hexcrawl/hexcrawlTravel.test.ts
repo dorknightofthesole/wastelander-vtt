@@ -12,7 +12,7 @@ import {
   removeHexCoverOnEntry,
   saveHexcrawlSceneState,
 } from "./hexcrawlScenePersist.js";
-import { tokenQualifiesForHexEntry } from "./hexcrawlTravel.js";
+import { tokenQualifiesForHexEntry, courseChecksEnabled } from "./hexcrawlTravel.js";
 
 describe("removeHexCoverOnEntry", () => {
   const sceneId = "scene-travel-cover";
@@ -177,5 +177,42 @@ describe("tokenQualifiesForHexEntry", () => {
     };
     expect(tokenQualifiesForHexEntry(sceneId, state, "travel-tok")).toBe(true);
     expect(tokenQualifiesForHexEntry(sceneId, state, "other-tok")).toBe(false);
+  });
+});
+
+describe("course check pass button", () => {
+  const sceneId = "scene-course-pass";
+
+  it("is enabled when the party is lost even without pending day end", () => {
+    const state = {
+      ...defaultHexcrawlState(sceneId),
+      enabled: true,
+      courseStatus: "lost" as const,
+      pendingDayEnd: false,
+      courseCheckResolved: false,
+    };
+    expect(courseChecksEnabled(state)).toBe(true);
+  });
+
+  it("is disabled after pass while on course until the next day end", () => {
+    const state = {
+      ...defaultHexcrawlState(sceneId),
+      enabled: true,
+      courseStatus: "onCourse" as const,
+      pendingDayEnd: true,
+      courseCheckResolved: true,
+    };
+    expect(courseChecksEnabled(state)).toBe(false);
+  });
+
+  it("is enabled when day end is pending and pass not yet resolved", () => {
+    const state = {
+      ...defaultHexcrawlState(sceneId),
+      enabled: true,
+      courseStatus: "onCourse" as const,
+      pendingDayEnd: true,
+      courseCheckResolved: false,
+    };
+    expect(courseChecksEnabled(state)).toBe(true);
   });
 });

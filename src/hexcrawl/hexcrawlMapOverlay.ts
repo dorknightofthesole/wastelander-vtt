@@ -7,9 +7,10 @@ import {
   poiIconById,
   shouldShowHexCover,
   shouldShowPoiIcon,
+  poiDisplayAlpha,
   terrainBadgePath,
 } from "./hexAnnotations.js";
-import { hexBoundsForKey, hexVerticesForKey } from "./hexCoords.js";
+import { hexBoundsForKey, hexVerticesForKey, sceneHexKeysForGridOverlay } from "./hexCoords.js";
 import {
   clearStagedHexcrawlMapOverlayState,
   resolveHexcrawlMapOverlayState,
@@ -40,6 +41,7 @@ type PixiSprite = PixiGraphics & {
   anchor?: { set: (x: number, y: number) => void };
   position?: { set: (x: number, y: number) => void };
   scale?: { set: (x: number, y: number) => void };
+  alpha?: number;
 };
 
 type PixiContainer = {
@@ -53,10 +55,18 @@ type PixiContainer = {
   name?: string;
 };
 
+type PixiText = PixiGraphics & {
+  anchor?: { set: (x: number, y: number) => void };
+  position?: { set: (x: number, y: number) => void };
+  text?: string;
+  alpha?: number;
+};
+
 type PixiNamespace = {
   Container: new () => PixiContainer;
   Graphics: new () => PixiGraphics;
   Sprite: new (texture?: unknown) => PixiSprite;
+  Text: new (text: string, style?: Record<string, unknown>) => PixiText;
   Texture: {
     from: (path: string) => unknown;
   };
@@ -74,6 +84,7 @@ type CanvasLike = {
 
 const MAP_CONTAINER_NAME = "wastelander-hexcrawl-map";
 const SELECTION_COLOR = 0x4fc3f7;
+const HEX_COORD_LABEL_ALPHA = 0.5;
 
 export { stageHexcrawlMapOverlayState, clearStagedHexcrawlMapOverlayState };
 
@@ -239,6 +250,7 @@ function placeSprite(
   height: number,
   anchorX = 0.5,
   anchorY = 0.5,
+  alpha = 1,
 ): void {
   const sprite = new PIXI.Sprite(texture);
   sprite.anchor?.set(anchorX, anchorY);
@@ -248,7 +260,68 @@ function placeSprite(
   const scaleX = width / Math.max(1, texWidth);
   const scaleY = height / Math.max(1, texHeight);
   sprite.scale?.set(scaleX, scaleY);
+  if (typeof sprite.alpha === "number") {
+    sprite.alpha = alpha;
+  }
   container.addChild(sprite as unknown as PixiGraphics);
+}
+
+function createMapLabel(
+  PIXI: PixiNamespace,
+  text: string,
+  fontSize: number,
+): PixiText | null {
+  const strokeThickness = Math.max(2, Math.round(fontSize * 0.2));
+  const PreciseText = (
+    globalThis as {
+      foundry?: {
+        canvas?: {
+          containers?: {
+            PreciseText?: new (label: string, style?: Record<string, unknown>) => PixiText;
+            getTextStyle?: (options?: Record<string, unknown>) => Record<string, unknown>;
+          };
+        };
+      };
+    }
+  ).foundry?.canvas?.containers?.PreciseText;
+
+  const baseStyle =
+    typeof PreciseText?.getTextStyle === "function" ? PreciseText.getTextStyle() : {};
+  const style = {
+    ...baseStyle,
+    fontFamily: "Signika, sans-serif",
+    fontSize,
+    fill: 0xffffff,
+    stroke: 0x000000,
+    strokeThickness,
+    align: "center",
+  };
+
+  if (PreciseText) {
+    return new PreciseText(text, style);
+  }
+  if (typeof PIXI.Text === "function") {
+    return new PIXI.Text(text, style);
+  }
+  return null;
+}
+
+function placeHexCoordLabel(
+  PIXI: PixiNamespace,
+  container: PixiContainer,
+  text: string,
+  x: number,
+  y: number,
+  fontSize: number,
+): void {
+  const label = createMapLabel(PIXI, text, fontSize);
+  if (!label) return;
+  label.anchor?.set(0.5, 1);
+  label.position?.set(x, y);
+  if (typeof label.alpha === "number") {
+    label.alpha = HEX_COORD_LABEL_ALPHA;
+  }
+  container.addChild(label as unknown as PixiGraphics);
 }
 
 async function drawMapForState(
@@ -342,6 +415,7 @@ async function drawMapForState(
 
     const iconId = annotation?.iconId;
     if (!iconId || !shouldShowPoiIcon(state, hexKey, revealAllMapFog)) continue;
+    const poiAlpha = poiDisplayAlpha(state, hexKey, revealAllMapFog);
     const poi = poiIconById(iconId);
     if (!poi) continue;
     const iconTexture = await loadTexture(PIXI, poi.path);
@@ -354,7 +428,7 @@ async function drawMapForState(
         PIXI,
         container,
         scaleVerticesTowardCenter(iconVertices, 0.8),
-        gridBorder,
+        { ...gridBorder, alpha: gridBorder.alpha * poiAlpha },
       );
     }
     placeSprite(
@@ -365,7 +439,29 @@ async function drawMapForState(
       bounds.centerY,
       iconSize,
       iconSize,
+      0.5,
+      0.5,
+      poiAlpha,
     );
+  }
+
+  if (state.showHexCoords) {
+    const coordHexKeys = sceneHexKeysForGridOverlay();
+    for (const hexKey of coordHexKeys) {
+      if (generation !== refreshGeneration) return;
+
+      const bounds = hexBoundsForKey(hexKey);
+      if (!bounds) continue;
+      const fontSize = Math.max(10, Math.round(bounds.width * 0.14));
+      placeHexCoordLabel(
+        PIXI,
+        container,
+        hexKey,
+        bounds.centerX,
+        bounds.maxY - Math.max(2, fontSize * 0.15),
+        fontSize,
+      );
+    }
   }
 }
 

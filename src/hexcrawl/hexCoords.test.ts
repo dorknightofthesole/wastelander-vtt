@@ -3,6 +3,7 @@ import {
   collectMovementHexKeys,
   resolveEnteredHexKeys,
   resolveTokenLandingHexKey,
+  sceneHexKeysForGridOverlay,
 } from "./hexCoords.js";
 
 type MockGrid = {
@@ -87,6 +88,25 @@ describe("collectMovementHexKeys", () => {
       },
     });
     expect(keys).toEqual(["4,9"]);
+  });
+});
+
+describe("sceneHexKeysForGridOverlay", () => {
+  afterEach(() => {
+    delete (globalThis as { canvas?: unknown }).canvas;
+  });
+
+  it("returns hex keys from grid offset range", () => {
+    (globalThis as { canvas?: unknown }).canvas = {
+      dimensions: { width: 3000, height: 2000, sceneRect: { x: 0, y: 0, width: 3000, height: 2000 } },
+      grid: {
+        isHexagonal: true,
+        size: 100,
+        getOffsetRange: () => [0, 0, 2, 2],
+      },
+    };
+
+    expect(sceneHexKeysForGridOverlay().sort()).toEqual(["0,0", "0,1", "1,0", "1,1"]);
   });
 });
 
