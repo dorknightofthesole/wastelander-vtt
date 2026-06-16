@@ -369,20 +369,17 @@ export function enumerateBorderHexKeys(
 }
 
 export function mapEntryHexKey(
-  exitHexKey: string,
+  exitCenter: Point,
   exitDirection: SceneCardinal,
   targetBounds: ImageBounds,
-  hexCenterAt: (hexKey: string) => Point | null,
+  targetHexCenterAt: (hexKey: string) => Point | null,
   options?: { scanMin?: number; scanMax?: number; tolerance?: number },
 ): string | null {
-  const exitCenter = hexCenterAt(exitHexKey);
-  if (!exitCenter) return null;
-
   const entryDirection = OPPOSITE_DIRECTION[exitDirection];
   const borderHexes = enumerateBorderHexKeys(
     targetBounds,
     entryDirection,
-    hexCenterAt,
+    targetHexCenterAt,
     options,
   );
   if (!borderHexes.length) return null;
@@ -391,7 +388,7 @@ export function mapEntryHexKey(
   let bestDistance = Number.POSITIVE_INFINITY;
 
   for (const hexKey of borderHexes) {
-    const center = hexCenterAt(hexKey);
+    const center = targetHexCenterAt(hexKey);
     if (!center) continue;
     const lateral =
       exitDirection === "north" || exitDirection === "south"
@@ -566,7 +563,69 @@ type SourceTokenDoc = TokenDimensions & {
   actorId?: string | null;
   disposition?: number;
   elevation?: number;
+  toObject?: () => Record<string, unknown>;
 };
+
+type ActorTokenSource = {
+  getTokenDocument?: (data?: Record<string, unknown>) => Promise<{
+    toObject?: () => Record<string, unknown>;
+  }>;
+  prototypeToken?: { toObject?: () => Record<string, unknown> };
+};
+
+async function buildNavigatorTokenCreateData(
+  navigatorActorId: string,
+  sourceTokenDoc: SourceTokenDoc,
+  position: Point,
+): Promise<Record<string, unknown> | null> {
+  const actor = (game as { actors?: { get: (id: string) => ActorTokenSource | undefined } })
+    .actors?.get(navigatorActorId);
+
+  if (typeof sourceTokenDoc.toObject === "function") {
+    const data = foundry.utils.duplicate(sourceTokenDoc.toObject());
+    delete data._id;
+    delete data.sceneId;
+    delete data.delta;
+    return {
+      ...data,
+      actorId: navigatorActorId,
+      actorLink: data.actorLink ?? true,
+      x: position.x,
+      y: position.y,
+    };
+  }
+
+  if (typeof actor?.getTokenDocument === "function") {
+    const tokenDoc = await actor.getTokenDocument({ x: position.x, y: position.y });
+    if (tokenDoc && typeof tokenDoc.toObject === "function") {
+      return tokenDoc.toObject();
+    }
+  }
+
+  const prototype = actor?.prototypeToken?.toObject?.();
+  if (prototype) {
+    const data = foundry.utils.duplicate(prototype);
+    delete data._id;
+    return {
+      ...data,
+      actorId: navigatorActorId,
+      actorLink: data.actorLink ?? true,
+      x: position.x,
+      y: position.y,
+    };
+  }
+
+  return {
+    actorId: navigatorActorId,
+    actorLink: true,
+    x: position.x,
+    y: position.y,
+    width: sourceTokenDoc.width ?? 1,
+    height: sourceTokenDoc.height ?? 1,
+    disposition: sourceTokenDoc.disposition ?? 1,
+    elevation: sourceTokenDoc.elevation ?? 0,
+  };
+}
 
 async function ensureNavigatorTokenOnScene(
   targetSceneId: string,
@@ -579,6 +638,13 @@ async function ensureNavigatorTokenOnScene(
 
   const position = tokenPositionForHexKeyOnScene(targetSceneId, entryHexKey);
   if (!position) return null;
+
+  const tokenData = await buildNavigatorTokenCreateData(
+    navigatorActorId,
+    sourceTokenDoc,
+    position,
+  );
+  if (!tokenData) return null;
 
   const scene = (game as {
     scenes?: {
@@ -593,17 +659,7 @@ async function ensureNavigatorTokenOnScene(
 
   if (!scene?.createEmbeddedDocuments) return null;
 
-  const created = await scene.createEmbeddedDocuments("Token", [
-    {
-      actorId: navigatorActorId,
-      x: position.x,
-      y: position.y,
-      width: sourceTokenDoc.width ?? 1,
-      height: sourceTokenDoc.height ?? 1,
-      disposition: sourceTokenDoc.disposition ?? 1,
-      elevation: sourceTokenDoc.elevation ?? 0,
-    },
-  ]);
+  const created = await scene.createEmbeddedDocuments("Token", [tokenData]);
 
   return created[0]?.id ?? null;
 }
@@ -629,6 +685,22 @@ export async function executeSceneCrossing(params: {
     return false;
   }
 
+  const sourceExitCenter = hexCenterForScene(params.sourceSceneId, params.exitHexKey);
+  if (!sourceExitCenter) {
+    ui.notifications.warn(t("WASTELANDER.Hexcrawl.Notify.SceneLinkEntryHex"));
+    return false;
+  }
+
+  await moveTokenToHexKey(
+    params.sourceSceneId,
+    params.sourceTokenDoc.id,
+    params.exitHexKey,
+  );
+
+  if (typeof targetScene.activate === "function") {
+    await targetScene.activate();
+  }
+
   const targetBounds = readSceneBackgroundBounds(targetScene);
   if (!targetBounds) {
     ui.notifications.warn(t("WASTELANDER.Hexcrawl.Notify.SceneLinkBounds"));
@@ -639,7 +711,7 @@ export async function executeSceneCrossing(params: {
     (globalThis as { canvas?: { grid?: CanvasGrid } }).canvas?.grid,
   );
   const entryHexKey = mapEntryHexKey(
-    params.exitHexKey,
+    sourceExitCenter,
     params.direction,
     targetBounds,
     hexCenterAtForScene(params.targetSceneId),
@@ -675,15 +747,6 @@ export async function executeSceneCrossing(params: {
 
   await saveHexcrawlSceneState(crossedState);
   await moveTokenToHexKey(params.targetSceneId, targetTokenId, entryHexKey);
-  await moveTokenToHexKey(
-    params.sourceSceneId,
-    params.sourceTokenDoc.id,
-    params.exitHexKey,
-  );
-
-  if (typeof targetScene.activate === "function") {
-    await targetScene.activate();
-  }
 
   ui.notifications.info(
     t("WASTELANDER.Hexcrawl.Notify.SceneCrossed", {

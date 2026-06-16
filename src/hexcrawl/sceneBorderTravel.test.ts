@@ -63,8 +63,9 @@ describe("pointInBounds", () => {
 
 describe("mapEntryHexKey", () => {
   it("maps south exit to north entry with closest lateral position", () => {
-    const exitHexKey = "5,7";
-    const entry = mapEntryHexKey(exitHexKey, "south", bounds, hexCenterAt, {
+    const exitCenter = hexCenterAt("5,7");
+    expect(exitCenter).not.toBeNull();
+    const entry = mapEntryHexKey(exitCenter!, "south", bounds, hexCenterAt, {
       scanMin: 0,
       scanMax: 10,
       tolerance: 60,
@@ -73,13 +74,29 @@ describe("mapEntryHexKey", () => {
   });
 
   it("maps east exit to west entry with closest lateral position", () => {
-    const exitHexKey = "9,3";
-    const entry = mapEntryHexKey(exitHexKey, "east", bounds, hexCenterAt, {
+    const exitCenter = hexCenterAt("9,3");
+    expect(exitCenter).not.toBeNull();
+    const entry = mapEntryHexKey(exitCenter!, "east", bounds, hexCenterAt, {
       scanMin: 0,
       scanMax: 10,
       tolerance: 60,
     });
     expect(entry).toBe("0,3");
+  });
+
+  it("uses exit center from the source scene grid, not the target grid", () => {
+    const sourceHexCenterAt = (hexKey: string): { x: number; y: number } | null => {
+      const center = hexCenterAt(hexKey);
+      return center ? { x: center.x + 200, y: center.y + 150 } : null;
+    };
+    const exitCenter = sourceHexCenterAt("5,7");
+    expect(exitCenter).not.toBeNull();
+    const entry = mapEntryHexKey(exitCenter!, "south", bounds, hexCenterAt, {
+      scanMin: 0,
+      scanMax: 10,
+      tolerance: 60,
+    });
+    expect(entry).toBe("7,0");
   });
 });
 

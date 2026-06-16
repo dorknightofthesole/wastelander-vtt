@@ -1,4 +1,4 @@
-/** Display titles for RollTables imported under Wastelander → Wanderer. */
+/** Display titles for RollTables imported under Wastelander Rollable Tables → Wanderer. */
 export const WANDERER_NPC_TABLE_TITLES = {
   namesMasculine: "NPC Names (Masculine)",
   namesFeminine: "NPC Names (Feminine)",

@@ -4,3 +4,6 @@ export const MODULE_PATH = `modules/${MODULE_ID}`;
 /** Bundled compendium pack ids (module.json → packs). */
 export const WASTELANDER_ITEMS_PACK = `${MODULE_ID}.wastelander-items`;
 export const WASTELANDER_ROLLABLE_TABLES_PACK = `${MODULE_ID}.wastelander-rollable-tables`;
+
+/** World RollTable sidebar root for oracle and encounter imports. */
+export const WASTELANDER_ROLLABLE_TABLES_FOLDER = "Wastelander Rollable Tables";

@@ -19,7 +19,6 @@ import {
   saveHexcrawlSceneState,
   type HexcrawlSceneState,
 } from "./hexcrawlScenePersist.js";
-import { findSceneTokenIdForActor } from "./hexCoords.js";
 import { getSceneMilesPerHex } from "./sceneGrid.js";
 import { filterHexcrawlTravelRoleActorIds } from "./partyTravel.js";
 import {
