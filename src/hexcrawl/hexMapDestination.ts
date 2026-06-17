@@ -2,6 +2,7 @@ import { t } from "../integrations/i18n.js";
 import { getUndiscoveredPoiAlpha } from "./hexcrawlSettings.js";
 import {
   appendJourneyLog,
+  appendTraveledHexKey,
   loadHexcrawlSceneState,
   saveHexcrawlSceneState,
   type HexcrawlSceneState,
@@ -36,6 +37,98 @@ export type ResolvedProgressDestination = {
 };
 
 const SCENE_CARDINALS: SceneCardinal[] = ["north", "south", "east", "west"];
+
+/** Max scene-link hops when inheriting a Progress destination from linked overworld maps. */
+export const LINKED_MAP_DESTINATION_MAX_DEPTH = 3;
+
+function neighborSceneIds(sceneLinks: SceneLinks): string[] {
+  const ids: string[] = [];
+  for (const direction of SCENE_CARDINALS) {
+    const linkedSceneId = sceneLinks[direction];
+    if (linkedSceneId) ids.push(linkedSceneId);
+  }
+  return ids;
+}
+
+function appendFrontierNeighbors(
+  frontier: string[],
+  visited: Set<string>,
+): string[] {
+  const next: string[] = [];
+  for (const sceneId of frontier) {
+    const linkedState = loadHexcrawlSceneState(sceneId);
+    if (!linkedState) continue;
+    for (const linkedSceneId of neighborSceneIds(linkedState.sceneLinks)) {
+      if (visited.has(linkedSceneId)) continue;
+      visited.add(linkedSceneId);
+      next.push(linkedSceneId);
+    }
+  }
+  return next;
+}
+
+/** Breadth-first search along scene N/S/E/W links, cardinal order within each depth. */
+function sceneReachableViaLinks(
+  state: HexcrawlSceneState,
+  targetSceneId: string,
+  maxDepth = LINKED_MAP_DESTINATION_MAX_DEPTH,
+): boolean {
+  if (targetSceneId === state.sceneId) return true;
+  if (maxDepth < 1) return false;
+
+  const visited = new Set<string>([state.sceneId]);
+  let frontier: string[] = [];
+  for (const linkedSceneId of neighborSceneIds(state.sceneLinks)) {
+    if (visited.has(linkedSceneId)) continue;
+    visited.add(linkedSceneId);
+    frontier.push(linkedSceneId);
+  }
+
+  for (let depth = 1; depth <= maxDepth; depth++) {
+    if (frontier.includes(targetSceneId)) return true;
+    if (depth === maxDepth) break;
+    frontier = appendFrontierNeighbors(frontier, visited);
+    if (!frontier.length) break;
+  }
+
+  return false;
+}
+
+function resolveLinkedMapDestination(
+  originSceneId: string,
+  sceneLinks: SceneLinks,
+  maxDepth = LINKED_MAP_DESTINATION_MAX_DEPTH,
+): ResolvedProgressDestination | null {
+  if (maxDepth < 1) return null;
+
+  const visited = new Set<string>([originSceneId]);
+  let frontier: string[] = [];
+  for (const linkedSceneId of neighborSceneIds(sceneLinks)) {
+    if (visited.has(linkedSceneId)) continue;
+    visited.add(linkedSceneId);
+    frontier.push(linkedSceneId);
+  }
+
+  for (let depth = 1; depth <= maxDepth; depth++) {
+    for (const sceneId of frontier) {
+      const linkedState = loadHexcrawlSceneState(sceneId);
+      if (!linkedState?.mapDestination?.name) continue;
+      return {
+        name: linkedState.mapDestination.name,
+        hexKey: linkedState.mapDestination.hexKey,
+        sourceSceneId: sceneId,
+        sourceSceneName: sceneNameForId(sceneId),
+        inherited: true,
+      };
+    }
+
+    if (depth === maxDepth) break;
+    frontier = appendFrontierNeighbors(frontier, visited);
+    if (!frontier.length) break;
+  }
+
+  return null;
+}
 
 export function normalizeMapDestination(raw: unknown): MapDestination | null {
   if (!raw || typeof raw !== "object") return null;
@@ -184,6 +277,8 @@ export function applyDestinationArrivalProgress(
     milesTraveledCumulative: 0,
     startingHexKey: hexKey,
     lastHexKey: hexKey,
+    trailCleared: false,
+    traveledHexKeys: appendTraveledHexKey(state.traveledHexKeys, hexKey),
   };
 }
 
@@ -272,15 +367,11 @@ function sceneNameForId(sceneId: string): string {
   return scene?.name ?? sceneId;
 }
 
-function sceneStillLinked(state: HexcrawlSceneState, sourceSceneId: string): boolean {
-  return Object.values(state.sceneLinks).some((linkedId) => linkedId === sourceSceneId);
-}
-
 export function inheritedProgressDestinationStillValid(
   state: HexcrawlSceneState,
   cache: InheritedProgressDestination,
 ): boolean {
-  if (!sceneStillLinked(state, cache.sourceSceneId)) return false;
+  if (!sceneReachableViaLinks(state, cache.sourceSceneId)) return false;
   const source = loadHexcrawlSceneState(cache.sourceSceneId);
   if (!source?.mapDestination?.name) return false;
   return (
@@ -298,25 +389,6 @@ function inheritedCacheFromResolved(
     sourceSceneId: resolved.sourceSceneId,
     sourceSceneName: resolved.sourceSceneName,
   };
-}
-
-function resolveLinkedMapDestination(
-  sceneLinks: SceneLinks,
-): ResolvedProgressDestination | null {
-  for (const direction of SCENE_CARDINALS) {
-    const linkedSceneId = sceneLinks[direction];
-    if (!linkedSceneId) continue;
-    const linkedState = loadHexcrawlSceneState(linkedSceneId);
-    if (!linkedState?.mapDestination?.name) continue;
-    return {
-      name: linkedState.mapDestination.name,
-      hexKey: linkedState.mapDestination.hexKey,
-      sourceSceneId: linkedSceneId,
-      sourceSceneName: sceneNameForId(linkedSceneId),
-      inherited: true,
-    };
-  }
-  return null;
 }
 
 /** Persist linked-scene destination locally so Progress does not re-scan every open. */
@@ -357,7 +429,7 @@ export function ensureInheritedProgressDestinationCached(
     return { state: next, changed };
   }
 
-  const resolved = resolveLinkedMapDestination(next.sceneLinks);
+  const resolved = resolveLinkedMapDestination(next.sceneId, next.sceneLinks);
   if (!resolved) {
     if (!next.inheritedProgressDestination) return { state: next, changed };
     return {
@@ -410,7 +482,7 @@ export function resolveProgressDestination(
     };
   }
 
-  return resolveLinkedMapDestination(state.sceneLinks);
+  return resolveLinkedMapDestination(sceneId, state.sceneLinks);
 }
 
 export function formatProgressDestinationLabel(

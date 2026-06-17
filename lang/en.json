@@ -279,6 +279,20 @@
       "SceneLinkSouth": "South",
       "SceneLinkEast": "East",
       "SceneLinkWest": "West",
+      "ExportImport": {
+        "Export": "Export scene config",
+        "Import": "Import scene config",
+        "ImportConfirmTitle": "Import scene configuration?",
+        "ImportConfirmBody": "This overwrites this scene's map and travel settings from the file. Party members, travel progress, journey log, and destinations are not changed.",
+        "ExportSuccess": "Exported hexcrawl configuration for {scene}.",
+        "ImportSuccess": "Imported hexcrawl configuration for {scene}.",
+        "ImportIdMismatch": "Imported by scene name; the file was exported from a different scene id.",
+        "ImportNoMatch": "No scene in the file matches the current scene name.",
+        "ImportInvalidBundle": "The selected file is not a valid hexcrawl configuration export.",
+        "ImportInvalidVersion": "This hexcrawl export uses an unsupported format version.",
+        "ImportReadFailed": "Could not read the selected JSON file.",
+        "ImportSaveFailed": "Could not save the imported hexcrawl configuration to this scene."
+      },
       "TravelEventMode": {
         "hexEntry": "On entering a new hex",
         "hourChange": "On hour change"

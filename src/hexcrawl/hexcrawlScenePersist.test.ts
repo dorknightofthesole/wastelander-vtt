@@ -419,6 +419,49 @@ describe("prepareHexcrawlStateForSave", () => {
     expect(merged.lastHexKey).toBe("4,4");
     expect(merged.traveledHexKeys).toEqual(["0,0", "4,4"]);
   });
+
+  it("preserves visited trail when saving destination arrival over a stale on-disk snapshot", () => {
+    const sceneId = "dest-scene";
+    const fresh = {
+      ...defaultHexcrawlState(sceneId),
+      travelDay: 3,
+      traveledHexKeys: [],
+      trailCleared: true,
+      journeyLog: [
+        { at: 1, kind: "hexEntered" as const, travelDay: 3, hexKey: "9,9" },
+        { at: 2, kind: "hexEntered" as const, travelDay: 2, hexKey: "8,8" },
+      ],
+    };
+    const pending = {
+      ...fresh,
+      travelDay: 2,
+      traveledHexKeys: ["0,0", "1,1", "2,2", "4,4"],
+      trailCleared: false,
+      mapDestination: null as typeof fresh.mapDestination,
+      hoursTraveledToday: 0,
+      milesTraveledCumulative: 0,
+      startingHexKey: "4,4",
+      lastHexKey: "4,4",
+      journeyLog: [
+        { at: 3, kind: "destinationReached" as const, travelDay: 2, hexKey: "4,4", note: "City" },
+        { at: 4, kind: "hexEntered" as const, travelDay: 2, hexKey: "4,4" },
+      ],
+    };
+
+    const game = globalThis.game as {
+      scenes?: { get: (id: string) => { getFlag?: (scope: string, key: string) => unknown } | undefined };
+      world?: { getFlag?: (scope: string, key: string) => unknown };
+    };
+    game.scenes = {
+      get: (id: string) =>
+        id === sceneId ? { getFlag: () => ({ ...fresh, version: 1 }) } : undefined,
+    };
+    game.world = { getFlag: () => null };
+
+    const merged = prepareHexcrawlStateForSave(pending, sceneId);
+    expect(merged.traveledHexKeys).toEqual(["0,0", "1,1", "2,2", "4,4"]);
+    expect(merged.trailCleared).toBe(false);
+  });
 });
 
 describe("hexcrawlHexMap flag", () => {

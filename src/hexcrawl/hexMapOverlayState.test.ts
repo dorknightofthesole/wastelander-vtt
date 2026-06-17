@@ -66,6 +66,29 @@ describe("hexMapOverlayState", () => {
     expect(resolveHexcrawlMapOverlayState(sceneId, loaded)?.showHexCoords).toBe(true);
   });
 
+  it("keeps the longer visited trail when staged is ahead of the scene flag", () => {
+    const sceneId = "scene-d";
+    const loaded = {
+      ...defaultHexcrawlState(sceneId),
+      updatedAt: 100,
+      traveledHexKeys: [],
+      trailCleared: true,
+    };
+    const staged = {
+      ...loaded,
+      updatedAt: 200,
+      traveledHexKeys: ["0,0", "1,1", "4,4"],
+      trailCleared: false,
+      startingHexKey: "4,4",
+      lastHexKey: "4,4",
+    };
+
+    stageHexcrawlMapOverlayState(staged);
+    const resolved = resolveHexcrawlMapOverlayState(sceneId, loaded);
+    expect(resolved?.traveledHexKeys).toEqual(["0,0", "1,1", "4,4"]);
+    expect(resolved?.trailCleared).toBe(false);
+  });
+
   it("clears staged state by scene id", () => {
     const sceneId = "scene-b";
     const state = {

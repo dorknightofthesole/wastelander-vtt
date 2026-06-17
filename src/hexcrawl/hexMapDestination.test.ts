@@ -14,6 +14,7 @@ import {
   setMapDestination,
   shouldShowMapDestination,
 } from "./hexMapDestination.js";
+import { trailHexKeysForState } from "./hexcrawlTrailStyles.js";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -80,6 +81,8 @@ describe("hexMapDestination", () => {
     expect(arrived.state.hoursTraveledToday).toBe(0);
     expect(arrived.state.milesTraveledCumulative).toBe(0);
     expect(arrived.state.traveledHexKeys).toEqual(["1,1", "4,4"]);
+    expect(trailHexKeysForState(arrived.state)).toEqual(["1,1", "4,4"]);
+    expect(arrived.state.trailCleared).toBe(false);
     expect(arrived.state.journeyLog[0]?.kind).toBe("destinationReached");
     const again = discoverMapDestinationOnHexEntry(arrived.state, "4,4");
     expect(again.arrival).toBeNull();
@@ -257,6 +260,90 @@ describe("hexMapDestination", () => {
     expect(formatProgressDestinationLabel(resolveProgressDestination("scene-a", state)!)).toBe(
       "Megaton (Southern Wastes)",
     );
+  });
+
+  it("inherits destination up to two scene-link hops away", () => {
+    const game = globalThis.game as {
+      scenes?: { get: (id: string) => { name?: string } | undefined };
+    };
+    game.scenes = {
+      get: (id: string) => {
+        if (id === "scene-a") return { name: "Northern Reach" };
+        if (id === "scene-south") return { name: "Mid Wastes" };
+        if (id === "scene-west") return { name: "Southern Wastes" };
+        return undefined;
+      },
+    };
+
+    vi.spyOn(hexcrawlScenePersist, "loadHexcrawlSceneState").mockImplementation((sceneId: string) => {
+      if (sceneId === "scene-south") {
+        return {
+          ...defaultHexcrawlState("scene-south"),
+          sceneLinks: { west: "scene-west" },
+        };
+      }
+      if (sceneId === "scene-west") {
+        return {
+          ...defaultHexcrawlState("scene-west"),
+          mapDestination: { hexKey: "0,0", name: "Megaton" },
+        };
+      }
+      return null;
+    });
+
+    const state = {
+      ...defaultHexcrawlState("scene-a"),
+      sceneLinks: { south: "scene-south" },
+    };
+    expect(resolveProgressDestination("scene-a", state)).toEqual({
+      name: "Megaton",
+      hexKey: "0,0",
+      sourceSceneId: "scene-west",
+      sourceSceneName: "Southern Wastes",
+      inherited: true,
+    });
+  });
+
+  it("prefers a nearer linked destination over a farther one", () => {
+    const game = globalThis.game as {
+      scenes?: { get: (id: string) => { name?: string } | undefined };
+    };
+    game.scenes = {
+      get: (id: string) => {
+        if (id === "scene-north") return { name: "North Map" };
+        if (id === "scene-south") return { name: "South Map" };
+        if (id === "scene-far") return { name: "Far Map" };
+        return undefined;
+      },
+    };
+
+    vi.spyOn(hexcrawlScenePersist, "loadHexcrawlSceneState").mockImplementation((sceneId: string) => {
+      if (sceneId === "scene-north") {
+        return {
+          ...defaultHexcrawlState("scene-north"),
+          mapDestination: { hexKey: "1,1", name: "Near Goal" },
+        };
+      }
+      if (sceneId === "scene-south") {
+        return {
+          ...defaultHexcrawlState("scene-south"),
+          sceneLinks: { south: "scene-far" },
+        };
+      }
+      if (sceneId === "scene-far") {
+        return {
+          ...defaultHexcrawlState("scene-far"),
+          mapDestination: { hexKey: "9,9", name: "Far Goal" },
+        };
+      }
+      return null;
+    });
+
+    const state = {
+      ...defaultHexcrawlState("scene-a"),
+      sceneLinks: { north: "scene-north", south: "scene-south" },
+    };
+    expect(resolveProgressDestination("scene-a", state)?.name).toBe("Near Goal");
   });
 
   it("uses a not-set label when no destination resolves", () => {

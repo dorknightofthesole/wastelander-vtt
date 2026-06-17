@@ -4196,6 +4196,17 @@
   text-transform: none;
 }
 
+.wastelander-hexcrawl-app .wastelander-hexcrawl-destination-bar {
+  margin: 0 0 0.65rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+.wastelander-hexcrawl-app .wastelander-hexcrawl-progress-summary p {
+  margin: 0 0 0.35rem;
+  text-align: left;
+}
+
 .wastelander-hexcrawl-app .wastelander-hexcrawl-current-terrain,
 .wastelander-hexcrawl-app .wastelander-hexcrawl-miles-traveled {
   font-size: 0.9rem;

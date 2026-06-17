@@ -16,4 +16,4 @@ Commit this file with the repo so the design target stays with the codebase.
 
 **Oracle roll tables:** See [oracle-rolltables.md](./oracle-rolltables.md). Requires `docs/reference/source/Fallout-2d20-Wasteland-Wanderer.pdf` (local, gitignored). Workflow: `npm run extract:oracle` → review manifests → `npm run build:oracle`.
 
-**Hexcrawl encounters:** See [hexcrawl-travel.md](./hexcrawl-travel.md). Requires `docs/reference/source/Fallout-2d20-GM-Toolkit.pdf`. Workflow: `npm run extract:encounters` → `npm run build:encounters`.
+**Hexcrawl travel:** See [hexcrawl-travel.md](./hexcrawl-travel.md) — overworld hex travel, map editor, scene config export/import, and encounter table build (`npm run extract:encounters` → `npm run build:encounters`). Requires `docs/reference/source/Fallout-2d20-GM-Toolkit.pdf`.

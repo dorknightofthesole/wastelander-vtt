@@ -23,6 +23,7 @@ All copyright assets included in the module are owned by Modiphius Entertainment
 - **Scavenging (players)** — Search team rolls, min/AP loot on scene tables, Luck Point shifts, server-validated actions
 - **Denizen import** — Bring your own NPC actor JSON into the world for inhabitant rosters
 - **Oracle tables** — Build/import Wasteland Wanderer roll tables from your licensed PDF (local tooling)
+- **Hexcrawl travel (Overseer)** — Per-scene overworld travel on a hex grid: party speed, navigation, encounters, travel journal, per-hex terrain/covers/POIs, cross-scene links, and **scene config export/import** (JSON)
 - **Bundled compendiums** — Custom scavenging items and roll tables included with the module
 
 ---
@@ -291,6 +292,22 @@ npm run build:oracle -- clear-blocker-table
 ```
 
 Full command reference, layout profiles, and known extraction quirks: [docs/reference/oracle-rolltables.md](docs/reference/oracle-rolltables.md).
+
+---
+
+## Hexcrawl travel (Overseer)
+
+Per-scene **hex grid travel** for overworld maps, using GM Toolkit travel and encounter rules. Open the **route** token toolbar button on an overworld scene to manage party movement, navigation difficulty, a per-scene travel journal, map overlays (trail, terrain badges, hex hide covers, POI icons), and optional **cross-scene links** when the party crosses a map border.
+
+- **Scene tab** — Enable hexcrawl, travel settings, progress, navigation, scene connections, and **Export / Import scene config** (JSON backup or sharing map templates).
+- **Party tab** — Travel party, navigator, and pace.
+- **Map tab** — Per-hex terrain, hide covers, POI icons, and destinations.
+
+Player-facing party view is available when hexcrawl is enabled on the scene.
+
+**Encounter tables** require a local build from the licensed GM Toolkit PDF (same workflow as oracle tables). **Export/import** uses a JSON file you save to disk — no extra build step.
+
+Full detail (trail overlay, terrain, map editor, border travel, export/import format, and encounter table workflow): [docs/reference/hexcrawl-travel.md](docs/reference/hexcrawl-travel.md).
 
 ---
 

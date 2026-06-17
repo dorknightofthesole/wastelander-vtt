@@ -465,6 +465,8 @@ export function prepareHexcrawlStateForSave(
       milesTraveledCumulative: pending.milesTraveledCumulative,
       startingHexKey: pending.startingHexKey,
       lastHexKey: pending.lastHexKey,
+      traveledHexKeys: pending.traveledHexKeys,
+      trailCleared: pending.trailCleared,
       mapDestination: pending.mapDestination,
       mapDestinationReached: pending.mapDestinationReached,
       inheritedProgressDestination: pending.inheritedProgressDestination,

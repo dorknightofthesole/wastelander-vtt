@@ -26,8 +26,17 @@ export function resolveHexcrawlMapOverlayState(
   }
 
   // Map annotations live only in hexcrawlHexMap — never resurrect covers from staged UI state.
+  const traveledHexKeys =
+    staged.traveledHexKeys.length >= loaded.traveledHexKeys.length
+      ? staged.traveledHexKeys
+      : loaded.traveledHexKeys;
+  const trailCleared =
+    traveledHexKeys.length > 0 ? false : staged.trailCleared || loaded.trailCleared;
+
   return {
     ...staged,
+    traveledHexKeys,
+    trailCleared,
     hexAnnotations: loaded.hexAnnotations,
     hexCoverBaseline: loaded.hexCoverBaseline,
     hiddenTrailHexKeys: loaded.hiddenTrailHexKeys,

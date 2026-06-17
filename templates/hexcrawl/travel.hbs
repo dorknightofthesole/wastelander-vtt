@@ -15,17 +15,22 @@
         <span class="wastelander-hexcrawl-difficulty-value">{{strings.difficulty}}: {{state.currentDifficulty}}</span>
       </div>
       <div class="wastelander-hexcrawl-status-right">
-        <span class="wastelander-hexcrawl-travel-speed">{{strings.currentMph}}: {{partyMph}}</span>
-        <span class="wastelander-hexcrawl-status-break" aria-hidden="true"></span>
-        {{#if maxHoursActorName}}
-        <span class="wastelander-hexcrawl-max-hours">{{strings.maxHours}}: {{state.maxHoursPerDay}} ({{maxHoursActorName}})</span>
-        {{else}}
-        <span class="wastelander-hexcrawl-max-hours">{{strings.maxHours}}: {{state.maxHoursPerDay}}</span>
-        {{/if}}
         <span class="wastelander-hexcrawl-current-terrain">{{strings.terrain}}: {{currentTerrainLabel}}</span>
-        <span class="wastelander-hexcrawl-miles-traveled">{{strings.milesTraveled}}: {{milesTraveledLabel}}</span>
       </div>
     </div>
+
+    <p class="wastelander-hexcrawl-destination-bar">
+      {{strings.destination}}: {{progressDestinationLabel}}
+    </p>
+
+    {{#unless isOverseer}}
+    <section class="wastelander-hexcrawl-section wastelander-hexcrawl-progress-summary">
+      <p>{{strings.travelDay}}: {{state.travelDay}}</p>
+      <p>{{strings.currentMph}}: {{partyMph}}{{#if paceActorName}} ({{paceActorName}}){{/if}}</p>
+      <p>{{strings.milesTraveled}}: {{milesTraveledLabel}}</p>
+      <p>{{strings.hoursToday}}: {{hoursTodayLabel}} / {{state.maxHoursPerDay}}{{#if hoursActorName}} ({{hoursActorName}}){{/if}}</p>
+    </section>
+    {{/unless}}
     {{/if}}
 
     {{#if isOverseer}}
@@ -64,11 +69,10 @@
         <div class="wastelander-hexcrawl-progress-header">
           <h3>{{strings.progress}}</h3>
         </div>
-        <p class="wastelander-hexcrawl-destination-label">
-          {{strings.destination}}: {{progressDestinationLabel}}
-        </p>
         <p>{{strings.travelDay}}: {{state.travelDay}}</p>
-        <p>{{strings.hoursToday}}: {{hoursTodayLabel}} / {{state.maxHoursPerDay}}</p>
+        <p>{{strings.currentMph}}: {{partyMph}}{{#if paceActorName}} ({{paceActorName}}){{/if}}</p>
+        <p>{{strings.milesTraveled}}: {{milesTraveledLabel}}</p>
+        <p>{{strings.hoursToday}}: {{hoursTodayLabel}} / {{state.maxHoursPerDay}}{{#if hoursActorName}} ({{hoursActorName}}){{/if}}</p>
         <p>{{strings.startingHex}}: {{startingHexLabel}}</p>
         <p>{{strings.lastHex}}: {{lastHexLabel}}</p>
         {{#if state.arrived}}
@@ -147,6 +151,10 @@
           </select>
         </div>
         {{/each}}
+        <div class="wastelander-hexcrawl-actions">
+          <button type="button" class="wastelander-btn-secondary" data-action="exportSceneConfig">{{strings.exportSceneConfig}}</button>
+          <button type="button" class="wastelander-btn-secondary" data-action="importSceneConfig">{{strings.importSceneConfig}}</button>
+        </div>
       </section>
       {{/if}}
     </div>

@@ -84,6 +84,46 @@ When the **navigator token** is dragged past the **background image** edge towar
 
 If a direction has no link configured, dragging off the image behaves as before (move blocked). Maps with different grid offsets may need aligned borders for best entry-hex matching.
 
+## Scene config export / import
+
+Overseers can back up or share **map and travel template** data as JSON from the Scene tab, below **Scene connections**.
+
+| Button | Action |
+| --- | --- |
+| **Export scene config** | Downloads a `.json` file for the current scene plus any scenes reachable via configured outbound scene links (a region pack). |
+| **Import scene config** | Overwrites the **current scene only** from a matching entry in the file (matched by scene **name**). |
+
+### What is included
+
+Per scene in the file:
+
+- Enable flag, travel event mode, default terrain, navigation condition, trail color
+- Starting hex (map anchor)
+- Scene links (stored as **scene names**, not Foundry IDs — portable between worlds)
+- Per-hex map data: terrain, hide covers, POI icon ids, hidden trail hexes, overlay toggles
+- Custom POI icons referenced on the map (world catalog subset)
+
+Linked neighbor scenes are included in the export file so you can share a whole region; import each scene separately by opening that scene and running import again.
+
+### What is not included (preserved on import)
+
+Import does **not** change:
+
+- Party members, navigator, or travel token
+- Travel progress (hours, miles, travel day, last hex, course status)
+- Travel trail / visited hex keys
+- Journey log
+- Map destinations (current or inherited from linked scenes)
+- Discovered POI fog-of-war state
+
+### Tips
+
+- Scene names in the target world must match the names in the JSON (Foundry scene IDs may differ — you may see a harmless id-mismatch warning).
+- Custom POI image **paths** must exist on the server that imports the file, or icons will not render until those assets are available.
+- Re-export after editing the map if you want the JSON to include every hide cover from `hexCoverBaseline` (covers removed by travel are restored from baseline on export).
+
+Export filename pattern: `hexcrawl-{scene-slug}-{date}.json`.
+
 ## Navigation (MVP)
 
 - Set **Navigation difficulty** from GM Toolkit conditions (base difficulty).

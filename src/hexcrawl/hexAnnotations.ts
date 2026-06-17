@@ -62,15 +62,24 @@ export function parseHexCoverColor(hex: string | undefined): number {
   return Number.parseInt(normalized, 16);
 }
 
-function normalizeHexAnnotation(raw: unknown): HexAnnotation | null {
+function normalizeHexAnnotation(
+  raw: unknown,
+  allowedPoiIconIds?: ReadonlySet<string>,
+): HexAnnotation | null {
   if (!raw || typeof raw !== "object") return null;
   const row = raw as { terrain?: unknown; iconId?: unknown; hexCoverColor?: unknown };
   const annotation: HexAnnotation = {};
   if (row.terrain !== undefined && row.terrain !== null && row.terrain !== "") {
     annotation.terrain = normalizeTravelTerrainType(row.terrain);
   }
-  if (typeof row.iconId === "string" && isStoredPoiIconId(row.iconId)) {
-    annotation.iconId = row.iconId;
+  if (typeof row.iconId === "string") {
+    const iconId = row.iconId.trim();
+    if (
+      iconId &&
+      (isStoredPoiIconId(iconId) || allowedPoiIconIds?.has(iconId))
+    ) {
+      annotation.iconId = iconId;
+    }
   }
   const coverColor = normalizeHexCoverColor(row.hexCoverColor);
   if (coverColor) annotation.hexCoverColor = coverColor;
@@ -78,13 +87,16 @@ function normalizeHexAnnotation(raw: unknown): HexAnnotation | null {
   return annotation;
 }
 
-export function normalizeHexAnnotations(raw: unknown): Record<string, HexAnnotation> {
+export function normalizeHexAnnotations(
+  raw: unknown,
+  options?: { allowedPoiIconIds?: ReadonlySet<string> },
+): Record<string, HexAnnotation> {
   if (!raw || typeof raw !== "object") return {};
   const row = raw as Record<string, unknown>;
   const annotations: Record<string, HexAnnotation> = {};
   for (const [hexKey, value] of Object.entries(row)) {
     if (!hexKey || typeof hexKey !== "string") continue;
-    const annotation = normalizeHexAnnotation(value);
+    const annotation = normalizeHexAnnotation(value, options?.allowedPoiIconIds);
     if (annotation) annotations[hexKey] = annotation;
   }
   return annotations;

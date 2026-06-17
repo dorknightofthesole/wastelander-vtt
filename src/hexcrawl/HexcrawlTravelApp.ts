@@ -49,6 +49,7 @@ import { clearHexMapEditorSelectionState } from "./hexMapEditorState.js";
 import { setStartingLocationForScene } from "./hexcrawlStartingLocation.js";
 import { seedLastHexKeyFromTravelToken } from "./hexCoords.js";
 import { refreshHexcrawlMapOverlay } from "./hexcrawlMapOverlay.js";
+import { stageHexcrawlMapOverlayState } from "./hexMapOverlayState.js";
 import { openHexcrawlJournalPage } from "./hexcrawlJournalSync.js";
 import {
   appendJourneyLog,
@@ -89,6 +90,13 @@ import {
 } from "./playerHexcrawlActions.js";
 import { formatSceneGridDistanceLabel } from "./sceneGrid.js";
 import { applySceneLinkUpdate } from "./sceneBorderTravel.js";
+import {
+  buildHexcrawlConfigExport,
+  downloadHexcrawlConfigExport,
+  hexcrawlConfigExportFilename,
+  importHexcrawlConfigForScene,
+  pickJsonFile,
+} from "./hexcrawlSceneConfigTransfer.js";
 import {
   clampDifficulty,
   formatHours,
@@ -153,6 +161,8 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
       showMapTrail: HexcrawlTravelApp.onShowMapTrail,
       clearMapHex: HexcrawlTravelApp.onClearMapHex,
       markLost: HexcrawlTravelApp.onMarkLost,
+      exportSceneConfig: HexcrawlTravelApp.onExportSceneConfig,
+      importSceneConfig: HexcrawlTravelApp.onImportSceneConfig,
     },
   };
 
@@ -586,9 +596,10 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
         ? formatSceneGridDistanceLabel(this.#sceneId)
         : "—",
       partyMph: formatMphWithUnit(partyRoles.partyMph),
+      paceActorName: partyRoles.paceName,
+      hoursActorName: partyRoles.hoursActorName,
       currentTerrainLabel,
       milesTraveledLabel,
-      maxHoursActorName: partyRoles.hoursActorName,
       hoursTodayLabel: formatHours(state.hoursTraveledToday),
       courseStatusLabel,
       courseStatusClass:
@@ -662,7 +673,6 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
         sceneConnections: t("WASTELANDER.Hexcrawl.SceneConnections"),
         sceneConnectionsHint: t("WASTELANDER.Hexcrawl.SceneConnectionsHint"),
         sceneLinkNone: t("WASTELANDER.Hexcrawl.SceneLinkNone"),
-        maxHours: t("WASTELANDER.Hexcrawl.MaxHours"),
         currentMph: t("WASTELANDER.Hexcrawl.CurrentMph"),
         partyDropHint: t("WASTELANDER.Hexcrawl.PartyDropHint"),
         removeMember: t("WASTELANDER.Hexcrawl.RemovePartyMember"),
@@ -691,6 +701,8 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
         resetMap: t("WASTELANDER.Hexcrawl.ResetMap"),
         openJournal: t("WASTELANDER.Hexcrawl.OpenJournal"),
         clearJournal: t("WASTELANDER.Hexcrawl.Journal.Clear"),
+        exportSceneConfig: t("WASTELANDER.Hexcrawl.ExportImport.Export"),
+        importSceneConfig: t("WASTELANDER.Hexcrawl.ExportImport.Import"),
       },
     };
   }
@@ -978,6 +990,73 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
       trailCleared: true,
     }));
     ui.notifications.info(t("WASTELANDER.Hexcrawl.Notify.JournalCleared"));
+  }
+
+  static onExportSceneConfig(this: HexcrawlTravelApp, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!currentUserIsOverseer()) return;
+    if (!this.#sceneId) return;
+
+    const scene = game.scenes?.get(this.#sceneId);
+    if (!scene) return;
+
+    const bundle = buildHexcrawlConfigExport(this.#sceneId);
+    if (!bundle) {
+      ui.notifications.error(t("WASTELANDER.Hexcrawl.Notify.NoScene"));
+      return;
+    }
+
+    downloadHexcrawlConfigExport(bundle, hexcrawlConfigExportFilename(scene.name));
+    ui.notifications.info(
+      t("WASTELANDER.Hexcrawl.ExportImport.ExportSuccess", { scene: scene.name }),
+    );
+  }
+
+  static async onImportSceneConfig(this: HexcrawlTravelApp): Promise<void> {
+    if (!currentUserIsOverseer()) return;
+    if (!this.#sceneId) return;
+
+    const scene = game.scenes?.get(this.#sceneId);
+    if (!scene) return;
+
+    const proceed = await scavengerConfirmDialog(
+      t("WASTELANDER.Hexcrawl.ExportImport.ImportConfirmTitle"),
+      t("WASTELANDER.Hexcrawl.ExportImport.ImportConfirmBody"),
+    );
+    if (!proceed) return;
+
+    const bundleRaw = await pickJsonFile();
+    if (!bundleRaw) return;
+
+    const result = await importHexcrawlConfigForScene(this.#sceneId, bundleRaw);
+    if (!result.ok) {
+      const key =
+        result.reason === "no_match"
+          ? "WASTELANDER.Hexcrawl.ExportImport.ImportNoMatch"
+          : result.reason === "invalid_version"
+            ? "WASTELANDER.Hexcrawl.ExportImport.ImportInvalidVersion"
+            : result.reason === "invalid_bundle"
+              ? "WASTELANDER.Hexcrawl.ExportImport.ImportInvalidBundle"
+              : result.reason === "save_failed"
+                ? "WASTELANDER.Hexcrawl.ExportImport.ImportSaveFailed"
+                : "WASTELANDER.Hexcrawl.ExportImport.ImportReadFailed";
+      ui.notifications.error(t(key));
+      return;
+    }
+
+    if (result.idMismatch) {
+      ui.notifications.warn(t("WASTELANDER.Hexcrawl.ExportImport.ImportIdMismatch"));
+    }
+
+    this.#state = result.state;
+    this.#cancelPersistDebounce();
+    stageHexcrawlMapOverlayState(result.state);
+    await refreshHexcrawlMapOverlay(this.#sceneId, result.state);
+    await this.render();
+    ui.notifications.info(
+      t("WASTELANDER.Hexcrawl.ExportImport.ImportSuccess", { scene: scene.name }),
+    );
   }
 
   static onSwitchTab(
