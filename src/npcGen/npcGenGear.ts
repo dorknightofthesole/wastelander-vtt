@@ -1,5 +1,5 @@
 import { t } from "../integrations/i18n.js";
-import { DENIZENS_ROOT_FOLDER } from "../scavenging/denizenBookFolders.js";
+import { INHABITANTS_ROOT_FOLDER } from "../scavenging/inhabitantFolders.js";
 import {
   hasDemeanorGearMapping,
   hasProfessionGearMapping,
@@ -51,19 +51,21 @@ function folderChain(actor: Actor): Folder[] {
   return chain;
 }
 
-export function isNpcGenDenizenActor(actor: Actor): boolean {
+export function isNpcGenTemplateActor(actor: Actor): boolean {
   if (actor.type === "creature" || actor.type === "robot") return false;
   const chain = folderChain(actor);
-  return chain.length > 0 && chain[0]!.name === DENIZENS_ROOT_FOLDER;
+  return chain.length > 0 && chain[0]!.name === INHABITANTS_ROOT_FOLDER;
 }
 
-export type NpcGenDenizenOption = {
+export type NpcGenTemplateActorOption = {
   id: string;
   name: string;
   subfolder: string;
 };
 
-export function resolveDenizenActor(id: string | null | undefined): Actor | undefined {
+export function resolveNpcGenTemplateActor(
+  id: string | null | undefined,
+): Actor | undefined {
   const trimmed = id?.trim();
   if (!trimmed) return undefined;
   const direct = game.actors.get(trimmed);
@@ -74,13 +76,15 @@ export function resolveDenizenActor(id: string | null | undefined): Actor | unde
   return undefined;
 }
 
-export function listNpcGenDenizenActors(): NpcGenDenizenOption[] {
-  const options: NpcGenDenizenOption[] = [];
+export function listNpcGenTemplateActors(): NpcGenTemplateActorOption[] {
+  const options: NpcGenTemplateActorOption[] = [];
   for (const actor of game.actors) {
-    if (!isNpcGenDenizenActor(actor)) continue;
+    if (!isNpcGenTemplateActor(actor)) continue;
     const chain = folderChain(actor);
     const subfolder =
-      chain.length > 1 ? chain[chain.length - 1]!.name : DENIZENS_ROOT_FOLDER;
+      chain.length > 1
+        ? chain[chain.length - 1]!.name
+        : INHABITANTS_ROOT_FOLDER;
     options.push({ id: actor.id, name: actor.name, subfolder });
   }
   return options.sort((a, b) =>
@@ -189,13 +193,13 @@ export function extractCombatGearFromActor(actor: Actor): GearItemSpec[] {
   return items;
 }
 
-export function buildDenizenGearSection(
+export function buildTemplateCombatGearSection(
   items: GearItemSpec[],
   title: string,
 ): NpcGearDisplaySection | null {
   if (!items.length) return null;
   return {
-    id: "denizen",
+    id: "template-combat",
     title,
     rows: items.map((item) => ({
       label: formatGearItemLabel(item),
@@ -214,7 +218,7 @@ export function countPlannedGearItems(state: NpcGeneratorState): number {
     if (isGearSpecEmpty(spec)) continue;
     count += (spec?.items?.length ?? 0) + (spec?.rolls?.length ?? 0);
   }
-  count += state.gear.denizenCombatItems.length;
+  count += state.gear.templateCombatItems.length;
   return count;
 }
 

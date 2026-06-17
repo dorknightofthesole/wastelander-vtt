@@ -38,7 +38,6 @@ export type HexcrawlSceneMapConfig = {
   navigationConditionId: string;
   baseDifficulty: number;
   trailOverlayColor: string;
-  startingHexKey: string | null;
   sceneLinks: SceneLinks;
   hexAnnotations: HexcrawlSceneState["hexAnnotations"];
   hexCoverBaseline: HexcrawlSceneState["hexCoverBaseline"];
@@ -101,10 +100,6 @@ function normalizeSceneMapConfig(
         ? row.baseDifficulty
         : 1,
     trailOverlayColor: normalizeTrailOverlayColor(row.trailOverlayColor),
-    startingHexKey:
-      typeof row.startingHexKey === "string" && row.startingHexKey.length > 0
-        ? row.startingHexKey
-        : null,
     sceneLinks: normalizeSceneLinksByName(row.sceneLinks),
     hexAnnotations,
     hexCoverBaseline: normalizeHexCoverBaseline(hexAnnotations, row.hexCoverBaseline),
@@ -251,7 +246,6 @@ export function buildSceneMapConfig(
     navigationConditionId: restored.navigationConditionId,
     baseDifficulty: restored.baseDifficulty,
     trailOverlayColor: restored.trailOverlayColor,
-    startingHexKey: restored.startingHexKey,
     sceneLinks: sceneLinksByName,
     hexAnnotations: structuredClone(restored.hexAnnotations),
     hexCoverBaseline: structuredClone(restored.hexCoverBaseline),
@@ -275,7 +269,6 @@ export function applyMapConfigImport(
     baseDifficulty: imported.baseDifficulty,
     currentDifficulty: imported.baseDifficulty,
     trailOverlayColor: imported.trailOverlayColor,
-    startingHexKey: imported.startingHexKey,
     sceneLinks: sceneLinksById,
     hexAnnotations: structuredClone(imported.hexAnnotations),
     hexCoverBaseline: structuredClone(imported.hexCoverBaseline),

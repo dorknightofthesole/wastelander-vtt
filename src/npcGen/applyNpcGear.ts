@@ -239,7 +239,7 @@ export async function applyNpcGear(
     await applyGearSpec(parent, resolveFeatureGear(feature), index);
   }
 
-  for (const item of gear?.denizenCombatItems ?? []) {
+  for (const item of gear?.templateCombatItems ?? []) {
     await addGearItem(parent, item, index);
   }
 

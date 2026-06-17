@@ -1,5 +1,5 @@
 import type { CharacterNpcBuildResult } from "./buildCharacterNpcStats.js";
-import { buildProfessionDemeanorGearSections, buildDenizenGearSection } from "./npcGenGear.js";
+import { buildProfessionDemeanorGearSections, buildTemplateCombatGearSection } from "./npcGenGear.js";
 import { getNpcGenAiPromptTemplate } from "./npcGenAiPromptSettings.js";
 import type {
   NpcGeneratorRollMeta,
@@ -179,15 +179,15 @@ export function buildNpcGenFieldRows(
   }
 
   const gearSections = buildProfessionDemeanorGearSections(state.rolls);
-  const denizenSection = buildDenizenGearSection(
-    state.gear.denizenCombatItems,
-    tPlain("WASTELANDER.NpcGen.Gear.DenizenApproved"),
+  const templateSection = buildTemplateCombatGearSection(
+    state.gear.templateCombatItems,
+    tPlain("WASTELANDER.NpcGen.Gear.TemplateCombatApproved"),
   );
   const gearLabels = [
     ...gearSections.flatMap((section) =>
       section.rows.map((row) => row.label),
     ),
-    ...(denizenSection?.rows.map((row) => row.label) ?? []),
+    ...(templateSection?.rows.map((row) => row.label) ?? []),
   ];
   if (gearLabels.length) {
     rows.push({

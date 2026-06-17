@@ -10,11 +10,11 @@ import { createFriendlyNpcActor } from "./createFriendlyNpcActor.js";
 import { buildNpcGenAiPrompt } from "./npcGenActorData.js";
 import { copyTextToClipboard } from "./npcGenClipboard.js";
 import {
-  buildDenizenGearSection,
+  buildTemplateCombatGearSection,
   buildProfessionDemeanorGearSections,
   extractCombatGearFromActor,
-  listNpcGenDenizenActors,
-  resolveDenizenActor,
+  listNpcGenTemplateActors,
+  resolveNpcGenTemplateActor,
 } from "./npcGenGear.js";
 import {
   allRollStepsComplete,
@@ -142,7 +142,7 @@ export default class NpcGeneratorApp extends HandlebarsApplicationMixin(
       focusStep: NpcGeneratorApp.onFocusStep,
       rerollStep: NpcGeneratorApp.onRerollStep,
       pickStepOption: NpcGeneratorApp.onPickStepOption,
-      approveDenizenGear: NpcGeneratorApp.onApproveDenizenGear,
+      approveTemplateCombatGear: NpcGeneratorApp.onApproveTemplateCombatGear,
       copyAiPrompt: NpcGeneratorApp.onCopyAiPrompt,
       dismissAiPrompt: NpcGeneratorApp.onDismissAiPrompt,
     },
@@ -224,8 +224,8 @@ export default class NpcGeneratorApp extends HandlebarsApplicationMixin(
       if (!target.matches("select[data-npc-gen-select]")) return;
       const field = target.dataset.npcGenSelect;
       switch (field) {
-        case "denizen":
-          NpcGeneratorApp.#applyDenizenSelection(this, target);
+        case "template-actor":
+          NpcGeneratorApp.#applyTemplateActorSelection(this, target);
           break;
         case "level":
           NpcGeneratorApp.#applyLevelSelection(this, target);
@@ -312,16 +312,16 @@ export default class NpcGeneratorApp extends HandlebarsApplicationMixin(
       isReviewStep: viewStep === "review",
       showRollStatus: isNpcRollStep(this.state.step),
       gearSections: buildProfessionDemeanorGearSections(this.state.rolls),
-      denizenCombatSection: buildDenizenGearSection(
-        this.state.gear.denizenCombatItems,
-        t("WASTELANDER.NpcGen.Gear.DenizenApproved"),
+      templateCombatSection: buildTemplateCombatGearSection(
+        this.state.gear.templateCombatItems,
+        t("WASTELANDER.NpcGen.Gear.TemplateCombatApproved"),
       ),
-      denizenOptions: listNpcGenDenizenActors().map((row) => ({
+      templateActorOptions: listNpcGenTemplateActors().map((row) => ({
         ...row,
         label: `${row.name} (${row.subfolder})`,
-        selected: row.id === this.state.gear.previewDenizenId,
+        selected: row.id === this.state.gear.previewTemplateActorId,
       })),
-      denizenPreviewSection: this.#buildDenizenPreviewSection(),
+      templateActorPreviewSection: this.#buildTemplateActorPreviewSection(),
       reviewName: npcFullName(this.state.rolls) || "—",
       rolls: this.state.rolls,
       levelOptions: [1, 2, 3, 4, 5].map((value) => ({
@@ -361,23 +361,23 @@ export default class NpcGeneratorApp extends HandlebarsApplicationMixin(
     };
   }
 
-  #selectedDenizenId(): string | null {
-    const fromState = this.state.gear.previewDenizenId?.trim();
+  #selectedTemplateActorId(): string | null {
+    const fromState = this.state.gear.previewTemplateActorId?.trim();
     if (fromState) return fromState;
     const select = this.#rootElement()?.querySelector<HTMLSelectElement>(
-      'select[data-npc-gen-select="denizen"]',
+      'select[data-npc-gen-select="template-actor"]',
     );
     const fromDom = select?.value?.trim();
     return fromDom || null;
   }
 
-  #buildDenizenPreviewSection() {
-    const actor = resolveDenizenActor(this.#selectedDenizenId());
+  #buildTemplateActorPreviewSection() {
+    const actor = resolveNpcGenTemplateActor(this.#selectedTemplateActorId());
     if (!actor) return null;
     const items = extractCombatGearFromActor(actor);
-    return buildDenizenGearSection(
+    return buildTemplateCombatGearSection(
       items,
-      t("WASTELANDER.NpcGen.Gear.DenizenPreview", { name: actor.name }),
+      t("WASTELANDER.NpcGen.Gear.TemplateActorPreview", { name: actor.name }),
     );
   }
 
@@ -625,44 +625,50 @@ export default class NpcGeneratorApp extends HandlebarsApplicationMixin(
     void this.render({ force: true });
   }
 
-  static #applyDenizenSelection(app: NpcGeneratorApp, select: HTMLSelectElement): void {
+  static #applyTemplateActorSelection(
+    app: NpcGeneratorApp,
+    select: HTMLSelectElement,
+  ): void {
     const value = select.value?.trim() ?? "";
     app.state = {
       ...app.state,
       gear: {
         ...app.state.gear,
-        previewDenizenId: value || null,
+        previewTemplateActorId: value || null,
       },
     };
     void app.render({ force: true });
   }
 
-  static onApproveDenizenGear(this: NpcGeneratorApp): void {
+  static onApproveTemplateCombatGear(this: NpcGeneratorApp): void {
     const select = this.#rootElement()?.querySelector<HTMLSelectElement>(
-      'select[data-npc-gen-select="denizen"]',
+      'select[data-npc-gen-select="template-actor"]',
     );
-    const id = select?.value?.trim() || this.state.gear.previewDenizenId?.trim() || null;
-    if (id && id !== this.state.gear.previewDenizenId) {
+    const id =
+      select?.value?.trim() ||
+      this.state.gear.previewTemplateActorId?.trim() ||
+      null;
+    if (id && id !== this.state.gear.previewTemplateActorId) {
       this.state = {
         ...this.state,
-        gear: { ...this.state.gear, previewDenizenId: id },
+        gear: { ...this.state.gear, previewTemplateActorId: id },
       };
     }
-    const actor = resolveDenizenActor(id);
+    const actor = resolveNpcGenTemplateActor(id);
     if (!actor) {
-      ui.notifications?.warn(t("WASTELANDER.NpcGen.Gear.DenizenActorMissing"));
+      ui.notifications?.warn(t("WASTELANDER.NpcGen.Gear.TemplateActorMissing"));
       return;
     }
     const items = extractCombatGearFromActor(actor);
     if (!items.length) {
-      ui.notifications?.warn(t("WASTELANDER.NpcGen.Gear.NoDenizenItems"));
+      ui.notifications?.warn(t("WASTELANDER.NpcGen.Gear.NoTemplateCombatItems"));
       return;
     }
     this.state = {
       ...this.state,
       gear: {
         ...this.state.gear,
-        denizenCombatItems: items,
+        templateCombatItems: items,
       },
     };
     void this.render({ force: true });

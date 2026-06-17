@@ -3106,7 +3106,7 @@
   padding-left: 1.25rem;
 }
 
-.wastelander-loot-cap-settings-app .wastelander-denizen-import-footer {
+.wastelander-loot-cap-settings-app .wastelander-settings-footer { {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
@@ -3118,7 +3118,7 @@
   border-top: 1px solid var(--wstl-amber-muted, #6b5a2a);
 }
 
-.wastelander-loot-cap-settings-app .wastelander-denizen-import-footer button {
+.wastelander-loot-cap-settings-app .wastelander-settings-footer { button {
   width: auto;
 }
 
@@ -3625,7 +3625,7 @@
   border-top: 1px solid var(--color-border-light-primary, #444);
 }
 
-.wastelander-npc-gen-app .wastelander-npc-gen-gear-denizen-select {
+.wastelander-npc-gen-app .wastelander-npc-gen-gear-template-select {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
@@ -3634,7 +3634,7 @@
   font-size: 0.9em;
 }
 
-.wastelander-npc-gen-app .wastelander-npc-gen-gear-denizen-select select {
+.wastelander-npc-gen-app .wastelander-npc-gen-gear-template-select select {
   color: lightyellow;
   max-width: 100%;
 }

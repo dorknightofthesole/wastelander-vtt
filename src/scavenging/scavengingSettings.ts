@@ -1,5 +1,4 @@
 import { MODULE_ID } from "../constants.js";
-import DenizenImportMenuApp from "./DenizenImportMenuApp.js";
 import LootRaritySettingsApp from "./LootRaritySettingsApp.js";
 import LootValueCapSettingsApp from "./LootValueCapSettingsApp.js";
 
@@ -121,15 +120,6 @@ export function registerScavengingSettings(): void {
     hint: "WASTELANDER.Scavenging.Settings.LootRarityMenuHint",
     icon: "fas fa-gem",
     type: LootRaritySettingsApp,
-    restricted: true,
-  });
-
-  settings.registerMenu(MODULE_ID, "importDenizens", {
-    name: "WASTELANDER.Denizens.Import.MenuName",
-    label: "WASTELANDER.Denizens.Import.MenuLabel",
-    hint: "WASTELANDER.Denizens.Import.MenuHint",
-    icon: "fas fa-file-import",
-    type: DenizenImportMenuApp,
     restricted: true,
   });
 }

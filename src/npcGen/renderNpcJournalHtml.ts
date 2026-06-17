@@ -54,7 +54,7 @@ export function renderNpcBiographyHtmlFromRolls(
       rolls,
       meta: {},
       review: { level: stats.level, npcType: stats.npcType },
-      gear: { denizenCombatItems: [], previewDenizenId: null },
+      gear: { templateCombatItems: [], previewTemplateActorId: null },
     },
     stats,
   );

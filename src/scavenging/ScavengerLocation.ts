@@ -23,10 +23,10 @@ export type LocationCategoryId =
   | "agriculture"
   | "military";
 
-import type { InhabitantType } from "./denizenBookFolders.js";
+import type { InhabitantType } from "./inhabitantFolders.js";
 import type { SceneLoot } from "./sceneLoot.js";
 
-export type { DenizenBookFolder, InhabitantType } from "./denizenBookFolders.js";
+export type { InhabitantBookFolder, InhabitantType } from "./inhabitantFolders.js";
 
 export interface ItemCategoryRange {
   category: LootCategoryKey;
@@ -41,7 +41,7 @@ export interface OtherFoundRoll {
 }
 
 export interface InhabitantRosterEntry {
-  denizenId: string;
+  catalogEntryId: string;
   name: string;
   level: number;
   role: "normal" | "leader";

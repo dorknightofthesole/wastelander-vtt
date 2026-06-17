@@ -112,7 +112,6 @@ Overseers can back up or share **map and travel template** data as JSON from the
 Per scene in the file:
 
 - Enable flag, travel event mode, default terrain, navigation condition, trail color
-- Starting hex (map anchor)
 - Scene links (stored as **scene names**, not Foundry IDs — portable between worlds)
 - Per-hex map data: terrain, hide covers, POI icon ids, hidden trail hexes, overlay toggles
 - Custom POI icons referenced on the map (world catalog subset)
@@ -124,6 +123,7 @@ Linked neighbor scenes are included in the export file so you can share a whole 
 Import does **not** change:
 
 - Party members, navigator, or travel token
+- Starting hex (map anchor — set per scene after import)
 - Travel progress (hours, miles, travel day, last hex, course status)
 - Travel trail / visited hex keys
 - Journey log

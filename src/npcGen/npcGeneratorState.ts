@@ -4,12 +4,12 @@ export type NpcGenderPresentation = "masculine" | "feminine";
 import type { GearItemSpec } from "./npcGearMappings.js";
 
 export type NpcGeneratorGearState = {
-  denizenCombatItems: GearItemSpec[];
-  previewDenizenId: string | null;
+  templateCombatItems: GearItemSpec[];
+  previewTemplateActorId: string | null;
 };
 
 export function createInitialNpcGeneratorGearState(): NpcGeneratorGearState {
-  return { denizenCombatItems: [], previewDenizenId: null };
+  return { templateCombatItems: [], previewTemplateActorId: null };
 }
 
 export const NPC_GEN_STEPS = [

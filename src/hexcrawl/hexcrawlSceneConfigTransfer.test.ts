@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { restoreHexCoversFromBaseline } from "./hexAnnotations.js";
-import { defaultHexcrawlState, HEXCRAWL_HEX_MAP_FLAG, loadHexcrawlSceneState } from "./hexcrawlScenePersist.js";
+import { defaultHexcrawlState, HEXCRAWL_HEX_MAP_FLAG, HEXCRAWL_SCENE_STATE_FLAG, loadHexcrawlSceneState } from "./hexcrawlScenePersist.js";
 import {
   createFoundryFlagScene,
   MODULE_ID,
@@ -45,7 +45,7 @@ describe("buildSceneMapConfig", () => {
 
     expect(config.enabled).toBe(true);
     expect(config.terrainType).toBe("rough");
-    expect(config.startingHexKey).toBe("2,3");
+    expect(config).not.toHaveProperty("startingHexKey");
     expect(config.trailOverlayColor).toBe("#aabbcc");
     expect(config.sceneLinks).toEqual({ north: "Northern Map" });
     expect(config.hexAnnotations).toEqual({
@@ -63,12 +63,13 @@ describe("buildSceneMapConfig", () => {
 });
 
 describe("applyMapConfigImport", () => {
-  it("overwrites map config while preserving party, history, trail, and destinations", () => {
+  it("overwrites map config while preserving party, history, trail, destinations, and starting hex", () => {
     const sceneId = "scene-1";
     const existing = {
       ...defaultHexcrawlState(sceneId),
       enabled: false,
       terrainType: "normal" as const,
+      startingHexKey: "4,4",
       partyActorIds: ["actor-1"],
       navigatorActorId: "actor-1",
       travelTokenId: "tok-1",
@@ -111,7 +112,7 @@ describe("applyMapConfigImport", () => {
     expect(next.terrainType).toBe("hard");
     expect(next.baseDifficulty).toBe(2);
     expect(next.currentDifficulty).toBe(2);
-    expect(next.startingHexKey).toBe("1,1");
+    expect(next.startingHexKey).toBe("4,4");
     expect(next.sceneLinks).toEqual({ south: "scene-3" });
     expect(next.hexAnnotations).toEqual({ "2,2": { iconId: "camp" } });
     expect(next.showHexCoords).toBe(true);
@@ -266,7 +267,14 @@ describe("applyMapConfigImport with restoreHexCoversFromBaseline", () => {
 describe("importHexcrawlConfigForScene", () => {
   it("persists hex covers and POI icons to the scene hex map flag", async () => {
     const sceneId = "scene-import";
-    const flags: Record<string, Record<string, unknown>> = { [MODULE_ID]: {} };
+    const flags: Record<string, Record<string, unknown>> = {
+      [MODULE_ID]: {
+        [HEXCRAWL_SCENE_STATE_FLAG]: {
+          ...defaultHexcrawlState(sceneId),
+          startingHexKey: "0,0",
+        },
+      },
+    };
     const scene = createFoundryFlagScene(flags);
     const sceneDoc = { id: sceneId, name: "Weston Region", ...scene };
     const worldPoiIcons: Array<{ id: string; label: string; path: string }> = [];
@@ -348,6 +356,7 @@ describe("importHexcrawlConfigForScene", () => {
     expect(result.state.hexAnnotations["17,10"]?.hexCoverColor).toBe("#7e876f");
     expect(result.state.hexAnnotations["18,10"]?.hexCoverColor).toBe("#767f67");
     expect(result.state.hexAnnotations["14,15"]?.iconId).toBe("settlement-undiscovered");
+    expect(result.state.startingHexKey).toBe("0,0");
 
     const loaded = loadHexcrawlSceneState(sceneId);
     expect(loaded?.hexAnnotations["17,10"]?.hexCoverColor).toBe("#7e876f");

@@ -14,7 +14,6 @@ import {
 } from "./encounters/encounterRollTableImport.js";
 import { registerHexcrawlHooks } from "./hexcrawl/hexcrawlHooks.js";
 import { registerOracleSettings } from "./oracle/oracleSettings.js";
-import { getBundledDenizenCount, importBundledDenizens } from "./scavenging/denizenImport.js";
 import { registerCombatDiceChatButton } from "./integrations/combatDiceChatButton.js";
 import {
   createInitialNpcGeneratorState,
@@ -27,6 +26,11 @@ import {
   logNpcGenTableDiagnostics,
 } from "./npcGen/wandererRollTables.js";
 import { registerScavengingHooks } from "./scavenging/scavengingHooks.js";
+import { registerInhabitantCatalogProvider } from "./scavenging/inhabitantCatalogProvider.js";
+import {
+  registerOptionalDenizensCatalog,
+  registerOptionalDenizensImport,
+} from "@local/denizens-import";
 
 Hooks.once("init", () => {
   registerTranslations();
@@ -36,15 +40,16 @@ Hooks.once("init", () => {
   registerHexcrawlHooks();
   registerNpcGeneratorHooks();
   registerOracleSettings();
+  registerOptionalDenizensImport();
   console.log(`${MODULE_ID} | initializing`);
 });
 
 Hooks.once("ready", () => {
+  registerOptionalDenizensCatalog();
+
   const mod = game.modules.get(MODULE_ID) as { api?: Record<string, unknown> } | undefined;
   if (!mod) return;
   mod.api = {
-    importDenizens: importBundledDenizens,
-    bundledDenizenCount: getBundledDenizenCount,
     importOracleRollTables: importBundledOracleRollTables,
     bundledOracleRollTableCount: getBundledOracleRollTableCount,
     importEncounterRollTables: importBundledEncounterRollTables,
@@ -56,6 +61,7 @@ Hooks.once("ready", () => {
       if (step) state.step = step;
       return logNpcGenTableDiagnostics(diagnoseNpcGenTables(state.step, state));
     },
+    registerInhabitantCatalogProvider,
   };
 });
 

@@ -115,11 +115,11 @@
         <p class="wastelander-npc-gen-gear-empty">{{localize "WASTELANDER.NpcGen.Gear.NoMappedGear"}}</p>
         {{/if}}
 
-        {{#if denizenCombatSection}}
+        {{#if templateCombatSection}}
         <div class="wastelander-npc-gen-gear-section">
-          <h4 class="wastelander-npc-gen-gear-section-title">{{denizenCombatSection.title}}</h4>
+          <h4 class="wastelander-npc-gen-gear-section-title">{{templateCombatSection.title}}</h4>
           <ul class="wastelander-npc-gen-gear-list">
-            {{#each denizenCombatSection.rows}}
+            {{#each templateCombatSection.rows}}
             <li class="wastelander-npc-gen-gear-item">
               <span class="wastelander-npc-gen-gear-item-label">{{this.label}}</span>
             </li>
@@ -130,22 +130,22 @@
 
         <div class="wastelander-npc-gen-gear-add-combat">
           <h4 class="wastelander-npc-gen-gear-section-title">{{localize "WASTELANDER.NpcGen.Gear.AddCombatGear"}}</h4>
-          {{#if denizenOptions.length}}
-          <label class="wastelander-npc-gen-gear-denizen-select">
-            <span>{{localize "WASTELANDER.NpcGen.Gear.DenizenSelect"}}</span>
-            <select data-npc-gen-select="denizen">
-              <option value="">{{localize "WASTELANDER.NpcGen.Gear.DenizenPlaceholder"}}</option>
-              {{#each denizenOptions}}
+          {{#if templateActorOptions.length}}
+          <label class="wastelander-npc-gen-gear-template-select">
+            <span>{{localize "WASTELANDER.NpcGen.Gear.TemplateActorSelect"}}</span>
+            <select data-npc-gen-select="template-actor">
+              <option value="">{{localize "WASTELANDER.NpcGen.Gear.TemplateActorPlaceholder"}}</option>
+              {{#each templateActorOptions}}
               <option value="{{id}}" {{#if selected}}selected{{/if}}>{{label}}</option>
               {{/each}}
             </select>
           </label>
 
-          {{#if denizenPreviewSection}}
+          {{#if templateActorPreviewSection}}
           <div class="wastelander-npc-gen-gear-section wastelander-npc-gen-gear-preview">
-            <h4 class="wastelander-npc-gen-gear-section-title">{{denizenPreviewSection.title}}</h4>
+            <h4 class="wastelander-npc-gen-gear-section-title">{{templateActorPreviewSection.title}}</h4>
             <ul class="wastelander-npc-gen-gear-list">
-              {{#each denizenPreviewSection.rows}}
+              {{#each templateActorPreviewSection.rows}}
               <li class="wastelander-npc-gen-gear-item">
                 <span class="wastelander-npc-gen-gear-item-label">{{this.label}}</span>
               </li>
@@ -157,12 +157,12 @@
           <button
             type="button"
             class="wastelander-btn-secondary wastelander-npc-gen-approve-gear-btn"
-            data-action="approveDenizenGear"
+            data-action="approveTemplateCombatGear"
           >
             {{localize "WASTELANDER.NpcGen.Gear.Approve"}}
           </button>
           {{else}}
-          <p class="wastelander-npc-gen-gear-empty">{{localize "WASTELANDER.NpcGen.Gear.NoDenizens"}}</p>
+          <p class="wastelander-npc-gen-gear-empty">{{localize "WASTELANDER.NpcGen.Gear.NoTemplateActors"}}</p>
           {{/if}}
         </div>
       </div>

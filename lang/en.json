@@ -183,31 +183,6 @@
         }
       }
     },
-    "Denizens": {
-      "Import": {
-        "MenuName": "Import denizen actors",
-        "MenuLabel": "Import denizens",
-        "MenuHint": "Opens the import window. Nothing is created until you click Import to world.",
-        "MenuTitle": "Import denizen actors",
-        "Intro": "Review the details below, then click Import to world to create actors under Denizens of the Wasteland.",
-        "OpenMenu": "Import denizens…",
-        "ConfirmTitle": "Import denizens?",
-        "ConfirmBody": "Create up to {count} actors in the sidebar (skips names that already exist).",
-        "Cancel": "Cancel",
-        "InProgress": "Importing denizens…",
-        "BundledCount": "{count} denizen JSON files are bundled in this build.",
-        "Hint": "Creates actors under “Denizens of the Wasteland” with rulebook subfolders (Animals and Insects, Raiders, Robots, etc.). Skips names that already exist in the world.",
-        "ReloadHint": "After importing, reload Foundry (F5 or close and reopen the world) if new actors do not appear in the Actors sidebar right away.",
-        "FolderFailed": "Could not create actor folders in the sidebar.",
-        "Run": "Import to world",
-        "RebuildHint": "Add Foundry actor exports to src/data/denizens/, then run npm run build and reload the module.",
-        "NoBundledFiles": "No denizen JSON is bundled in this build.",
-        "RequiresFallout": "The Fallout 2d20 system must be active.",
-        "GmOnly": "Only the GM can import denizens.",
-        "Done": "Denizen import finished: {created} created, {skipped} skipped (already in world), {failed} failed.",
-        "Failed": "Denizen import failed."
-      }
-    },
     "Oracle": {
       "Import": {
         "MenuName": "Import Wanderer oracle roll tables",
@@ -638,10 +613,10 @@
         "CountSummaryAdjusted": "{count} inhabitants present (rolled {baseCount} on scale dice, then Big/Little adjustment).",
         "CountSummaryAtLevel": "{count} inhabitants present at {levelOrdinal} level, or normally within 2 levels.",
         "CountSummaryAdjustedAtLevel": "{count} inhabitants present at {levelOrdinal} level, or normally within 2 levels (rolled {baseCount} on scale dice, then Big/Little adjustment).",
-        "OverseerOverrideNote": "Choose inhabitants yourself (drag denizens from the compendium onto the scene). No automatic roster is generated for this type.",
+        "OverseerOverrideNote": "Choose inhabitants yourself (drag actors onto the scene). No automatic roster is generated for this type.",
         "ActorOpenFailed": "Could not open that actor.",
         "DragHint": "Click to open actor; drag onto the scene to place a token.",
-        "RosterEmpty": "No matching denizens in catalog for this type and location level.",
+        "RosterEmpty": "No matching inhabitants in catalog for this type and location level.",
         "LevelShort": "Lv",
         "Types": {
           "overseerOverride": "Overseer override",
@@ -980,14 +955,14 @@
         "NoMappedGear": "No profession or demeanor gear mapped for this NPC.",
         "NoStartingGear": "No starting gear",
         "AddCombatGear": "Add combat gear",
-        "DenizenSelect": "Denizen",
-        "DenizenPlaceholder": "Choose a denizen…",
-        "DenizenPreview": "Preview — {name}",
-        "DenizenApproved": "Added combat gear",
+        "TemplateActorSelect": "Template actor",
+        "TemplateActorPlaceholder": "Choose a template actor…",
+        "TemplateActorPreview": "Preview — {name}",
+        "TemplateCombatApproved": "Added combat gear",
         "Approve": "Approve gear",
-        "NoDenizens": "No denizen actors found under Actors → Denizens of the Wasteland (non-creature, non-robot). Import denizens first.",
-        "NoDenizenItems": "That denizen has no copyable gear items on their sheet.",
-        "DenizenActorMissing": "Could not find the selected denizen actor. Re-select from the list.",
+        "NoTemplateActors": "No template actors found under Actors → Denizens of the Wasteland.",
+        "NoTemplateCombatItems": "That actor has no copyable gear items on their sheet.",
+        "TemplateActorMissing": "Could not find the selected template actor. Re-select from the list.",
         "ItemCount": "{count} items"
       },
       "Roll": {

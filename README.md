@@ -1,6 +1,6 @@
 # Wastelander
 
-A Foundry VTT module for **[Fallout: The Roleplaying Game](https://github.com/Muttley/foundryvtt-fallout)** (2d20). Character creation wizard, Wasteland Wanderer friendly NPC generator, GM Screen scavenging (locations, scene loot tables, journal), player search & AP loot rolls, optional caps/rarity filtering, combat dice, denizen import, and oracle roll-table import.
+A Foundry VTT module for **[Fallout: The Roleplaying Game](https://github.com/Muttley/foundryvtt-fallout)** (2d20). Character creation wizard, Wasteland Wanderer friendly NPC generator, GM Screen scavenging (locations, scene loot tables, journal), player search & AP loot rolls, optional caps/rarity filtering, combat dice, and oracle roll-table import.
 
 **Requires:** [Fallout 2d20 system](https://github.com/Muttley/foundryvtt-fallout) · Foundry VTT v13+
 
@@ -21,7 +21,6 @@ All copyright assets included in the module are owned by Modiphius Entertainment
   - **Loot filtering** — Optional caps or rarity limits by location level when tables are built or reset (default: no filter — “The New Vegas Option”)
   - **Scene loot tables** — Booklet tables materialized per scene (with filtering applied on build/reset); Overseers can edit rows, formulas, and items in Foundry for custom, scene-specific loot
 - **Scavenging (players)** — Search team rolls, min/AP loot on scene tables, Luck Point shifts, server-validated actions
-- **Denizen import** — Bring your own NPC actor JSON into the world for inhabitant rosters
 - **Oracle tables** — Build/import Wasteland Wanderer roll tables from your licensed PDF (local tooling)
 - **Hexcrawl travel (Overseer)** — Per-scene overworld travel on a hex grid: party speed, navigation, encounters, travel journal, per-hex terrain/covers/POIs, cross-scene links, and **scene config export/import** (JSON) — see **[Hexcrawl travel](#hexcrawl-travel-overseer)** · [full guide](docs/reference/hexcrawl-travel.md)
 - **Bundled compendiums** — Custom scavenging items and roll tables included with the module
@@ -79,9 +78,9 @@ This feature is driven by oracle roll tables from the licensed **Fallout 2d20 Wa
 
 *Step sidebar, reroll/manual pick from Wanderer tables, and roll results in chat.*
 
-![Friendly NPC generator — starting gear and denizen combat gear](assets/readme/npc-generator-combat-gear.png)
+![Friendly NPC generator — starting gear and template combat gear](assets/readme/npc-generator-combat-gear.png)
 
-*Gear step: profession/demeanor starting gear, optional denizen combat template, and **Copy AI biography prompt** before Finish.*
+*Gear step: profession/demeanor starting gear, optional combat gear from a world actor template, and **Copy AI biography prompt** before Finish.*
 
 ### Prerequisites
 
@@ -111,7 +110,7 @@ npm run build
 
 - **Generate** — Auto-rolls every step (gender d20, Wanderer tables, NPC type) and lands on **Review**.
 - **Sidebar** — Click any completed step to inspect, reroll, or pick manually from the table.
-- **Gear** — Preview profession/demeanor starting gear; optionally add combat gear from imported **Denizens of the Wasteland** actors.
+- **Gear** — Preview profession/demeanor starting gear; optionally copy combat gear from **Denizens of the Wasteland** actors in the world.
 - **Review** — Override level and NPC type (Normal / Notable / Major) before **Finish**.
 - **Finish** — Creates the actor, syncs the shared **Generated Friendly NPCs** journal, resets the wizard, and opens the new actor sheet.
 
@@ -154,7 +153,7 @@ Two scene tools (token controls):
 - **Scene-specific locations** — Each scene stores its own scavenger location, party selection, and player progress.
 - **Booklet-driven generation** — Category, scale, degree of search, problems (obstacle / hazard / inhabitants), and location level (party levels + degree + problem effects).
 - **Time taken** — Search duration by scale (1 min → 2 hours); shown on the location and used for hazards and world-clock advancement.
-- **Inhabitants** — Random counts and roster suggestions from the denizen catalog (import actors first — see **Denizen import**); drag onto the scene or override manually.
+- **Inhabitants** — Random counts and roster suggestions when an inhabitant catalog is available; drag onto the scene or override manually.
 - **Obstacles** — Block the scavenge roll until overcome (mechanical / electronic / collapsed / trap types with skill hints).
 - **Hazards** — Ongoing hazard damage tied to search time; Overseer can apply CD rolls to party members from the Current tab.
 - **GM search override** — On the Current tab, mark player search as **succeeded** or **failed**, or **reset player search** to clear progress without regenerating the location.
@@ -189,53 +188,6 @@ Scavenging can **limit loot by item value or rarity** so lower-level locations a
 - **Goal** — Reduce the chance that players find items far above what fits a low-level ruin, without hand-editing every table for every scene.
 - **Filter modes** — **Do not filter loot (The New Vegas Option)** leaves compendium tables unchanged. **Limit loot by item value (caps)** uses a quadratic level → max caps curve (bundled defaults ship with the module). **Limit loot by item rarity** uses a linear level → max rarity curve (0–6 scale; default 0.4 rarity per level).
 - **Configuration** — **Configure Settings → Module Settings → Wastelander → Loot filter mode** selects the active mode. **Configure loot value caps** and **Configure loot rarity** open the band editors for each mode. After changing the filter or regenerating a location at a new level, use **Reset loot tables** on the Loot tables tab so scene tables are rebuilt with the updated filter.
-
----
-
-## Denizen import
-
-Wastelander does **not** redistribute rulebook NPC actors. It provides an import workflow so you can bring your own Foundry actor exports into the world.
-
-### Provide actor JSON
-
-Export actors from your Fallout world (or build them yourself), then add the JSON files before building the module:
-
-1. Place Foundry actor exports in `src/data/denizens/` (gitignored — not committed to the repo).
-2. Rebuild the catalog and module bundle:
-
-```bash
-npm run build:denizens   # writes src/data/scavenging/denizens-catalog.json
-npm run build
-```
-
-3. Reload the module in Foundry. The import menu shows how many JSON files were bundled in that build.
-
-If no JSON is present at build time, import is unavailable until you add exports and rebuild.
-
-### Import to world
-
-**Configure Settings → Module Settings → Wastelander → Import denizens** (or **Import denizens…** on the Actors sidebar)
-
-- **GM only** — creates actors in the sidebar (does not auto-place tokens).
-- **Idempotent** — skips any name that already exists in the world.
-- **Your stat blocks** — imports whatever skills, gear, and abilities are in your exports.
-- **Robot-aware** — robot exports are normalized (body type, favorited weapons, post-import repair pass).
-
-After import, reload Foundry if new actors do not appear in the sidebar immediately.
-
-### Rulebook folder layout
-
-Imported actors are filed under **Denizens of the Wasteland**, matching the Core Rulebook organization (Animals and Insects, Raiders, Robots, Super Mutants, Synths, Turrets, Brotherhood of Steel, Wastelanders, and Mutated Humanoids).
-
-### Tied to scavenging
-
-The denizen **catalog** (slim metadata in `denizens-catalog.json`, built from your exports) feeds the **Scavenger Location** generator:
-
-- **Inhabitant catalog** — level, type, and size metadata for roster matching.
-- **Random inhabitant counts** — rolled when you generate a location (by scale and inhabitant type).
-- **Roster suggestions** — denizens near the location level appear on the Current tab; click to open the imported actor or **drag onto the scene** to place tokens.
-
-Run import once per world after bundling your JSON, then scavenging inhabitant workflows can link roster entries to world actors.
 
 ---
 
@@ -398,4 +350,4 @@ To refresh pack data from your Foundry world after editing compendiums, see [pac
 
 ## License
 
-See [LICENSE](LICENSE). Fallout RPG rules content and official PDF character sheets are © Modiphius Entertainment; this module does not redistribute them. Denizen actor JSON is supplied by the module user at build time; the module does not ship rulebook NPC stat blocks.
+See [LICENSE](LICENSE). Fallout RPG rules content and official PDF character sheets are © Modiphius Entertainment; this module does not redistribute them.

@@ -31,8 +31,8 @@ import {
   inhabitantTypeLabel,
 } from "./inhabitantRules.js";
 import { formatLootCategoryLabel } from "./lootGrid.js";
-import { loadDenizens } from "./loadDenizens.js";
-import { openActorByUuid, startActorDrag } from "./resolveDenizenActor.js";
+import { loadInhabitantCatalog } from "./inhabitantCatalogProvider.js";
+import { openActorByUuid, startActorDrag } from "./resolveInhabitantActor.js";
 import {
   getDegreeReductionPoints,
   getSearchDifficulty,
@@ -454,8 +454,8 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
       this.#form.problems.inhabitantType = inhabitantType;
     }
 
-    const denizenCatalog = await loadDenizens();
-    const denizenCatalogSize = denizenCatalog.length;
+    const inhabitantCatalog = await loadInhabitantCatalog();
+    const inhabitantCatalogSize = inhabitantCatalog.length;
 
     const inhabitantTypeOptions = INHABITANT_TYPE_OPTIONS.map((value) => ({
       value,
@@ -488,7 +488,7 @@ export default class ScavengerLocationApp extends HandlebarsApplicationMixin(
           ? t(`WASTELANDER.Scavenging.Inhabitants.Size.${r.npcSize}`)
           : "",
       })),
-      denizenDataOk: denizenCatalogSize > 0,
+      inhabitantCatalogOk: inhabitantCatalogSize > 0,
       rosterEmpty:
         Boolean(inh) && !isOverseerOverride && (inh?.roster.length ?? 0) === 0,
     };

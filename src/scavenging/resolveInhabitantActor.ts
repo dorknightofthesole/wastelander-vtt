@@ -12,11 +12,11 @@ function normalizeName(name: string): string {
   return name.trim().toLowerCase();
 }
 
-type DenizenActorType = "npc" | "creature" | "robot";
+type InhabitantActorType = "npc" | "creature" | "robot";
 
 function findWorldActorUuid(
   name: string,
-  actorType?: DenizenActorType,
+  actorType?: InhabitantActorType,
 ): string | null {
   const lower = normalizeName(name);
   const actors = (game as { actors?: { values: () => Iterable<Actor> } }).actors;
@@ -31,7 +31,7 @@ function findWorldActorUuid(
 
 async function findCompendiumActorUuid(
   name: string,
-  actorType?: DenizenActorType,
+  actorType?: InhabitantActorType,
 ): Promise<string | null> {
   for (const packId of FALLOUT_ACTOR_PACK_IDS) {
     const uuid = await findCompendiumUuidByName(packId, name, actorType);
@@ -56,9 +56,9 @@ async function findCompendiumActorUuid(
 }
 
 /** World actor first, then Fallout compendiums (exact name). */
-export async function findActorUuidForDenizen(
+export async function findActorUuidForInhabitant(
   name: string,
-  foundryActorType: DenizenActorType,
+  foundryActorType: InhabitantActorType,
 ): Promise<string | null> {
   return (
     findWorldActorUuid(name, foundryActorType) ??

@@ -38,8 +38,5 @@ When working in Cursor, attach or reference these paths if the agent needs to ve
 | `src/data/perk-companion-statblocks.json` | Companion profiles printed beside perks (e.g. Dogmeat) |
 | `docs/fallout-character-wizard.plan.md` | Wizard scope and step list |
 | `src/data/scavenging/**` | Scavenger location generator (creation + loot JSON) |
-| `src/data/denizens/*.json` | Raw Foundry actor exports (gitignored; source for rebuild only) |
-| `src/data/scavenging/denizens-catalog.json` | **Committed** slim catalog (name, level, type, Big/Little) — reload via `npm run build:denizens` |
-| `src/data/scavenging/denizens-catalog.example.json` | Fallback if catalog missing at runtime (dev/CI) |
 
 Fallout **items** (traits, perks, skills, gear) resolve from the [foundryvtt-fallout](https://github.com/Muttley/foundryvtt-fallout) compendiums at runtime. Companion stat blocks are not always present in the compendium perk description, so we mirror the rulebook in `perk-companion-statblocks.json`.

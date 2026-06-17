@@ -5,10 +5,10 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
+    "build:denizens": "node --experimental-strip-types extensions/denizens-import/scripts/build-denizens-catalog.mjs",
     "dev": "vite build --watch",
     "prepare": "npm run build",
     "list-pdf-fields": "node scripts/list-pdf-fields.mjs",
-    "build:denizens": "node --experimental-strip-types scripts/build-denizens-catalog.mjs",
     "build:oracle": "node scripts/build-oracle-rolltables.mjs",
     "build:oracle:list": "node scripts/build-oracle-rolltables.mjs --list",
     "extract:oracle": "node scripts/extract-oracle-manifests.mjs",
