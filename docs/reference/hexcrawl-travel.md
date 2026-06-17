@@ -27,6 +27,10 @@ On each new hex:
 - **Wasteland Travels** journal updates (one page per scene)
 - A **travel trail** border appears on that hex (see below)
 
+![Travel trail, POI discovery, and journal on Concord Region](../../assets/readme/hexcrawl-trail-poi.png)
+
+*Orange trail borders on visited hexes, a discovered settlement POI, and travel journal entries in chat.*
+
 ## Travel trail (map overlay)
 
 When hexcrawl is enabled on a hex scene, traveled hexes show an amber **border-only** outline aligned to Foundry's hex grid. The overlay sits below tokens and is not selectable.
@@ -43,6 +47,12 @@ When hexcrawl is enabled on a hex scene, traveled hexes show an amber **border-o
 Trail state is stored in scene flags as `traveledHexKeys` and syncs to all connected clients when travel state updates. The starting hex is always outlined when set, even if it was not yet visited during travel. Revisiting a hex does not duplicate its border.
 
 Overseers can change **Travel trail color** in the Scene tab under Travel settings; the new color applies immediately to all outlined hexes on the map.
+
+Enable **Show hex coordinates on map** (Scene tab) to label each cell for map editing and cross-scene alignment.
+
+![Hex coordinate labels on the overworld grid](../../assets/readme/hexcrawl-hex-coords.png)
+
+*Per-hex coordinates (e.g. `14,15`) at the bottom of each cell.*
 
 ## Terrain and travel speed
 
@@ -65,6 +75,10 @@ Overseers can open the **Map** tab, click a hex on the canvas, and:
 **POI fog of war:** Players do not see POI icons until the party travel token **enters** that hex. Once discovered, the icon stays visible even after the token leaves. Overseers always see all POI icons (including undiscovered) for map editing. Terrain badges are always visible to everyone.
 
 **Hex cover:** A solid fill blocks the hex map background for players until they enter that hex; the cover stays off after that (terrain badges and POI icons still follow their own rules). Overseers always see covers and can set each hex's color (default gray `#808080`).
+
+![Hex hide covers on Concord Region](../../assets/readme/hexcrawl-hex-covers.png)
+
+*Solid per-hex covers hide unexplored map detail; entered hexes and POI markers remain visible.*
 
 Per-hex data is stored in scene flags as `hexAnnotations` and `hiddenTrailHexKeys`. Discovered POI hex keys are stored in `discoveredPoiHexKeys`. Entering a hex with the travel token deletes that hex's cover from `hexAnnotations` (not merely hidden). Cross-scene travel keeps each scene's own hex map data.
 
@@ -133,3 +147,39 @@ Export filename pattern: `hexcrawl-{scene-slug}-{date}.json`.
 ## Deferred
 
 Camping watches and player Survival assist UI are not in MVP.
+
+## UI gallery
+
+Click a thumbnail for the full-size image.
+
+<table>
+  <tr>
+    <td width="50%" align="center" valign="top">
+      <a href="../../assets/readme/hexcrawl-ui-scene-tab.png"><img src="../../assets/readme/hexcrawl-ui-scene-tab.png" alt="Scene Hexcrawl tab" width="100%" /></a><br /><em>Scene tab — progress, travel settings, and footer actions</em>
+    </td>
+    <td width="50%" align="center" valign="top">
+      <a href="../../assets/readme/hexcrawl-ui-party.png"><img src="../../assets/readme/hexcrawl-ui-party.png" alt="Party tab" width="100%" /></a><br /><em>Party tab — navigator, pace, and max-hours roles</em>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center" valign="top">
+      <a href="../../assets/readme/hexcrawl-ui-map-hex-cover.png"><img src="../../assets/readme/hexcrawl-ui-map-hex-cover.png" alt="Map tab hex cover" width="100%" /></a><br /><em>Map tab — per-hex terrain, cover color, and trail hide</em>
+    </td>
+    <td width="50%" align="center" valign="top">
+      <a href="../../assets/readme/hexcrawl-ui-map-canvas.png"><img src="../../assets/readme/hexcrawl-ui-map-canvas.png" alt="Map tab with canvas" width="100%" /></a><br /><em>Map tab with canvas — hex cover on water, trail, and POIs</em>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center" valign="top">
+      <a href="../../assets/readme/hexcrawl-ui-poi-icon.png"><img src="../../assets/readme/hexcrawl-ui-poi-icon.png" alt="POI icon picker" width="100%" /></a><br /><em>POI icons — custom settlement marker on a hex</em>
+    </td>
+    <td width="50%" align="center" valign="top">
+      <a href="../../assets/readme/hexcrawl-ui-scene-connections.png"><img src="../../assets/readme/hexcrawl-ui-scene-connections.png" alt="Scene connections and export" width="100%" /></a><br /><em>Scene connections, trail color, and export / import</em>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center" valign="top">
+      <a href="../../assets/readme/hexcrawl-ui-journal.png"><img src="../../assets/readme/hexcrawl-ui-journal.png" alt="Wasteland Travels journal" width="50%" /></a><br /><em>Wasteland Travels journal — per-scene travel log with encounters and hex entries</em>
+    </td>
+  </tr>
+</table>

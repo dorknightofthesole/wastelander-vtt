@@ -23,7 +23,7 @@ All copyright assets included in the module are owned by Modiphius Entertainment
 - **Scavenging (players)** — Search team rolls, min/AP loot on scene tables, Luck Point shifts, server-validated actions
 - **Denizen import** — Bring your own NPC actor JSON into the world for inhabitant rosters
 - **Oracle tables** — Build/import Wasteland Wanderer roll tables from your licensed PDF (local tooling)
-- **Hexcrawl travel (Overseer)** — Per-scene overworld travel on a hex grid: party speed, navigation, encounters, travel journal, per-hex terrain/covers/POIs, cross-scene links, and **scene config export/import** (JSON)
+- **Hexcrawl travel (Overseer)** — Per-scene overworld travel on a hex grid: party speed, navigation, encounters, travel journal, per-hex terrain/covers/POIs, cross-scene links, and **scene config export/import** (JSON) — see **[Hexcrawl travel](#hexcrawl-travel-overseer)** · [full guide](docs/reference/hexcrawl-travel.md)
 - **Bundled compendiums** — Custom scavenging items and roll tables included with the module
 
 ---
@@ -75,9 +75,13 @@ Open from any player **character** or **robot** actor sheet (Wastelander menu �
 
 This feature is driven by oracle roll tables from the licensed **Fallout 2d20 Wasteland Wanderer** book. Wastelander does not ship that book’s table text; you must own the PDF and run the local extract/build workflow before the generator can roll in Foundry.
 
-![Friendly NPC generator — Wanderer rolls, gear mappings, and denizen combat gear](assets/readme/npc-generator-gear.png)
+![Friendly NPC generator — Wanderer roll steps, chat log, and manual table picks](assets/readme/npc-generator-wanderer-rolls.png)
 
-*Gear step: profession/demeanor starting gear, optional denizen combat gear, and **Copy AI biography prompt** before Finish.*
+*Step sidebar, reroll/manual pick from Wanderer tables, and roll results in chat.*
+
+![Friendly NPC generator — starting gear and denizen combat gear](assets/readme/npc-generator-combat-gear.png)
+
+*Gear step: profession/demeanor starting gear, optional denizen combat template, and **Copy AI biography prompt** before Finish.*
 
 ### Prerequisites
 
@@ -297,7 +301,13 @@ Full command reference, layout profiles, and known extraction quirks: [docs/refe
 
 ## Hexcrawl travel (Overseer)
 
+**[Hexcrawl travel guide →](docs/reference/hexcrawl-travel.md)** — setup, map editor, cross-scene links, export/import, encounter table build, and screenshots.
+
 Per-scene **hex grid travel** for overworld maps, using GM Toolkit travel and encounter rules. Open the **route** token toolbar button on an overworld scene to manage party movement, navigation difficulty, a per-scene travel journal, map overlays (trail, terrain badges, hex hide covers, POI icons), and optional **cross-scene links** when the party crosses a map border.
+
+![Hexcrawl travel — trail, POI discovery, and journal on Concord Region](assets/readme/hexcrawl-trail-poi.png)
+
+*Overworld hex travel with visited-trail borders, discovered POI icons, and journal entries in chat.*
 
 - **Scene tab** — Enable hexcrawl, travel settings, progress, navigation, scene connections, and **Export / Import scene config** (JSON backup or sharing map templates).
 - **Party tab** — Travel party, navigator, and pace.
@@ -307,7 +317,44 @@ Player-facing party view is available when hexcrawl is enabled on the scene.
 
 **Encounter tables** require a local build from the licensed GM Toolkit PDF (same workflow as oracle tables). **Export/import** uses a JSON file you save to disk — no extra build step.
 
-Full detail (trail overlay, terrain, map editor, border travel, export/import format, and encounter table workflow): [docs/reference/hexcrawl-travel.md](docs/reference/hexcrawl-travel.md).
+Further detail: [docs/reference/hexcrawl-travel.md](docs/reference/hexcrawl-travel.md).
+
+<details>
+<summary><strong>More screenshots</strong> (click thumbnails for full size)</summary>
+
+<table>
+  <tr>
+    <td width="50%" align="center" valign="top">
+      <a href="assets/readme/hexcrawl-ui-scene-tab.png"><img src="assets/readme/hexcrawl-ui-scene-tab.png" alt="Scene Hexcrawl tab" width="100%" /></a><br /><em>Scene tab</em>
+    </td>
+    <td width="50%" align="center" valign="top">
+      <a href="assets/readme/hexcrawl-ui-party.png"><img src="assets/readme/hexcrawl-ui-party.png" alt="Party tab" width="100%" /></a><br /><em>Party tab</em>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center" valign="top">
+      <a href="assets/readme/hexcrawl-ui-map-hex-cover.png"><img src="assets/readme/hexcrawl-ui-map-hex-cover.png" alt="Map tab hex cover" width="100%" /></a><br /><em>Map editor</em>
+    </td>
+    <td width="50%" align="center" valign="top">
+      <a href="assets/readme/hexcrawl-ui-map-canvas.png"><img src="assets/readme/hexcrawl-ui-map-canvas.png" alt="Map tab with canvas" width="100%" /></a><br /><em>Map + canvas</em>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center" valign="top">
+      <a href="assets/readme/hexcrawl-ui-poi-icon.png"><img src="assets/readme/hexcrawl-ui-poi-icon.png" alt="POI icon picker" width="100%" /></a><br /><em>POI icons</em>
+    </td>
+    <td width="50%" align="center" valign="top">
+      <a href="assets/readme/hexcrawl-ui-scene-connections.png"><img src="assets/readme/hexcrawl-ui-scene-connections.png" alt="Scene connections and export" width="100%" /></a><br /><em>Connections &amp; export</em>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center" valign="top">
+      <a href="assets/readme/hexcrawl-ui-journal.png"><img src="assets/readme/hexcrawl-ui-journal.png" alt="Wasteland Travels journal" width="50%" /></a><br /><em>Travel journal</em>
+    </td>
+  </tr>
+</table>
+
+</details>
 
 ---
 

@@ -166,7 +166,16 @@ export async function addCompendiumItemToActor(
   const existing = parent.items.find(
     (item) => item.name === source.name && item.type === source.type,
   );
-  if (existing) return existing;
+  if (existing) {
+    if (options.systemOverrides && Object.keys(options.systemOverrides).length) {
+      const patch: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(options.systemOverrides)) {
+        patch[`system.${key}`] = value;
+      }
+      await existing.update(patch, SILENT);
+    }
+    return existing;
+  }
 
   const itemData = prepareCompendiumItemCreateData(source, uuid, options);
   if (!itemData.type || typeof itemData.type !== "string") {
@@ -276,10 +285,15 @@ export async function listSkillsFromCompendium(): Promise<SkillCompendiumEntry[]
 
   const results: SkillCompendiumEntry[] = [];
   for (const entry of index) {
+    const entryId = String((entry as { _id?: string })._id ?? "");
+    const indexedUuid = String((entry as { uuid?: string }).uuid ?? "");
+    const uuid =
+      indexedUuid ||
+      (entryId && typeof pack.getUuid === "function" ? pack.getUuid(entryId) : "");
     const sys = (entry as unknown as { system?: { defaultAttribute?: string } }).system;
     results.push({
-      id: String((entry as { _id?: string })._id ?? entry.name),
-      uuid: String((entry as { uuid?: string }).uuid ?? ""),
+      id: entryId || String(entry.name),
+      uuid,
       name: String(entry.name),
       defaultAttribute: normalizeAttribute(sys?.defaultAttribute),
     });

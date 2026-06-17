@@ -143,28 +143,36 @@ async function applyNpcSkills(
   stats: CharacterNpcBuildResult,
 ): Promise<void> {
   const skillEntries = await listSkillsFromCompendium();
+  const byName = new Map(skillEntries.map((entry) => [entry.name, entry]));
   const parent = getWorldActor(resolveActorId(actor));
+  const updates: Array<Record<string, unknown>> = [];
 
-  for (const entry of skillEntries) {
-    const rank = stats.skills[entry.name];
-    if (rank == null || rank <= 0) continue;
-    const tagged = stats.tagSkills.includes(entry.name);
+  for (const [skillName, rank] of Object.entries(stats.skills)) {
+    if (rank <= 0) continue;
+    const tagged = stats.tagSkills.includes(skillName);
 
     const existing = parent.items.find(
-      (item) => item.type === "skill" && item.name === entry.name,
+      (item) => item.type === "skill" && item.name === skillName,
     );
     if (existing) {
-      await Item.implementation.updateDocuments(
-        [{ _id: existing.id, "system.value": rank, "system.tag": tagged }],
-        { parent, ...SILENT },
-      );
+      updates.push({
+        _id: existing.id,
+        "system.value": rank,
+        "system.tag": tagged,
+      });
       continue;
     }
-    if (!entry.uuid) continue;
+
+    const entry = byName.get(skillName);
+    if (!entry?.uuid) continue;
     await addCompendiumItemToActor(parent, entry.uuid, {
       equipApparel: false,
       systemOverrides: { value: rank, tag: tagged },
     });
+  }
+
+  if (updates.length) {
+    await parent.updateEmbeddedDocuments("Item", updates, SILENT);
   }
 }
 
