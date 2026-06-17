@@ -322,10 +322,7 @@
       "RollEncounter": "Roll encounter (1CD)",
       "SetStartingLocation": "Set starting location",
       "ResetTravel": "Reset travel",
-      "ResetMap": {
-        "ConfirmTitle": "Reset map?",
-        "ConfirmBody": "Remove party tokens from this scene, clear the starting location and visited trail, restore hex hide covers, and hide discovered POIs again? Travel journal and day progress are kept."
-      },
+      "ResetMap": "Reset map",
       "Tabs": {
         "Scene": "Scene Hexcrawl",
         "Party": "Party",
@@ -384,6 +381,10 @@
       "Reset": {
         "ConfirmTitle": "Reset travel?",
         "ConfirmBody": "Move the navigator token back to starting hex {hex} and reset travel progress to day 1?"
+      },
+      "ResetMap": {
+        "ConfirmTitle": "Reset map?",
+        "ConfirmBody": "Remove party tokens from this scene, clear the starting location and visited trail, restore hex hide covers, and hide discovered POIs again? Travel journal and day progress are kept."
       },
       "Overtravel": {
         "ConfirmTitle": "Travel past daily limit?",
@@ -1037,29 +1038,6 @@
         "GearNotAdded": "Could not add gear item to NPC: {item}",
         "GearTableMissing": "Could not roll gear table: {table}"
       }
-    },
-    "DenizensImport": {
-      "MenuName": "Import denizen actors",
-      "MenuLabel": "Import denizens",
-      "MenuHint": "Opens the import window. Nothing is created until you click Import to world.",
-      "MenuTitle": "Import denizen actors",
-      "Intro": "Review the details below, then click Import to world to create actors under Denizens of the Wasteland.",
-      "OpenMenu": "Import denizens…",
-      "ConfirmTitle": "Import denizens?",
-      "ConfirmBody": "Create up to {count} actors in the sidebar (skips names that already exist).",
-      "Cancel": "Cancel",
-      "InProgress": "Importing denizens…",
-      "BundledCount": "{count} denizen JSON files are bundled in this build.",
-      "Hint": "Creates actors under “Denizens of the Wasteland” with rulebook subfolders (Animals and Insects, Raiders, Robots, etc.). Skips names that already exist in the world.",
-      "ReloadHint": "After importing, reload Foundry (F5 or close and reopen the world) if new actors do not appear in the Actors sidebar right away.",
-      "FolderFailed": "Could not create actor folders in the sidebar.",
-      "Run": "Import to world",
-      "RebuildHint": "Add Foundry actor exports to src/data/denizens/, then run npm run build:denizens and npm run build.",
-      "NoBundledFiles": "No denizen JSON is bundled in this build.",
-      "RequiresFallout": "The Fallout 2d20 system must be active.",
-      "GmOnly": "Only the GM can import denizens.",
-      "Done": "Denizen import finished: {created} created, {skipped} skipped (already in world), {failed} failed.",
-      "Failed": "Denizen import failed."
     }
   }
 }

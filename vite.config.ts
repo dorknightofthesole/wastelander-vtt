@@ -10,6 +10,47 @@ const EXTENSION_ENTRY = path.resolve(
 );
 const STUB_ENTRY = path.resolve(ROOT, "src/local/denizensImport.stub.ts");
 const DENIZENS_ENABLED = fs.existsSync(EXTENSION_ENTRY);
+const LANG_CORE_PATH = path.resolve(ROOT, "lang/en.core.json");
+const LANG_OUT_PATH = path.resolve(ROOT, "lang/en.json");
+
+function deepMerge<T extends Record<string, unknown>>(target: T, source: Record<string, unknown>): T {
+  for (const [key, value] of Object.entries(source)) {
+    if (
+      value &&
+      typeof value === "object" &&
+      !Array.isArray(value) &&
+      target[key] &&
+      typeof target[key] === "object" &&
+      !Array.isArray(target[key])
+    ) {
+      deepMerge(target[key] as Record<string, unknown>, value as Record<string, unknown>);
+    } else {
+      target[key] = value as T[Extract<keyof T, string>];
+    }
+  }
+  return target;
+}
+
+function buildLangFile(): void {
+  const core = JSON.parse(fs.readFileSync(LANG_CORE_PATH, "utf8")) as Record<
+    string,
+    unknown
+  >;
+  const merged = structuredClone(core);
+
+  if (DENIZENS_ENABLED) {
+    const extLangPath = path.join(EXTENSION_DIR, "lang/en.json");
+    if (fs.existsSync(extLangPath)) {
+      const ext = JSON.parse(fs.readFileSync(extLangPath, "utf8")) as Record<
+        string,
+        unknown
+      >;
+      deepMerge(merged, ext);
+    }
+  }
+
+  fs.writeFileSync(LANG_OUT_PATH, `${JSON.stringify(merged, null, 2)}\n`);
+}
 
 function copyDenizenTemplates(): void {
   const sourceDir = path.join(EXTENSION_DIR, "templates/denizens");
@@ -37,6 +78,7 @@ function localDenizensImportPlugin(): Plugin {
       };
     },
     buildStart() {
+      buildLangFile();
       if (!DENIZENS_ENABLED) return;
       copyDenizenTemplates();
       console.log("wastelander | bundling local denizen import from extensions/denizens-import");

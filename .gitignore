@@ -17,6 +17,7 @@ src/data/denizens/*.json
 # Local-only denizen import extension (actor exports + full catalog — not on GitHub)
 extensions/denizens-import/
 templates/denizens/
+lang/en.json
 
 # Wasteland Wanderer oracle roll tables (licensed book text — local build only)
 scripts/oracle/manifests/*.json

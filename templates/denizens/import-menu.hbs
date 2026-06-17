@@ -1,20 +1,20 @@
 <div class="wastelander-denizen-import-layout">
   <div class="wastelander-denizen-import">
-    <p class="wastelander-denizen-import-intro">{{localize "WASTELANDER_DENIZENS.Import.Intro"}}</p>
+    <p class="wastelander-denizen-import-intro">{{localize "WASTELANDER.DenizensImport.Intro"}}</p>
 
     {{#unless falloutSystem}}
-      <p class="wastelander-scavenger-warning">{{localize "WASTELANDER_DENIZENS.Import.RequiresFallout"}}</p>
+      <p class="wastelander-scavenger-warning">{{localize "WASTELANDER.DenizensImport.RequiresFallout"}}</p>
     {{else}}
       {{#unless isGm}}
-        <p class="wastelander-scavenger-warning">{{localize "WASTELANDER_DENIZENS.Import.GmOnly"}}</p>
+        <p class="wastelander-scavenger-warning">{{localize "WASTELANDER.DenizensImport.GmOnly"}}</p>
       {{else}}
         {{#if hasBundled}}
-          <p>{{localize "WASTELANDER_DENIZENS.Import.BundledCount" count=bundledCount}}</p>
-          <p class="wastelander-scavenger-hint">{{localize "WASTELANDER_DENIZENS.Import.Hint"}}</p>
-          <p class="wastelander-scavenger-hint">{{localize "WASTELANDER_DENIZENS.Import.ReloadHint"}}</p>
+          <p>{{localize "WASTELANDER.DenizensImport.BundledCount" count=bundledCount}}</p>
+          <p class="wastelander-scavenger-hint">{{localize "WASTELANDER.DenizensImport.Hint"}}</p>
+          <p class="wastelander-scavenger-hint">{{localize "WASTELANDER.DenizensImport.ReloadHint"}}</p>
         {{else}}
-          <p class="wastelander-scavenger-warning">{{localize "WASTELANDER_DENIZENS.Import.NoBundledFiles"}}</p>
-          <p class="wastelander-scavenger-hint">{{localize "WASTELANDER_DENIZENS.Import.RebuildHint"}}</p>
+          <p class="wastelander-scavenger-warning">{{localize "WASTELANDER.DenizensImport.NoBundledFiles"}}</p>
+          <p class="wastelander-scavenger-hint">{{localize "WASTELANDER.DenizensImport.RebuildHint"}}</p>
         {{/if}}
       {{/unless}}
     {{/unless}}
@@ -22,10 +22,10 @@
 
   <footer class="wastelander-denizen-import-footer">
     {{#if importing}}
-      <p class="wastelander-scavenger-hint"><i class="fas fa-spinner fa-spin" aria-hidden="true"></i> {{localize "WASTELANDER_DENIZENS.Import.InProgress"}}</p>
+      <p class="wastelander-scavenger-hint"><i class="fas fa-spinner fa-spin" aria-hidden="true"></i> {{localize "WASTELANDER.DenizensImport.InProgress"}}</p>
     {{else}}
       <button type="button" class="wastelander-btn-primary" data-action="runImport" {{#unless canImport}}disabled{{/unless}}>
-        <i class="fas fa-file-import" aria-hidden="true"></i> {{localize "WASTELANDER_DENIZENS.Import.Run"}}
+        <i class="fas fa-file-import" aria-hidden="true"></i> {{localize "WASTELANDER.DenizensImport.Run"}}
       </button>
     {{/if}}
   </footer>
