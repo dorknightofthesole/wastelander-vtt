@@ -312,6 +312,113 @@ describe("prepareHexcrawlStateForSave", () => {
     const merged = prepareHexcrawlStateForSave(pending, sceneId);
     expect(merged.hexAnnotations).toEqual({});
   });
+
+  it("preserves cleared inherited destination cache over stale on-disk value", () => {
+    const sceneId = "dest-scene";
+    const staleInherited = {
+      name: "Megaton",
+      hexKey: "0,0",
+      sourceSceneId: "scene-south",
+      sourceSceneName: "Southern Wastes",
+    };
+    const fresh = {
+      ...defaultHexcrawlState(sceneId),
+      mapDestination: { hexKey: "5,5", name: "Local Goal" },
+      inheritedProgressDestination: staleInherited,
+    };
+    const pending = {
+      ...fresh,
+      inheritedProgressDestination: null as typeof staleInherited | null,
+    };
+
+    const game = globalThis.game as {
+      scenes?: { get: (id: string) => { getFlag?: (scope: string, key: string) => unknown } | undefined };
+      world?: { getFlag?: (scope: string, key: string) => unknown };
+    };
+    game.scenes = {
+      get: (id: string) =>
+        id === sceneId ? { getFlag: () => ({ ...fresh, version: 1 }) } : undefined,
+    };
+    game.world = { getFlag: () => null };
+
+    const merged = prepareHexcrawlStateForSave(pending, sceneId);
+    expect(merged.inheritedProgressDestination).toBeNull();
+    expect(merged.mapDestination).toEqual({ hexKey: "5,5", name: "Local Goal" });
+  });
+
+  it("clears mapDestinationReached when pending clears the destination marker", () => {
+    const sceneId = "dest-scene";
+    const fresh = {
+      ...defaultHexcrawlState(sceneId),
+      mapDestination: { hexKey: "4,4", name: "Settlement" },
+      mapDestinationReached: true,
+      traveledHexKeys: ["0,0", "4,4"],
+    };
+    const pending = {
+      ...fresh,
+      mapDestination: null as typeof fresh.mapDestination,
+      mapDestinationReached: false,
+      lastHexKey: "0,0",
+      journeyLog: [
+        { at: 2, kind: "destinationReached" as const, travelDay: 1, hexKey: "4,4", note: "Settlement" },
+        ...fresh.journeyLog,
+      ],
+    };
+
+    const game = globalThis.game as {
+      scenes?: { get: (id: string) => { getFlag?: (scope: string, key: string) => unknown } | undefined };
+      world?: { getFlag?: (scope: string, key: string) => unknown };
+    };
+    game.scenes = {
+      get: (id: string) =>
+        id === sceneId ? { getFlag: () => ({ ...fresh, version: 1 }) } : undefined,
+    };
+    game.world = { getFlag: () => null };
+
+    const merged = prepareHexcrawlStateForSave(pending, sceneId);
+    expect(merged.mapDestination).toBeNull();
+    expect(merged.mapDestinationReached).toBe(false);
+  });
+
+  it("preserves zeroed hours and miles when saving destination arrival", () => {
+    const sceneId = "dest-scene";
+    const fresh = {
+      ...defaultHexcrawlState(sceneId),
+      mapDestination: { hexKey: "4,4", name: "Settlement" },
+      hoursTraveledToday: 6,
+      milesTraveledCumulative: 42,
+      traveledHexKeys: ["0,0", "4,4"],
+    };
+    const pending = {
+      ...fresh,
+      mapDestination: null as typeof fresh.mapDestination,
+      mapDestinationReached: false,
+      hoursTraveledToday: 0,
+      milesTraveledCumulative: 0,
+      startingHexKey: "4,4",
+      lastHexKey: "4,4",
+      journeyLog: [
+        { at: 2, kind: "destinationReached" as const, travelDay: 1, hexKey: "4,4", note: "Settlement" },
+      ],
+    };
+
+    const game = globalThis.game as {
+      scenes?: { get: (id: string) => { getFlag?: (scope: string, key: string) => unknown } | undefined };
+      world?: { getFlag?: (scope: string, key: string) => unknown };
+    };
+    game.scenes = {
+      get: (id: string) =>
+        id === sceneId ? { getFlag: () => ({ ...fresh, version: 1 }) } : undefined,
+    };
+    game.world = { getFlag: () => null };
+
+    const merged = prepareHexcrawlStateForSave(pending, sceneId);
+    expect(merged.hoursTraveledToday).toBe(0);
+    expect(merged.milesTraveledCumulative).toBe(0);
+    expect(merged.startingHexKey).toBe("4,4");
+    expect(merged.lastHexKey).toBe("4,4");
+    expect(merged.traveledHexKeys).toEqual(["0,0", "4,4"]);
+  });
 });
 
 describe("hexcrawlHexMap flag", () => {

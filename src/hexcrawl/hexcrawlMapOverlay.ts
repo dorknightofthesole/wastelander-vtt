@@ -90,7 +90,6 @@ type CanvasLike = {
 const MAP_CONTAINER_NAME = "wastelander-hexcrawl-map";
 const SELECTION_COLOR = 0x4fc3f7;
 const HEX_COORD_LABEL_ALPHA = 0.5;
-const MAP_DESTINATION_GLYPH = "\uf3c5";
 const MAP_DESTINATION_COLOR = 0xff5252;
 /** Overseer-only ghost alpha for hex hide cover fills. */
 const HEX_COVER_OVERSEER_ALPHA = 0.7;
@@ -341,44 +340,40 @@ function placeMapDestinationMarker(
   container: PixiContainer,
   x: number,
   y: number,
-  fontSize: number,
+  size: number,
   alpha: number,
 ): void {
-  const strokeThickness = Math.max(2, Math.round(fontSize * 0.12));
-  const PreciseText = (
-    globalThis as {
-      foundry?: {
-        canvas?: {
-          containers?: {
-            PreciseText?: new (label: string, style?: Record<string, unknown>) => PixiText;
-          };
-        };
-      };
-    }
-  ).foundry?.canvas?.containers?.PreciseText;
+  const pin = new PIXI.Graphics() as PixiGraphics & { alpha?: number; position?: { set: (x: number, y: number) => void } };
+  const headRadius = size * 0.22;
+  const headCenterY = -size * 0.28;
+  const tipY = size * 0.38;
+  const stroke = Math.max(2, Math.round(size * 0.07));
 
-  const style = {
-    fontFamily: '"Font Awesome 6 Free", FontAwesome',
-    fontSize,
-    fontWeight: "900",
-    fill: MAP_DESTINATION_COLOR,
-    stroke: 0x000000,
-    strokeThickness,
-    align: "center",
-  };
-
-  const label = PreciseText
-    ? new PreciseText(MAP_DESTINATION_GLYPH, style)
-    : typeof PIXI.Text === "function"
-      ? new PIXI.Text(MAP_DESTINATION_GLYPH, style)
-      : null;
-  if (!label) return;
-  label.anchor?.set(0.5, 0.85);
-  label.position?.set(x, y);
-  if (typeof label.alpha === "number") {
-    label.alpha = alpha;
+  if (typeof pin.lineStyle === "function" && typeof pin.beginFill === "function") {
+    pin.lineStyle(stroke, 0x000000, 1);
+    pin.beginFill(MAP_DESTINATION_COLOR, 1);
+    pin.drawCircle(0, headCenterY, headRadius);
+    pin.moveTo(-headRadius * 0.75, headCenterY + headRadius * 0.55);
+    pin.lineTo(0, tipY);
+    pin.lineTo(headRadius * 0.75, headCenterY + headRadius * 0.55);
+    pin.closePath();
+    pin.endFill?.();
+  } else {
+    pin.circle?.(0, headCenterY, headRadius);
+    pin.fill?.({ color: MAP_DESTINATION_COLOR, alpha: 1 });
+    pin.moveTo?.(-headRadius * 0.75, headCenterY + headRadius * 0.55);
+    pin.lineTo?.(0, tipY);
+    pin.lineTo?.(headRadius * 0.75, headCenterY + headRadius * 0.55);
+    pin.closePath?.();
+    pin.fill?.({ color: MAP_DESTINATION_COLOR, alpha: 1 });
+    pin.stroke?.({ width: stroke, color: 0x000000, alpha: 1 });
   }
-  container.addChild(label as unknown as PixiGraphics);
+
+  pin.position?.set(x, y);
+  if (typeof pin.alpha === "number") {
+    pin.alpha = alpha;
+  }
+  container.addChild(pin);
 }
 
 async function drawMapForState(

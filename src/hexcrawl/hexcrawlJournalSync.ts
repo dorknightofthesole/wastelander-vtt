@@ -160,13 +160,38 @@ export async function flushHexcrawlJournalSync(sceneId: string): Promise<void> {
 }
 
 export async function openHexcrawlJournalPage(sceneId: string): Promise<void> {
+  const state = loadHexcrawlSceneState(sceneId);
+  if (!state) {
+    ui.notifications.warn(t("WASTELANDER.Hexcrawl.Notify.JournalNoState"));
+    return;
+  }
+
   if (currentUserIsOverseer()) {
     await flushHexcrawlJournalSync(sceneId);
   }
+
   const journalId = await getWastelandTravelsJournalId();
   const journal = game.journal.get(journalId);
-  if (!journal) return;
+  if (!journal) {
+    ui.notifications.warn(t("WASTELANDER.Hexcrawl.Notify.JournalOpenFailed"));
+    return;
+  }
+
   const page = findPageForScene(journal, sceneId);
-  if (!page) return;
-  page.sheet?.render(true);
+  if (!page) {
+    ui.notifications.warn(t("WASTELANDER.Hexcrawl.Notify.JournalOpenFailed"));
+    return;
+  }
+
+  const sheet = journal.sheet as {
+    render?: (force?: boolean, options?: { pageId?: string }) => Promise<unknown>;
+    goToPage?: (pageId: string) => unknown;
+  } | null;
+  if (!sheet?.render) {
+    ui.notifications.warn(t("WASTELANDER.Hexcrawl.Notify.JournalOpenFailed"));
+    return;
+  }
+
+  await sheet.render(true, { pageId: page.id });
+  sheet.goToPage?.(page.id);
 }

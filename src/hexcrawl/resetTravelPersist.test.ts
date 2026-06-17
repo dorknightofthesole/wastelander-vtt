@@ -53,6 +53,7 @@ describe("reset travel persistence regression", () => {
     expect(loaded?.journeyLog[0]?.kind).toBe("travelReset");
     expect(loaded?.travelDay).toBe(1);
     expect(loaded?.hoursTraveledToday).toBe(0);
+    expect(loaded?.milesTraveledCumulative).toBe(0);
 
     const mainRaw = flags[MODULE_ID][HEXCRAWL_SCENE_STATE_FLAG] as {
       traveledHexKeys?: string[];

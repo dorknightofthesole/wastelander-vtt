@@ -3,6 +3,7 @@ import { getUndiscoveredPoiAlpha } from "./hexcrawlSettings.js";
 import {
   appendJourneyLog,
   loadHexcrawlSceneState,
+  saveHexcrawlSceneState,
   type HexcrawlSceneState,
   type SceneCardinal,
   type SceneLinks,
@@ -172,6 +173,20 @@ export function mapDestinationDisplayAlpha(
   return undiscoveredAlpha ?? getUndiscoveredPoiAlpha();
 }
 
+export function applyDestinationArrivalProgress(
+  state: HexcrawlSceneState,
+  arrivalHexKey: string,
+): HexcrawlSceneState {
+  const hexKey = arrivalHexKey.trim();
+  return {
+    ...state,
+    hoursTraveledToday: 0,
+    milesTraveledCumulative: 0,
+    startingHexKey: hexKey,
+    lastHexKey: hexKey,
+  };
+}
+
 export function discoverMapDestinationOnHexEntry(
   state: HexcrawlSceneState,
   hexKey: string,
@@ -180,28 +195,75 @@ export function discoverMapDestinationOnHexEntry(
   if (!destination || destination.hexKey !== hexKey) {
     return { state, arrival: null };
   }
-  if (state.mapDestinationReached) {
-    return { state, arrival: null };
-  }
 
   const arrival: MapDestinationArrival = {
     hexKey,
     name: destination.name,
   };
-  const next = appendJourneyLog(
-    {
-      ...state,
-      mapDestinationReached: true,
-    },
-    {
-      kind: "destinationReached",
-      travelDay: state.travelDay,
-      hexKey,
-      poiLabel: destination.name,
-      note: destination.name,
-    },
+  const next = invalidateInheritedProgressDestination(
+    clearMapDestination(
+      appendJourneyLog(
+        applyDestinationArrivalProgress(state, hexKey),
+        {
+          kind: "destinationReached",
+          travelDay: state.travelDay,
+          hexKey,
+          poiLabel: destination.name,
+          note: destination.name,
+        },
+      ),
+    ),
   );
   return { state: next, arrival };
+}
+
+/** Clear inherited destination labels on scenes that referenced a completed destination. */
+export async function purgeInheritedDestinationFromLinkedScenes(
+  sourceSceneId: string,
+): Promise<string[]> {
+  const updatedSceneIds: string[] = [];
+  const scenes =
+    (game as { scenes?: { contents?: Array<{ id: string }> } }).scenes?.contents ?? [];
+  for (const scene of scenes) {
+    if (scene.id === sourceSceneId) continue;
+    const state = loadHexcrawlSceneState(scene.id);
+    if (!state?.inheritedProgressDestination) continue;
+    if (state.inheritedProgressDestination.sourceSceneId !== sourceSceneId) continue;
+    const next = invalidateInheritedProgressDestination(state);
+    const saved = await saveHexcrawlSceneState(next, { writeHexMap: false });
+    if (saved) updatedSceneIds.push(scene.id);
+  }
+  return updatedSceneIds;
+}
+
+export async function handleMapDestinationArrival(params: {
+  sceneId: string;
+  tokenId: string | null;
+  state: HexcrawlSceneState;
+  arrival: MapDestinationArrival;
+}): Promise<HexcrawlSceneState> {
+  const { notifyDestinationArrived } = await import("./destinationArrivalChat.js");
+  notifyDestinationArrived(params.arrival);
+
+  const { moveTokenToHexKey } = await import("./hexcrawlTravel.js");
+  const purgedSceneIds = await purgeInheritedDestinationFromLinkedScenes(params.sceneId);
+  const { refreshHexcrawlMapOverlay } = await import("./hexcrawlMapOverlay.js");
+
+  let state = params.state;
+  if (params.tokenId) {
+    await moveTokenToHexKey(params.sceneId, params.tokenId, params.arrival.hexKey);
+  }
+
+  await refreshHexcrawlMapOverlay(params.sceneId, state);
+  for (const sceneId of purgedSceneIds) {
+    const linkedState = loadHexcrawlSceneState(sceneId);
+    if (linkedState) await refreshHexcrawlMapOverlay(sceneId, linkedState);
+  }
+
+  const { default: HexcrawlTravelApp } = await import("./HexcrawlTravelApp.js");
+  HexcrawlTravelApp.rebindForScene(params.sceneId, { force: true });
+
+  return state;
 }
 
 function sceneNameForId(sceneId: string): string {
@@ -269,38 +331,55 @@ export function ensureInheritedProgressDestinationCached(
     };
   }
 
-  const cache = state.inheritedProgressDestination;
-  if (cache && inheritedProgressDestinationStillValid(state, cache)) {
+  let next = state;
+  let changed = false;
+
+  if (
+    next.inheritedProgressDestination &&
+    !inheritedProgressDestinationStillValid(next, next.inheritedProgressDestination)
+  ) {
+    next = invalidateInheritedProgressDestination(next);
+    changed = true;
+  }
+
+  const cache = next.inheritedProgressDestination;
+  if (cache && inheritedProgressDestinationStillValid(next, cache)) {
     const refreshedName = sceneNameForId(cache.sourceSceneId);
-    if (refreshedName === cache.sourceSceneName) return { state, changed: false };
+    if (refreshedName !== cache.sourceSceneName) {
+      return {
+        state: {
+          ...next,
+          inheritedProgressDestination: { ...cache, sourceSceneName: refreshedName },
+        },
+        changed: true,
+      };
+    }
+    return { state: next, changed };
+  }
+
+  const resolved = resolveLinkedMapDestination(next.sceneLinks);
+  if (!resolved) {
+    if (!next.inheritedProgressDestination) return { state: next, changed };
     return {
-      state: {
-        ...state,
-        inheritedProgressDestination: { ...cache, sourceSceneName: refreshedName },
-      },
+      state: { ...next, inheritedProgressDestination: null },
       changed: true,
     };
   }
 
-  const resolved = resolveLinkedMapDestination(state.sceneLinks);
-  if (!resolved) {
-    if (!cache) return { state, changed: false };
-    return { state: { ...state, inheritedProgressDestination: null }, changed: true };
-  }
-
   const nextCache = inheritedCacheFromResolved(resolved);
+  const prior = next.inheritedProgressDestination;
   if (
-    cache &&
-    cache.name === nextCache.name &&
-    cache.hexKey === nextCache.hexKey &&
-    cache.sourceSceneId === nextCache.sourceSceneId &&
-    cache.sourceSceneName === nextCache.sourceSceneName
+    prior &&
+    prior.name === nextCache.name &&
+    prior.hexKey === nextCache.hexKey &&
+    prior.sourceSceneId === nextCache.sourceSceneId &&
+    prior.sourceSceneName === nextCache.sourceSceneName
   ) {
-    return { state, changed: false };
+    return { state: next, changed };
   }
 
   return {
-    state: { ...state, inheritedProgressDestination: nextCache },
+    state: { ...next, inheritedProgressDestination: nextCache },
     changed: true,
   };
 }

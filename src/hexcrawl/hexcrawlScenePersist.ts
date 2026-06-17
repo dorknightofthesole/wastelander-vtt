@@ -323,6 +323,18 @@ function coalesceSplitPayload(
   return { ...journey, ...raw, version: 1, sceneId };
 }
 
+/** Keep reached false when the pending save clears the destination marker. */
+function mergeMapDestinationReached(
+  pending: HexcrawlSceneState,
+  fresh: HexcrawlSceneState,
+  preferFreshHexMap: boolean,
+): boolean {
+  if (!preferFreshHexMap && !pending.mapDestination) {
+    return false;
+  }
+  return pending.mapDestinationReached || fresh.mapDestinationReached;
+}
+
 /**
  * Pick the travel-progress snapshot that is ahead (hooks, camp, reset vs stale UI).
  */
@@ -392,9 +404,8 @@ export function prepareHexcrawlStateForSave(
       fresh.discoveredPoiHexKeys,
     ),
     mapDestination: preferFreshHexMap ? fresh.mapDestination : pending.mapDestination,
-    mapDestinationReached: fresh.mapDestinationReached || pending.mapDestinationReached,
-    inheritedProgressDestination: pending.inheritedProgressDestination ??
-      fresh.inheritedProgressDestination,
+    mapDestinationReached: mergeMapDestinationReached(pending, fresh, preferFreshHexMap),
+    inheritedProgressDestination: pending.inheritedProgressDestination,
   };
 
   if (pending.trailCleared && pending.journeyLog.length === 0) {
@@ -443,6 +454,20 @@ export function prepareHexcrawlStateForSave(
       courseStatus: pending.courseStatus,
       baseDifficulty: pending.baseDifficulty,
       currentDifficulty: pending.currentDifficulty,
+    };
+  }
+
+  if (pending.journeyLog[0]?.kind === "destinationReached") {
+    return {
+      ...merged,
+      journeyLog: pending.journeyLog,
+      hoursTraveledToday: pending.hoursTraveledToday,
+      milesTraveledCumulative: pending.milesTraveledCumulative,
+      startingHexKey: pending.startingHexKey,
+      lastHexKey: pending.lastHexKey,
+      mapDestination: pending.mapDestination,
+      mapDestinationReached: pending.mapDestinationReached,
+      inheritedProgressDestination: pending.inheritedProgressDestination,
     };
   }
 

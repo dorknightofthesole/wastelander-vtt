@@ -668,7 +668,7 @@ export function buildCrossedSceneState(params: {
   targetExisting: HexcrawlSceneState | null;
   fromSceneId: string;
   direction: SceneCardinal;
-}): HexcrawlSceneState {
+}): { state: HexcrawlSceneState; destinationArrival: import("./hexMapDestination.js").MapDestinationArrival | null } {
   const targetBase =
     params.targetExisting ?? defaultHexcrawlState(params.targetSceneId);
   const crossedNote = `${params.fromSceneId} → ${params.targetSceneId} (${params.direction})`;
@@ -685,18 +685,18 @@ export function buildCrossedSceneState(params: {
     startingHexKey: targetBase.startingHexKey ?? params.entryHexKey,
     terrainType: targetBase.terrainType,
     hexAnnotations: targetBase.hexAnnotations,
+    hexCoverBaseline: targetBase.hexCoverBaseline,
     hiddenTrailHexKeys: targetBase.hiddenTrailHexKeys,
     discoveredPoiHexKeys: targetBase.discoveredPoiHexKeys,
+    mapDestination: targetBase.mapDestination,
+    inheritedProgressDestination: targetBase.inheritedProgressDestination,
+    showTerrainIcons: targetBase.showTerrainIcons,
+    showHexCoords: targetBase.showHexCoords,
   };
   const fog = applyHexEntryFogEffects(next, params.entryHexKey);
   if (fog.discovered) {
     void import("./poiDiscoveryChat.js").then(({ notifyPoiDiscovered }) =>
       notifyPoiDiscovered(fog.discovered!),
-    );
-  }
-  if (fog.destinationArrival) {
-    void import("./destinationArrivalChat.js").then(({ notifyDestinationArrived }) =>
-      notifyDestinationArrived(fog.destinationArrival!),
     );
   }
   next = fog.state;
@@ -708,7 +708,7 @@ export function buildCrossedSceneState(params: {
     note: crossedNote,
   });
 
-  return next;
+  return { state: next, destinationArrival: fog.destinationArrival };
 }
 
 function hexCenterForKey(hexKey: string): Point | null {
@@ -1003,7 +1003,7 @@ export async function executeSceneCrossing(params: {
   }
 
   const targetExisting = loadHexcrawlSceneState(params.targetSceneId);
-  const crossedState = buildCrossedSceneState({
+  const { state: crossedState, destinationArrival } = buildCrossedSceneState({
     source: sourceState,
     targetSceneId: params.targetSceneId,
     entryHexKey: placement.hexKey,
@@ -1013,13 +1013,27 @@ export async function executeSceneCrossing(params: {
     direction: params.direction,
   });
 
-  await saveHexcrawlSceneState(crossedState, { writeHexMap: false });
-  await moveTokenToHexKey(
-    params.targetSceneId,
-    targetTokenId,
-    placement.hexKey,
-    { x: placement.x, y: placement.y },
-  );
+  const destinationArrived = Boolean(destinationArrival);
+  const saved = await saveHexcrawlSceneState(crossedState, { writeHexMap: destinationArrived });
+  let state = saved ?? crossedState;
+
+  if (destinationArrived && destinationArrival) {
+    state = await (
+      await import("./hexMapDestination.js")
+    ).handleMapDestinationArrival({
+      sceneId: params.targetSceneId,
+      tokenId: targetTokenId,
+      state,
+      arrival: destinationArrival,
+    });
+  } else {
+    await moveTokenToHexKey(
+      params.targetSceneId,
+      targetTokenId,
+      placement.hexKey,
+      { x: placement.x, y: placement.y },
+    );
+  }
 
   ui.notifications.info(
     t("WASTELANDER.Hexcrawl.Notify.SceneCrossed", {

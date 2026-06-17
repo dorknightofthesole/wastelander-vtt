@@ -4,6 +4,7 @@ import { scavengerConfirmDialog } from "../scavenging/scavengerConfirm.js";
 import { findSceneTokenIdsForActor } from "./hexCoords.js";
 import { restoreHexCoversFromBaseline } from "./hexAnnotations.js";
 import { refreshHexcrawlMapOverlay } from "./hexcrawlMapOverlay.js";
+import { clearMapDestination } from "./hexMapDestination.js";
 import {
   appendJourneyLog,
   type HexcrawlSceneState,
@@ -13,7 +14,7 @@ import {
 export function applyResetMap(state: HexcrawlSceneState): HexcrawlSceneState {
   const restored = restoreHexCoversFromBaseline(state);
   return appendJourneyLog(
-    {
+    clearMapDestination({
       ...restored,
       startingHexKey: null,
       lastHexKey: null,
@@ -22,10 +23,12 @@ export function applyResetMap(state: HexcrawlSceneState): HexcrawlSceneState {
       hiddenTrailHexKeys: [],
       trailCleared: true,
       discoveredPoiHexKeys: [],
-      mapDestinationReached: false,
       resetTravelPending: null,
-    },
-    { kind: "mapReset", travelDay: state.travelDay },
+      hoursTraveledToday: 0,
+      travelDay: 1,
+      milesTraveledCumulative: 0,
+    }),
+    { kind: "mapReset", travelDay: 1 },
   );
 }
 

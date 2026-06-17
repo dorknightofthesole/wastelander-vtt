@@ -352,10 +352,7 @@ async function processTravelHexEntryInner(params: {
     await import("./hexMapDestination.js")
   ).discoverMapDestinationOnHexEntry(state, params.hexKey);
   state = destinationDiscovery.state;
-  if (destinationDiscovery.arrival) {
-    const { notifyDestinationArrived } = await import("./destinationArrivalChat.js");
-    notifyDestinationArrived(destinationDiscovery.arrival);
-  }
+  const destinationArrived = Boolean(destinationDiscovery.arrival);
 
   state = await applyTravelMinutes({
     state,
@@ -366,13 +363,28 @@ async function processTravelHexEntryInner(params: {
     onHexEntry: true,
   });
 
-  const saved = await saveHexcrawlSceneState(state, { writeHexMap: false });
-  const overlayState = saved ?? loadHexcrawlSceneState(params.sceneId);
-  if (overlayState) {
-    await refreshHexcrawlMapOverlay(params.sceneId, overlayState);
+  if (destinationArrived && destinationDiscovery.arrival) {
+    const { applyDestinationArrivalProgress } = await import("./hexMapDestination.js");
+    state = applyDestinationArrivalProgress(state, destinationDiscovery.arrival.hexKey);
   }
-  const { default: HexcrawlTravelApp } = await import("./HexcrawlTravelApp.js");
-  HexcrawlTravelApp.rebindForScene(params.sceneId, { force: true });
+
+  const saved = await saveHexcrawlSceneState(state, { writeHexMap: destinationArrived });
+  state = saved ?? loadHexcrawlSceneState(params.sceneId) ?? state;
+
+  if (destinationArrived && destinationDiscovery.arrival) {
+    state = await (
+      await import("./hexMapDestination.js")
+    ).handleMapDestinationArrival({
+      sceneId: params.sceneId,
+      tokenId: travelTokenId ?? params.tokenId,
+      state,
+      arrival: destinationDiscovery.arrival,
+    });
+  } else {
+    await refreshHexcrawlMapOverlay(params.sceneId, state);
+    const { default: HexcrawlTravelApp } = await import("./HexcrawlTravelApp.js");
+    HexcrawlTravelApp.rebindForScene(params.sceneId, { force: true });
+  }
 }
 
 export async function ensureHexGridForScene(sceneId: string): Promise<void> {
@@ -665,6 +677,7 @@ export function applyResetTravel(
       ...state,
       hoursTraveledToday: 0,
       travelDay: 1,
+      milesTraveledCumulative: 0,
       lastHexKey: startingHexKey,
       arrived: false,
       pendingDayEnd: false,

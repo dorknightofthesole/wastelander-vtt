@@ -281,7 +281,7 @@ describe("buildCrossedSceneState", () => {
       startingHexKey: "2,2",
     };
 
-    const next = buildCrossedSceneState({
+    const { state: next } = buildCrossedSceneState({
       source,
       targetSceneId: "scene-b",
       entryHexKey: "4,0",
@@ -316,7 +316,7 @@ describe("buildCrossedSceneState", () => {
       startingHexKey: "0,0",
     };
 
-    const next = buildCrossedSceneState({
+    const { state: next } = buildCrossedSceneState({
       source,
       targetSceneId: "scene-a",
       entryHexKey: "3,0",
@@ -337,5 +337,42 @@ describe("buildCrossedSceneState", () => {
         "4,0",
       ),
     ).toEqual(["4,0"]);
+  });
+
+  it("detects destination arrival when border entry hex matches the map destination", () => {
+    const source = {
+      ...defaultHexcrawlState("scene-a"),
+      enabled: true,
+      traveledHexKeys: ["0,0"],
+      hoursTraveledToday: 4,
+      milesTraveledCumulative: 24,
+      sceneLinks: { south: "scene-b" },
+    };
+    const targetExisting = {
+      ...defaultHexcrawlState("scene-b"),
+      startingHexKey: "0,0",
+      mapDestination: { hexKey: "4,0", name: "Megaton" },
+      sceneLinks: { north: "scene-a" },
+    };
+
+    const { state, destinationArrival } = buildCrossedSceneState({
+      source,
+      targetSceneId: "scene-b",
+      entryHexKey: "4,0",
+      targetTokenId: "tok-b",
+      targetExisting,
+      fromSceneId: "scene-a",
+      direction: "south",
+    });
+
+    expect(destinationArrival).toEqual({ hexKey: "4,0", name: "Megaton" });
+    expect(state.mapDestination).toBeNull();
+    expect(state.startingHexKey).toBe("4,0");
+    expect(state.lastHexKey).toBe("4,0");
+    expect(state.hoursTraveledToday).toBe(0);
+    expect(state.milesTraveledCumulative).toBe(0);
+    expect(state.traveledHexKeys).toEqual(["4,0"]);
+    expect(state.journeyLog.some((entry) => entry.kind === "destinationReached")).toBe(true);
+    expect(state.journeyLog[0]?.kind).toBe("sceneCrossed");
   });
 });

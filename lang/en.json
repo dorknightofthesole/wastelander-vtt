@@ -477,6 +477,8 @@
         "OpenFailed": "Could not open the hexcrawl travel window.",
         "DayEnd": "Maximum travel hours reached for this day.",
         "JournalSyncError": "Could not update Wasteland Travels journal: {error}",
+        "JournalNoState": "No hexcrawl travel data on this scene.",
+        "JournalOpenFailed": "Could not open Wasteland Travels for this scene.",
         "NoTravelHex": "Could not read the travel token's current hex. Select a travel token on a hex grid.",
         "NoStartingHex": "Set a starting location before resetting travel.",
         "NoNavigatorToken": "No navigator token found on this scene.",

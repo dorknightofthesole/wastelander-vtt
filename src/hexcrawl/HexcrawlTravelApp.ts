@@ -378,7 +378,6 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
       currentUserIsOverseer() &&
       (cached.changed ||
         next.travelTokenId !== loaded.travelTokenId ||
-        next.lastHexKey !== loaded.lastHexKey ||
         next.maxHoursPerDay !== loaded.maxHoursPerDay ||
         next.navigatorActorId !== loaded.navigatorActorId ||
         next.partyActorIds.join() !== loaded.partyActorIds.join())

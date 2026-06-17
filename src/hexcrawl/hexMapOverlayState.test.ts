@@ -47,7 +47,23 @@ describe("hexMapOverlayState", () => {
 
     const caughtUp = { ...staged, updatedAt: 250, hexAnnotations: {} };
     expect(resolveHexcrawlMapOverlayState(sceneId, caughtUp)).toEqual(caughtUp);
-    expect(resolveHexcrawlMapOverlayState(sceneId, caughtUp)).toEqual(caughtUp);
+  });
+
+  it("keeps showHexCoords from staged UI when the scene flag is older", () => {
+    const sceneId = "scene-c";
+    const loaded = {
+      ...defaultHexcrawlState(sceneId),
+      updatedAt: 100,
+      showHexCoords: false,
+    };
+    const staged = {
+      ...loaded,
+      updatedAt: 200,
+      showHexCoords: true,
+    };
+
+    stageHexcrawlMapOverlayState(staged);
+    expect(resolveHexcrawlMapOverlayState(sceneId, loaded)?.showHexCoords).toBe(true);
   });
 
   it("clears staged state by scene id", () => {
