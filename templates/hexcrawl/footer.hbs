@@ -1,0 +1,10 @@
+<div class="wastelander-hexcrawl-footer">
+  <button type="button" class="wastelander-btn-secondary" data-action="setStartingLocation">{{strings.setStartingLocation}}</button>
+  <button type="button" class="wastelander-btn-secondary" data-action="resetMap">{{strings.resetMap}}</button>
+  {{#if state.arrived}}
+    <button type="button" class="wastelander-btn-primary" data-action="resumeTravel">{{strings.resumeTravel}}</button>
+  {{else}}
+    <button type="button" class="wastelander-btn-primary" data-action="markArrival">{{strings.markArrival}}</button>
+  {{/if}}
+  <button type="button" class="wastelander-btn-secondary" data-action="resetTravel">{{strings.resetTravel}}</button>
+</div>

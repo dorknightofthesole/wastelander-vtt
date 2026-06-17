@@ -1,6 +1,7 @@
 {
   "name": "wastelander",
   "version": "0.1.0",
+  "description": "Foundry VTT module for Fallout: The Roleplaying Game (2d20). Character creation wizard, Wasteland Wanderer friendly NPC generator, GM Screen scavenging (locations, scene loot tables, journal), player search & AP loot rolls, optional caps/rarity filtering, combat dice, hexcrawl travel, and oracle/encounter roll-table import.",
   "private": true,
   "type": "module",
   "scripts": {

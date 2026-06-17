@@ -3,6 +3,8 @@ import { defaultHexcrawlState } from "./hexcrawlScenePersist.js";
 import {
   clearStagedHexcrawlMapOverlayState,
   resolveHexcrawlMapOverlayState,
+  resolveMapFogRevealAll,
+  setHexcrawlMapPlayerPreview,
   stageHexcrawlMapOverlayState,
 } from "./hexMapOverlayState.js";
 
@@ -98,5 +100,17 @@ describe("hexMapOverlayState", () => {
     stageHexcrawlMapOverlayState(state);
     clearStagedHexcrawlMapOverlayState(sceneId);
     expect(resolveHexcrawlMapOverlayState(sceneId, null)).toBeNull();
+  });
+
+  it("resolves map fog reveal for overseer player preview", () => {
+    setHexcrawlMapPlayerPreview(false);
+    expect(resolveMapFogRevealAll(true)).toBe(true);
+    expect(resolveMapFogRevealAll(false)).toBe(false);
+
+    setHexcrawlMapPlayerPreview(true);
+    expect(resolveMapFogRevealAll(true)).toBe(false);
+    expect(resolveMapFogRevealAll(false)).toBe(false);
+
+    setHexcrawlMapPlayerPreview(false);
   });
 });

@@ -1,6 +1,6 @@
 # Wastelander
 
-A Foundry VTT module for **[Fallout: The Roleplaying Game](https://github.com/Muttley/foundryvtt-fallout)** (2d20). Character creation wizard, Wasteland Wanderer friendly NPC generator, GM Screen scavenging (locations, scene loot tables, journal), player search & AP loot rolls, optional caps/rarity filtering, combat dice, and oracle roll-table import.
+Foundry VTT module for **[Fallout: The Roleplaying Game](https://github.com/Muttley/foundryvtt-fallout)** (2d20). Character creation wizard, Wasteland Wanderer friendly NPC generator, GM Screen scavenging (locations, scene loot tables, journal), player search & AP loot rolls, optional caps/rarity filtering, combat dice, hexcrawl travel, and oracle/encounter roll-table import.
 
 **Requires:** [Fallout 2d20 system](https://github.com/Muttley/foundryvtt-fallout) · Foundry VTT v13+
 

@@ -19,6 +19,8 @@ type CanvasLike = {
 };
 
 type PointerEventLike = {
+  button?: number;
+  pointerId?: number;
   data?: {
     getLocalPosition?: (layer: unknown) => { x: number; y: number };
   };
@@ -26,15 +28,28 @@ type PointerEventLike = {
   clientY?: number;
 };
 
-type EditorState = {
-  sceneId: string;
+export type HexMapEditorCallbacks = {
   onSelect: (hexKey: string) => void;
+  /** Drag across hexes to paint cover (additive brush). */
+  onPaintHexCover?: (hexKey: string) => void;
+  onPaintStrokeEnd?: () => void | Promise<void>;
+  paintHexCoverEnabled?: boolean;
 };
 
-const CANVAS_DOM_EVENTS = ["pointerdown", "mousedown"] as const;
+const POINTER_DOWN_EVENTS = ["pointerdown", "mousedown"] as const;
+const POINTER_MOVE_EVENTS = ["pointermove", "mousemove"] as const;
+const POINTER_UP_EVENTS = ["pointerup", "mouseup", "pointercancel"] as const;
 
 let editorState: EditorState | null = null;
 let canvasReadyHookInstalled = false;
+let pointerDown = false;
+let strokePainted = false;
+let lastPaintedKey: string | null = null;
+let activePointerId: number | null = null;
+
+type EditorState = HexMapEditorCallbacks & {
+  sceneId: string;
+};
 
 function getCanvas(): CanvasLike | null {
   return (globalThis as { canvas?: CanvasLike }).canvas ?? null;
@@ -75,44 +90,152 @@ function resolveCanvasPoint(event?: PointerEventLike): { x: number; y: number } 
   return null;
 }
 
-function handleCanvasPick(event?: PointerEventLike): void {
-  if (!editorState || !currentUserIsOverseer()) return;
+function resolveHexKey(event?: PointerEventLike): string | null {
+  if (!editorState || !currentUserIsOverseer()) return null;
 
   const canvas = getCanvas();
-  if (!canvas?.ready || !canvas.grid?.isHexagonal) return;
-  if (canvas.scene?.id !== editorState.sceneId) return;
+  if (!canvas?.ready || !canvas.grid?.isHexagonal) return null;
+  if (canvas.scene?.id !== editorState.sceneId) return null;
 
   const point = resolveCanvasPoint(event);
-  if (!point) return;
+  if (!point) return null;
+  return getHexKeyFromCanvasPoint(point);
+}
 
-  const hexKey = getHexKeyFromCanvasPoint(point);
-  if (!hexKey) return;
+function handleCanvasPick(event?: PointerEventLike): void {
+  const hexKey = resolveHexKey(event);
+  if (!hexKey || !editorState) return;
 
   setHexMapEditorSelectionState(editorState.sceneId, hexKey);
   editorState.onSelect(hexKey);
   void refreshHexcrawlMapOverlay(editorState.sceneId);
 }
 
-function onCanvasDomPointerDown(event: Event): void {
+function paintEnabled(): boolean {
+  return Boolean(
+    editorState?.onPaintHexCover && editorState.paintHexCoverEnabled !== false,
+  );
+}
+
+function paintHexAtEvent(event: PointerEventLike): void {
+  if (!pointerDown || !paintEnabled() || !editorState?.onPaintHexCover) return;
+
+  const hexKey = resolveHexKey(event);
+  if (!hexKey || hexKey === lastPaintedKey) return;
+
+  lastPaintedKey = hexKey;
+  strokePainted = true;
+  editorState.onPaintHexCover(hexKey);
+}
+
+function onPointerDown(event: Event): void {
   if (!editorState) return;
-  handleCanvasPick(event as PointerEventLike);
+  const pe = event as PointerEventLike;
+  if (pe.button !== undefined && pe.button !== 0) return;
+
+  pointerDown = true;
+  strokePainted = false;
+  lastPaintedKey = null;
+  activePointerId = pe.pointerId ?? 0;
+
+  const view = getCanvas()?.app?.view;
+  if (
+    view &&
+    "setPointerCapture" in view &&
+    typeof pe.pointerId === "number"
+  ) {
+    try {
+      view.setPointerCapture(pe.pointerId);
+    } catch {
+      /* pointer capture unsupported */
+    }
+  }
+}
+
+function onPointerMove(event: Event): void {
+  if (!pointerDown || !editorState) return;
+  const pe = event as PointerEventLike;
+  if (pe.pointerId !== undefined && pe.pointerId !== activePointerId) return;
+  paintHexAtEvent(pe);
+  if (strokePainted) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+}
+
+function finishPointerStroke(event: Event): void {
+  if (!pointerDown || !editorState) return;
+  const pe = event as PointerEventLike;
+  if (pe.pointerId !== undefined && pe.pointerId !== activePointerId) return;
+
+  pointerDown = false;
+  activePointerId = null;
+
+  const view = getCanvas()?.app?.view;
+  if (
+    view &&
+    "releasePointerCapture" in view &&
+    typeof pe.pointerId === "number"
+  ) {
+    try {
+      view.releasePointerCapture(pe.pointerId);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  if (strokePainted) {
+    void editorState.onPaintStrokeEnd?.();
+  } else {
+    handleCanvasPick(pe);
+  }
+
+  strokePainted = false;
+  lastPaintedKey = null;
 }
 
 function attachCanvasDomListeners(): void {
   const view = getCanvas()?.app?.view;
   if (!view) return;
-  for (const type of CANVAS_DOM_EVENTS) {
-    view.removeEventListener(type, onCanvasDomPointerDown, true);
-    view.addEventListener(type, onCanvasDomPointerDown, true);
+
+  for (const type of POINTER_DOWN_EVENTS) {
+    view.removeEventListener(type, onPointerDown, true);
+    view.addEventListener(type, onPointerDown, true);
   }
+  for (const type of POINTER_MOVE_EVENTS) {
+    view.removeEventListener(type, onPointerMove, true);
+    view.addEventListener(type, onPointerMove, true);
+  }
+  for (const type of POINTER_UP_EVENTS) {
+    view.removeEventListener(type, finishPointerStroke, true);
+    view.addEventListener(type, finishPointerStroke, true);
+  }
+  window.removeEventListener("pointerup", finishPointerStroke, true);
+  window.removeEventListener("mouseup", finishPointerStroke, true);
+  window.addEventListener("pointerup", finishPointerStroke, true);
+  window.addEventListener("mouseup", finishPointerStroke, true);
 }
 
 function detachCanvasDomListeners(): void {
   const view = getCanvas()?.app?.view;
-  if (!view) return;
-  for (const type of CANVAS_DOM_EVENTS) {
-    view.removeEventListener(type, onCanvasDomPointerDown, true);
+  if (view) {
+    for (const type of POINTER_DOWN_EVENTS) {
+      view.removeEventListener(type, onPointerDown, true);
+    }
+    for (const type of POINTER_MOVE_EVENTS) {
+      view.removeEventListener(type, onPointerMove, true);
+    }
+    for (const type of POINTER_UP_EVENTS) {
+      view.removeEventListener(type, finishPointerStroke, true);
+    }
   }
+  window.removeEventListener("pointerup", finishPointerStroke, true);
+  window.removeEventListener("mouseup", finishPointerStroke, true);
+
+  pointerDown = false;
+  strokePainted = false;
+  lastPaintedKey = null;
+  activePointerId = null;
 }
 
 function ensureCanvasReadyHook(): void {
@@ -130,11 +253,11 @@ export { getHexMapEditorSelection };
 
 export function enableHexMapEditor(
   sceneId: string,
-  onSelect: (hexKey: string) => void,
+  callbacks: HexMapEditorCallbacks,
 ): void {
   ensureCanvasReadyHook();
   detachCanvasDomListeners();
-  editorState = { sceneId, onSelect };
+  editorState = { sceneId, ...callbacks };
   attachCanvasDomListeners();
 }
 

@@ -1,5 +1,5 @@
 <div class="wastelander-hexcrawl-layout{{#unless isOverseer}} wastelander-hexcrawl-player-view{{/unless}}">
-  <div class="wastelander-hexcrawl-body">
+  <div class="wastelander-hexcrawl-scroll">
     {{#if journalReady}}
     <div class="wastelander-hexcrawl-journal-bar">
       <button type="button" class="wastelander-btn-secondary" data-action="openJournal">
@@ -170,6 +170,10 @@
           <span>{{strings.mapShowTerrainIcons}}</span>
         </label>
         <p class="wastelander-scavenger-hint">{{strings.mapTabHint}}</p>
+        <label class="wastelander-field-checkbox wastelander-hexcrawl-map-player-preview">
+          <input type="checkbox" name="mapPlayerPreview" {{#if mapPlayerPreview}}checked{{/if}} data-field="mapPlayerPreview" />
+          <span>{{strings.mapPlayerPreview}}</span>
+        </label>
 
         <h3>{{strings.mapSelectedHex}}</h3>
         <p class="wastelander-hexcrawl-map-selected-key">{{#if selectedHexKey}}{{selectedHexKey}}{{else}}—{{/if}}</p>
@@ -185,13 +189,6 @@
               <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
             {{/each}}
           </select>
-        </div>
-        <div class="wastelander-hexcrawl-map-trail-actions">
-          {{#if mapTrailHidden}}
-          <button type="button" class="wastelander-btn-secondary" data-action="showMapTrail">{{strings.mapShowTrail}}</button>
-          {{else}}
-          <button type="button" class="wastelander-btn-secondary" data-action="hideMapTrail">{{strings.mapHideTrail}}</button>
-          {{/if}}
         </div>
         <h4>{{strings.mapHexCover}}</h4>
         <p class="wastelander-scavenger-hint">{{strings.mapHexCoverHint}}</p>
@@ -328,16 +325,6 @@
     <button type="button" class="wastelander-btn-secondary" data-action="clearJournal" {{#unless journalHasEntries}}disabled{{/unless}}>{{strings.clearJournal}}</button>
   </div>
   {{/if}}
-  <footer class="wastelander-hexcrawl-footer">
-    <button type="button" class="wastelander-btn-secondary" data-action="setStartingLocation">{{strings.setStartingLocation}}</button>
-    <button type="button" class="wastelander-btn-secondary" data-action="resetMap">{{strings.resetMap}}</button>
-    {{#if state.arrived}}
-      <button type="button" class="wastelander-btn-primary" data-action="resumeTravel">{{strings.resumeTravel}}</button>
-    {{else}}
-      <button type="button" class="wastelander-btn-primary" data-action="markArrival">{{strings.markArrival}}</button>
-    {{/if}}
-    <button type="button" class="wastelander-btn-secondary" data-action="resetTravel">{{strings.resetTravel}}</button>
-  </footer>
   {{/if}}
   {{/if}}
 </div>

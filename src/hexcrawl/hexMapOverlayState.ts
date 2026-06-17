@@ -2,6 +2,21 @@ import type { HexcrawlSceneState } from "./hexcrawlScenePersist.js";
 
 const stagedByScene = new Map<string, HexcrawlSceneState>();
 
+/** When true, overseers see player map fog (hidden undiscovered POIs, full opacity). */
+let mapPlayerPreview = false;
+
+export function setHexcrawlMapPlayerPreview(enabled: boolean): void {
+  mapPlayerPreview = enabled;
+}
+
+export function isHexcrawlMapPlayerPreview(): boolean {
+  return mapPlayerPreview;
+}
+
+export function resolveMapFogRevealAll(isOverseer: boolean): boolean {
+  return isOverseer && !mapPlayerPreview;
+}
+
 /** Keep the latest saved/edited state for overlay draws until the scene flag catches up. */
 export function stageHexcrawlMapOverlayState(state: HexcrawlSceneState): void {
   stagedByScene.set(state.sceneId, state);

@@ -8,15 +8,13 @@ import {
   clearHexMapEdits,
   getWorldPoiIcons,
   hexHasMapEdits,
-  hideTrailForHex,
-  isTrailHiddenForHex,
   resolveTerrainForHex,
   resolveCurrentTravelTerrain,
   setHexAnnotation,
+  setHexCover,
   setHexCoverForEditor,
   setHexPoiIcon,
   toggleHexCoverForEditor,
-  unhideTrailForHex,
   normalizeHexCoverColor,
 } from "./hexAnnotations.js";
 import {
@@ -49,7 +47,10 @@ import { clearHexMapEditorSelectionState } from "./hexMapEditorState.js";
 import { setStartingLocationForScene } from "./hexcrawlStartingLocation.js";
 import { seedLastHexKeyFromTravelToken } from "./hexCoords.js";
 import { refreshHexcrawlMapOverlay } from "./hexcrawlMapOverlay.js";
-import { stageHexcrawlMapOverlayState } from "./hexMapOverlayState.js";
+import {
+  setHexcrawlMapPlayerPreview,
+  stageHexcrawlMapOverlayState,
+} from "./hexMapOverlayState.js";
 import { openHexcrawlJournalPage } from "./hexcrawlJournalSync.js";
 import {
   appendJourneyLog,
@@ -129,6 +130,8 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
   #activeTab: HexcrawlTab = "scene";
   #playerView = false;
   #selectedHexKey: string | null = null;
+  #mapPaintStrokeDirty = false;
+  #mapPlayerPreview = false;
 
   static override DEFAULT_OPTIONS = {
     id: "wastelander-hexcrawl-travel",
@@ -157,8 +160,6 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
       setMapDestination: HexcrawlTravelApp.onSetMapDestination,
       clearMapDestination: HexcrawlTravelApp.onClearMapDestination,
       toggleMapHexCover: HexcrawlTravelApp.onToggleMapHexCover,
-      hideMapTrail: HexcrawlTravelApp.onHideMapTrail,
-      showMapTrail: HexcrawlTravelApp.onShowMapTrail,
       clearMapHex: HexcrawlTravelApp.onClearMapHex,
       markLost: HexcrawlTravelApp.onMarkLost,
       exportSceneConfig: HexcrawlTravelApp.onExportSceneConfig,
@@ -169,8 +170,21 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
   static override PARTS = {
     body: {
       template: `${MODULE_PATH}/templates/hexcrawl/travel.hbs`,
+      scrollable: [".wastelander-hexcrawl-scroll"],
+    },
+    footer: {
+      template: `${MODULE_PATH}/templates/hexcrawl/footer.hbs`,
     },
   };
+
+  protected override _configureRenderOptions(options: Record<string, unknown>): void {
+    super._configureRenderOptions(options);
+    const allParts = Object.keys(HexcrawlTravelApp.PARTS);
+    const parts = (options.parts as string[] | undefined) ?? allParts;
+    if (this.#playerView || !this.#state?.enabled || !currentUserIsOverseer()) {
+      options.parts = parts.filter((part) => part !== "footer");
+    }
+  }
 
   static async renderOpen(): Promise<void> {
     const sceneId = getActiveSceneId();
@@ -324,6 +338,56 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
     }
   }
 
+  #onMapHexSelected(hexKey: string): void {
+    const prevKey = this.#selectedHexKey;
+    if (prevKey && !this.#state?.hexAnnotations[prevKey]?.hexCoverColor) {
+      captureHexCoverBrushFromPicker(this.#rootElement());
+    }
+    this.#selectMapHex(hexKey);
+    void this.render(true);
+  }
+
+  #applyPaintHexCover(hexKey: string): void {
+    if (!this.#state || !this.#sceneId) return;
+
+    captureHexCoverBrushFromPicker(this.#rootElement());
+    const color = getEffectiveLastHexCoverColor();
+    const existing = this.#state.hexAnnotations[hexKey]?.hexCoverColor;
+    if (existing === color) {
+      this.#selectedHexKey = hexKey;
+      setHexMapEditorSelectionState(this.#sceneId, hexKey);
+      return;
+    }
+
+    this.#state = setHexCoverForEditor(this.#state, hexKey, color);
+    this.#mapPaintStrokeDirty = true;
+    this.#selectedHexKey = hexKey;
+    setHexMapEditorSelectionState(this.#sceneId, hexKey);
+    stageHexcrawlMapOverlayState(this.#state);
+    void refreshHexcrawlMapOverlay(this.#sceneId, this.#state);
+  }
+
+  async #endMapPaintStroke(): Promise<void> {
+    if (!this.#mapPaintStrokeDirty || !this.#state || !this.#sceneId) return;
+    this.#mapPaintStrokeDirty = false;
+    try {
+      await this.#persistNow();
+    } catch {
+      return;
+    }
+    void this.render(true);
+  }
+
+  #setMapPlayerPreview(enabled: boolean, opts?: { render?: boolean }): void {
+    if (this.#mapPlayerPreview === enabled) return;
+    this.#mapPlayerPreview = enabled;
+    setHexcrawlMapPlayerPreview(enabled);
+    if (this.#sceneId) {
+      void refreshHexcrawlMapOverlay(this.#sceneId, this.#state ?? undefined);
+    }
+    if (opts?.render !== false) void this.render();
+  }
+
   #syncMapEditorMode(): void {
     if (!this.#sceneId || this.#playerView || this.#activeTab !== "map") {
       disableHexMapEditor();
@@ -335,13 +399,11 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
       if (seed) this.#selectMapHex(seed);
     }
 
-    enableHexMapEditor(this.#sceneId, (hexKey) => {
-      const prevKey = this.#selectedHexKey;
-      if (prevKey && !this.#state?.hexAnnotations[prevKey]?.hexCoverColor) {
-        captureHexCoverBrushFromPicker(this.#rootElement());
-      }
-      this.#selectMapHex(hexKey);
-      void this.render(true);
+    enableHexMapEditor(this.#sceneId, {
+      onSelect: (hexKey) => this.#onMapHexSelected(hexKey),
+      onPaintHexCover: (hexKey) => this.#applyPaintHexCover(hexKey),
+      onPaintStrokeEnd: () => this.#endMapPaintStroke(),
+      paintHexCoverEnabled: true,
     });
     if (this.#selectedHexKey) {
       if (getHexMapEditorSelection(this.#sceneId) !== this.#selectedHexKey) {
@@ -622,9 +684,6 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
       selectedHexMph,
       mapHexTerrainOptions,
       mapPoiIcons,
-      mapTrailHidden: selectedHexKey
-        ? isTrailHiddenForHex(state, selectedHexKey)
-        : false,
       mapHexCoverActive: Boolean(selectedHexAnnotation?.hexCoverColor),
       mapHexCoverPickerColor: resolveHexCoverPickerColor(selectedHexAnnotation?.hexCoverColor),
       mapHexCoverPreviewColor: resolveHexCoverPickerColor(selectedHexAnnotation?.hexCoverColor),
@@ -633,6 +692,7 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
       mapDestinationHex: state.mapDestination?.hexKey ?? null,
       mapDestinationOnSelectedHex:
         Boolean(selectedHexKey && state.mapDestination?.hexKey === selectedHexKey),
+      mapPlayerPreview: this.#mapPlayerPreview,
       strings: {
         enableLabel: t("WASTELANDER.Hexcrawl.EnableLabel"),
         showHexCoords: t("WASTELANDER.Hexcrawl.ShowHexCoords"),
@@ -643,8 +703,6 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
         mapSelectedHex: t("WASTELANDER.Hexcrawl.MapSelectedHex"),
         mapTerrain: t("WASTELANDER.Hexcrawl.MapTerrain"),
         mapUseDefaultTerrain: t("WASTELANDER.Hexcrawl.MapUseDefaultTerrain"),
-        mapHideTrail: t("WASTELANDER.Hexcrawl.MapHideTrail"),
-        mapShowTrail: t("WASTELANDER.Hexcrawl.MapShowTrail"),
         mapPoiIcon: t("WASTELANDER.Hexcrawl.MapPoiIcon"),
         mapPoiIconHint: t("WASTELANDER.Hexcrawl.MapPoiIconHint"),
         mapAddPoiIcon: t("WASTELANDER.Hexcrawl.MapAddPoiIcon"),
@@ -660,6 +718,7 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
         mapClearHex: t("WASTELANDER.Hexcrawl.MapClearHex"),
         mapEffectiveMph: t("WASTELANDER.Hexcrawl.MapEffectiveMph"),
         mapShowTerrainIcons: t("WASTELANDER.Hexcrawl.MapShowTerrainIcons"),
+        mapPlayerPreview: t("WASTELANDER.Hexcrawl.MapPlayerPreview"),
         terrain: t("WASTELANDER.Hexcrawl.Terrain"),
         milesTraveled: t("WASTELANDER.Hexcrawl.MilesTraveled"),
         markLost: t("WASTELANDER.Hexcrawl.MarkLost"),
@@ -784,6 +843,11 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
           (state) => ({ ...state, showTerrainIcons }),
           { render: false },
         );
+        void this.render();
+        break;
+      }
+      case "mapPlayerPreview": {
+        this.#setMapPlayerPreview((el as HTMLInputElement).checked, { render: false });
         void this.render();
         break;
       }
@@ -1069,7 +1133,9 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
     const tab = el.dataset.tab as HexcrawlTab | undefined;
     if (tab !== "scene" && tab !== "party" && tab !== "map") return;
     if (this.#activeTab === tab) return;
+    const wasMap = this.#activeTab === "map";
     this.#activeTab = tab;
+    if (wasMap && tab !== "map") this.#setMapPlayerPreview(false, { render: false });
     this.#syncMapEditorMode();
     void this.render(true);
   }
@@ -1153,18 +1219,6 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
     void this.#mutateMap((state) => toggleHexCoverForEditor(state, hexKey, color));
   }
 
-  static onHideMapTrail(this: HexcrawlTravelApp): void {
-    const hexKey = this.#resolveMapEditHexKey();
-    if (!hexKey) return;
-    void this.#mutateMap((state) => hideTrailForHex(state, hexKey));
-  }
-
-  static onShowMapTrail(this: HexcrawlTravelApp): void {
-    const hexKey = this.#resolveMapEditHexKey();
-    if (!hexKey) return;
-    void this.#mutateMap((state) => unhideTrailForHex(state, hexKey));
-  }
-
   static async onClearMapHex(this: HexcrawlTravelApp): Promise<void> {
     const hexKey = this.#resolveMapEditHexKey();
     if (!hexKey) {
@@ -1235,6 +1289,7 @@ export default class HexcrawlTravelApp extends HandlebarsApplicationMixin(
       HexcrawlTravelApp.#open = null;
     }
     disableHexMapEditor();
+    this.#setMapPlayerPreview(false, { render: false });
     if (sceneId) {
       clearHexMapEditorSelectionState(sceneId);
       const overlayState = this.#state ?? closingState;

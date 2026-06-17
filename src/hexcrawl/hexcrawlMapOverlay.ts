@@ -19,6 +19,7 @@ import {
 import {
   clearStagedHexcrawlMapOverlayState,
   resolveHexcrawlMapOverlayState,
+  resolveMapFogRevealAll,
   stageHexcrawlMapOverlayState,
 } from "./hexMapOverlayState.js";
 import { loadHexcrawlSceneState, type HexcrawlSceneState } from "./hexcrawlScenePersist.js";
@@ -418,7 +419,7 @@ async function drawMapForState(
 
   const annotationKeys = new Set(annotatedHexKeys(state));
   if (selection) annotationKeys.add(selection);
-  const revealAllMapFog = currentUserIsOverseer();
+  const revealAllMapFog = resolveMapFogRevealAll(currentUserIsOverseer());
   const gridBorder = resolveGridBorderStyle();
 
   for (const hexKey of annotationKeys) {
