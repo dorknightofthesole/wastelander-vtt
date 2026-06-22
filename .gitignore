@@ -29,6 +29,7 @@ scripts/encounters/manifests/*.json
 scripts/encounters/manifests-staging/
 src/data/encounters/*.json
 assets/tokens/*
+assets/bobbleheads/*.webp
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json

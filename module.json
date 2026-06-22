@@ -30,7 +30,7 @@
     {
       "name": "Wastelander",
       "sorting": "m",
-      "packs": ["wastelander-items", "wastelander-rollable-tables"],
+      "packs": ["wastelander-items", "wastelander-bobbleheads", "wastelander-rollable-tables"],
       "ownership": {
         "PLAYER": "OBSERVER",
         "ASSISTANT": "OWNER"
@@ -42,6 +42,17 @@
       "name": "wastelander-items",
       "label": "Wastelander Items",
       "path": "packs/wastelander-items",
+      "type": "Item",
+      "system": "fallout",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "wastelander-bobbleheads",
+      "label": "Bobbleheads",
+      "path": "packs/wastelander-bobbleheads",
       "type": "Item",
       "system": "fallout",
       "ownership": {

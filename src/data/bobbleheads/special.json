@@ -1,0 +1,9 @@
+{
+  "1. Strength Bobblehead": { "attribute": "str", "bonus": 1 },
+  "2. Perception Bobblehead": { "attribute": "per", "bonus": 1 },
+  "3. Endurance Bobblehead": { "attribute": "end", "bonus": 1 },
+  "4. Charisma Bobblehead": { "attribute": "cha", "bonus": 1 },
+  "5. Intelligence Bobblehead": { "attribute": "int", "bonus": 1 },
+  "6. Agility Bobblehead": { "attribute": "agi", "bonus": 1 },
+  "7. Luck Bobblehead": { "attribute": "luc", "bonus": 1 }
+}

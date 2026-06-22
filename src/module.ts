@@ -3,6 +3,7 @@ import {
   registerActorSheetControlHooks,
   registerActorSheetControls,
 } from "./integrations/actorSheetControls.js";
+import { registerBobbleheadBonusHooks } from "./integrations/bobbleheadBonuses.js";
 import { registerTranslations } from "./integrations/i18n.js";
 import {
   getBundledOracleRollTableCount,
@@ -41,6 +42,7 @@ Hooks.once("init", () => {
   registerNpcGeneratorHooks();
   registerOracleSettings();
   registerOptionalDenizensImport();
+  registerBobbleheadBonusHooks();
   console.log(`${MODULE_ID} | initializing`);
 });
 

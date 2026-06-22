@@ -1,10 +1,11 @@
 # Bundled compendiums
 
-Wastelander ships two Fallout compendium packs, grouped under **Wastelander** in the Compendiums sidebar:
+Wastelander ships three Fallout compendium packs, grouped under **Wastelander** in the Compendiums sidebar:
 
 | Pack | Type | Module id | Purpose |
 |------|------|-----------|---------|
 | **Wastelander Items** | Item | `wastelander.wastelander-items` | Apparel, consumables, weapons, and other custom/homebrew items |
+| **Bobbleheads** | Item | `wastelander.wastelander-bobbleheads` | SPECIAL bobblehead miscellany items (automation via Wastelander inventory bonuses) |
 | **Wastelander Rollable Tables** | RollTable | `wastelander.wastelander-rollable-tables` | Scavenging loot tables (GM Screen booklet names) |
 
 Scavenging prefers these packs when **Prefer Foundry RollTables** is enabled and when resolving loot item links.
@@ -21,6 +22,7 @@ WORLD="$HOME/Library/Application Support/FoundryVTT/Data/worlds/fallout/packs"
 REPO="packs"
 
 rsync -a --delete --exclude LOCK "$WORLD/wastelander-items/" "$REPO/wastelander-items/"
+rsync -a --delete --exclude LOCK "$WORLD/wastelander-bobbleheads/" "$REPO/wastelander-bobbleheads/"
 rsync -a --delete --exclude LOCK "$WORLD/wastelander-rollable-tables/" "$REPO/wastelander-rollable-tables/"
 ```
 

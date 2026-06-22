@@ -1039,6 +1039,14 @@
         "GearNotAdded": "Could not add gear item to NPC: {item}",
         "GearTableMissing": "Could not roll gear table: {table}"
       }
+    },
+    "Bobblehead": {
+      "Settings": {
+        "ShowBobbleheads": "Show Bobbleheads",
+        "ShowBobbleheadsHint": "When a bobblehead is added to a character inventory, show its image in a pop-out window.",
+        "ShowBobbleheadsEveryone": "To everyone",
+        "ShowBobbleheadsGmAndOwner": "Gamemaster and owning player"
+      }
     }
   }
 }

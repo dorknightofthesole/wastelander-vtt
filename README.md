@@ -1,6 +1,6 @@
 # Wastelander
 
-Foundry VTT module for **[Fallout: The Roleplaying Game](https://github.com/Muttley/foundryvtt-fallout)** (2d20). Character creation wizard, Wasteland Wanderer friendly NPC generator, GM Screen scavenging (locations, scene loot tables, journal), player search & AP loot rolls, optional caps/rarity filtering, combat dice, hexcrawl travel, and oracle/encounter roll-table import.
+Foundry VTT module for **[Fallout: The Roleplaying Game](https://github.com/Muttley/foundryvtt-fallout)** (2d20). Character creation wizard, Wasteland Wanderer friendly NPC generator, GM Screen scavenging (locations, scene loot tables, journal), player search & AP loot rolls, optional caps/rarity filtering, combat dice, hexcrawl travel, oracle/encounter roll-table import, and SPECIAL bobblehead inventory bonuses.
 
 **Requires:** [Fallout 2d20 system](https://github.com/Muttley/foundryvtt-fallout) · Foundry VTT v13+
 
@@ -23,7 +23,8 @@ All copyright assets included in the module are owned by Modiphius Entertainment
 - **Scavenging (players)** — Search team rolls, min/AP loot on scene tables, Luck Point shifts, server-validated actions
 - **Oracle tables** — Build/import Wasteland Wanderer roll tables from your licensed PDF (local tooling)
 - **Hexcrawl travel (Overseer)** — Per-scene overworld travel on a hex grid: party speed, navigation, encounters, travel journal, per-hex terrain/covers/POIs, cross-scene links, and **scene config export/import** (JSON) — see **[Hexcrawl travel](#hexcrawl-travel-overseer)** · [full guide](docs/reference/hexcrawl-travel.md)
-- **Bundled compendiums** — Custom scavenging items and roll tables included with the module
+- **SPECIAL bobbleheads** — Inventory bobbleheads apply +1 to the linked attribute via Active Effects; stash to edit base SPECIAL (e.g. Intense Training); optional acquire pop-out — see **[Bobbleheads](#bobbleheads)**
+- **Bundled compendiums** — Custom scavenging items, SPECIAL bobbleheads, and roll tables included with the module
 
 ---
 
@@ -310,14 +311,44 @@ Further detail: [docs/reference/hexcrawl-travel.md](docs/reference/hexcrawl-trav
 
 ---
 
+## Bobbleheads
+
+Wastelander ships a **Bobbleheads** item compendium and automates the Core Rulebook SPECIAL bobblehead bonus: while a bobblehead is in a **character** or **robot** actor’s inventory (and not stashed), the module applies a +1 Active Effect to that attribute.
+
+![Bobblehead compendium, inventory grant, active effect, and optional acquire pop-out](assets/media/bobblehead-items.gif)
+
+*Drag bobbleheads from **Compendiums → Wastelander → Bobbleheads** onto a PC sheet; Wastelander reconciles the linked Active Effect when the item enters inventory.*
+
+- **Recognition** — Items are matched by **exact miscellany name** (e.g. `1. Strength Bobblehead`) against the module catalog (`src/data/bobbleheads/special.json`). Compendium entries in `wastelander.wastelander-bobbleheads` use those names.
+- **Rules math** — Bonuses apply to `system.attributes.<stat>.value` so skill tests and derived stats (carry weight, melee damage, max HP, etc.) include the +1, consistent with how the Fallout system handles equipment Active Effects.
+- **Acquire pop-out** — When a bobblehead is added to inventory, an optional image pop-out uses the item’s art. **Configure Settings → Module Settings → Wastelander → Show Bobbleheads** controls visibility (default: GM and owning player only).
+- **Roll table** — **Wastelander Rollable Tables** includes **S.P.E.C.I.A.L. Bobbleheads** (`1d8`, seven weighted results) linked to the bobblehead compendium for random grants.
+
+### Stash to edit base SPECIAL (Intense Training)
+
+Fallout locks any attribute field overridden by an Active Effect. If a bobblehead is granting +1 Strength, the base **S** score on the sheet cannot be raised until that effect is removed.
+
+Wastelander treats a **stashed** bobblehead as inactive — same as removing it for bonus purposes. Use the item’s **stash** control on the inventory row (Fallout’s standard stash toggle for miscellany):
+
+1. **Stash** the bobblehead affecting the attribute you need to edit — Wastelander removes the Active Effect and the base SPECIAL field unlocks.
+2. **Raise** the base attribute (e.g. spend **Intense Training** at level-up, or edit via the SPECIAL editor).
+3. **Unstash** the bobblehead — Wastelander re-applies the +1 Active Effect on top of the new base value.
+
+No extra module UI is required; stashing and unstashing fire the normal `updateItem` hook and reconcile automatically.
+
+Bobblehead art lives under `assets/bobbleheads/` (see [assets/bobbleheads/Bobblehead-README.md](assets/bobbleheads/Bobblehead-README.md) for image sources).
+
+---
+
 ## Bundled compendiums
 
-The module includes a **Wastelander** compendium folder with two packs:
+The module includes a **Wastelander** compendium folder with three packs:
 
 | Pack | Contents |
 |------|----------|
 | **Wastelander Items** | Apparel, consumables, weapons, and related items used when scavenging resolves loot to compendium entries |
-| **Wastelander Rollable Tables** | RollTable loot tables for scavenging (booklet-style names such as ammunition, food, armor) |
+| **Bobbleheads** | SPECIAL bobblehead miscellany items (`wastelander.wastelander-bobbleheads`); names must match the automation catalog |
+| **Wastelander Rollable Tables** | RollTable loot tables for scavenging (booklet-style names such as ammunition, food, armor), plus **S.P.E.C.I.A.L. Bobbleheads** |
 
 They appear automatically when the module is enabled. When you **generate** a scavenger location, Wastelander copies the relevant booklet tables from `wastelander.wastelander-rollable-tables` into that scene’s folder (see **Scene loot tables** above). Player rolls prefer those scene documents; compendium and Fallout system tables remain the source of truth for initial builds and fallbacks.
 
@@ -332,7 +363,7 @@ To refresh pack data from your Foundry world after editing compendiums, see [pac
 | [foundryvtt-fallout](https://github.com/Muttley/foundryvtt-fallout) | **Required** — actors, compendiums, AP tracker, sheets |
 | Simple Calendar Reborn | Advance world time after scavenging |
 | Licensed Modiphius PDFs | Character sheet export; **Wasteland Wanderer** oracle extraction and NPC generator (local build) |
-| Bundled `wastelander.wastelander-items` / `wastelander.wastelander-rollable-tables` | Custom scavenging items and roll tables (included with module) |
+| Bundled `wastelander.wastelander-items` / `wastelander.wastelander-bobbleheads` / `wastelander.wastelander-rollable-tables` | Custom scavenging items, SPECIAL bobbleheads, and roll tables (included with module) |
 
 ---
 
@@ -345,6 +376,10 @@ To refresh pack data from your Foundry world after editing compendiums, see [pac
 - **Whisper loot rolls to GM** — Loot roll chat cards visible only to the GM.
 - **Advance world clock after search** — Simple Calendar integration (default on).
 - **Auto-allocate degree reductions** — Randomly apply minimum reductions when generating a location.
+
+## Module settings (bobbleheads)
+
+- **Show Bobbleheads** — When a bobblehead is added to a character inventory, show its image in a pop-out window. **Gamemaster and owning player** (default) or **To everyone**.
 
 ---
 

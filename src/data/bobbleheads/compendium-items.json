@@ -1,0 +1,135 @@
+[
+  {
+    "name": "1. Strength Bobblehead",
+    "type": "miscellany",
+    "img": "systems/fallout/assets/icons/items/miscellany.svg",
+    "system": {
+      "description": "<p>While this bobblehead is in your inventory, you gain +1 Strength.</p>",
+      "favorite": false,
+      "source": "wastelander",
+      "cost": 0,
+      "quantity": 1,
+      "rarity": 0,
+      "stashed": false,
+      "weight": 0,
+      "canBeScrapped": false,
+      "isJunk": false,
+      "effect": "+1 Strength while carried.",
+      "quantityRoll": ""
+    }
+  },
+  {
+    "name": "2. Perception Bobblehead",
+    "type": "miscellany",
+    "img": "systems/fallout/assets/icons/items/miscellany.svg",
+    "system": {
+      "description": "<p>While this bobblehead is in your inventory, you gain +1 Perception.</p>",
+      "favorite": false,
+      "source": "wastelander",
+      "cost": 0,
+      "quantity": 1,
+      "rarity": 0,
+      "stashed": false,
+      "weight": 0,
+      "canBeScrapped": false,
+      "isJunk": false,
+      "effect": "+1 Perception while carried.",
+      "quantityRoll": ""
+    }
+  },
+  {
+    "name": "3. Endurance Bobblehead",
+    "type": "miscellany",
+    "img": "systems/fallout/assets/icons/items/miscellany.svg",
+    "system": {
+      "description": "<p>While this bobblehead is in your inventory, you gain +1 Endurance.</p>",
+      "favorite": false,
+      "source": "wastelander",
+      "cost": 0,
+      "quantity": 1,
+      "rarity": 0,
+      "stashed": false,
+      "weight": 0,
+      "canBeScrapped": false,
+      "isJunk": false,
+      "effect": "+1 Endurance while carried.",
+      "quantityRoll": ""
+    }
+  },
+  {
+    "name": "4. Charisma Bobblehead",
+    "type": "miscellany",
+    "img": "systems/fallout/assets/icons/items/miscellany.svg",
+    "system": {
+      "description": "<p>While this bobblehead is in your inventory, you gain +1 Charisma.</p>",
+      "favorite": false,
+      "source": "wastelander",
+      "cost": 0,
+      "quantity": 1,
+      "rarity": 0,
+      "stashed": false,
+      "weight": 0,
+      "canBeScrapped": false,
+      "isJunk": false,
+      "effect": "+1 Charisma while carried.",
+      "quantityRoll": ""
+    }
+  },
+  {
+    "name": "5. Intelligence Bobblehead",
+    "type": "miscellany",
+    "img": "systems/fallout/assets/icons/items/miscellany.svg",
+    "system": {
+      "description": "<p>While this bobblehead is in your inventory, you gain +1 Intelligence.</p>",
+      "favorite": false,
+      "source": "wastelander",
+      "cost": 0,
+      "quantity": 1,
+      "rarity": 0,
+      "stashed": false,
+      "weight": 0,
+      "canBeScrapped": false,
+      "isJunk": false,
+      "effect": "+1 Intelligence while carried.",
+      "quantityRoll": ""
+    }
+  },
+  {
+    "name": "6. Agility Bobblehead",
+    "type": "miscellany",
+    "img": "systems/fallout/assets/icons/items/miscellany.svg",
+    "system": {
+      "description": "<p>While this bobblehead is in your inventory, you gain +1 Agility.</p>",
+      "favorite": false,
+      "source": "wastelander",
+      "cost": 0,
+      "quantity": 1,
+      "rarity": 0,
+      "stashed": false,
+      "weight": 0,
+      "canBeScrapped": false,
+      "isJunk": false,
+      "effect": "+1 Agility while carried.",
+      "quantityRoll": ""
+    }
+  },
+  {
+    "name": "7. Luck Bobblehead",
+    "type": "miscellany",
+    "img": "systems/fallout/assets/icons/items/miscellany.svg",
+    "system": {
+      "description": "<p>While this bobblehead is in your inventory, you gain +1 Luck.</p>",
+      "favorite": false,
+      "source": "wastelander",
+      "cost": 0,
+      "quantity": 1,
+      "rarity": 0,
+      "stashed": false,
+      "weight": 0,
+      "canBeScrapped": false,
+      "isJunk": false,
+      "effect": "+1 Luck while carried.",
+      "quantityRoll": ""
+    }
+  }
+]
